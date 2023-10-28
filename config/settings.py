@@ -42,9 +42,12 @@ INSTALLED_APPS = [
     # Third-party
     'allauth',
     'allauth.account',
+    "crispy_forms",
+    "crispy_bootstrap5",
 
     "accounts",
     "base",
+    "schools",
 ]
 
 MIDDLEWARE = [
@@ -167,3 +170,9 @@ ACCOUNT_USERNAME_REQUIRED = False # new
 ACCOUNT_AUTHENTICATION_METHOD = 'email' # new
 ACCOUNT_EMAIL_REQUIRED = True # new
 ACCOUNT_UNIQUE_EMAIL = True # new
+
+CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
+
+CRISPY_TEMPLATE_PACK = "bootstrap5"
+
+CSRF_TRUSTED_ORIGINS = ['http://*.127.0.0.1']
