@@ -6,12 +6,12 @@ class Department(models.Model):
 
 class School(models.Model):
     name = models.CharField(max_length=300)
-    periphery = models.CharField(max_length=300)
+    periphery = models.CharField(max_length=300, blank=True)
     department = models.ForeignKey(Department, on_delete=models.CASCADE)
-    ota_municipality = models.CharField(max_length=50)
-    education_level = models.CharField(max_length=50)
-    type = models.CharField(max_length=50)
-    legal_character = models.CharField(max_length=50)
+    ota_municipality = models.CharField(max_length=50, blank=True)
+    education_level = models.CharField(max_length=50, blank=True)
+    type = models.CharField(max_length=150, blank=True)
+    legal_character = models.CharField(max_length=50, blank=True)
 
 
 class SchoolUser(models.Model):
