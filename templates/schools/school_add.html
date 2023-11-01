@@ -6,7 +6,11 @@
   <form method="post" id="schoolForm" data-schools-url="{% url 'ajax_load_schools' %}" novalidate>
     {% csrf_token %}
 
-      {{ form|crispy}}
+    {% if error_message %}
+      <center><p><strong class="text-danger">{{ error_message }}</strong></p></center>
+    {% endif %}
+
+    {{ form|crispy}}
 
     <button type="submit" class="btn btn-primary">Save</button>
     <a href="{% url 'base:home' %}">Nevermind</a>

@@ -23,7 +23,7 @@ class SchoolUser(models.Model):
     creator = models.ForeignKey(
 	    settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     school = models.ForeignKey(School, on_delete=models.CASCADE)
-    department = models.ForeignKey(Department, on_delete=models.CASCADE, default=0)
+    department = models.ForeignKey(Department, on_delete=models.CASCADE, default=None)
     director_name = models.CharField(max_length=30)
     director_surname = models.CharField(max_length=50)
     address = models.CharField(max_length=50)

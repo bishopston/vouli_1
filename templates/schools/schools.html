@@ -1,0 +1,37 @@
+{% extends '../base/_base.html' %}
+
+{% block content %}
+
+
+<div class="my-3 mx-auto">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="table">
+                {% if my_schools %}
+                    {% for myschool in my_schools %}
+                        <div class="my-3">
+                            <table class="table table-bordered">
+                                <tbody>
+                                    <tr>
+                                        <td>ΠΕΡΙΦΕΡΕΙΑΚΗ ΔΙΕΥΘΥΝΣΗ:</td>
+                                        <td>{{myschool.department.name}}</td>												
+                                    </tr>
+                                    <tr>
+                                        <td>ΟΝΟΜΑ ΣΧΟΛΕΙΟΥ:</td>
+                                        <td>{{myschool.school.name}}</td>												
+                                    </tr>
+                                    <tr>
+                                        <td>ΔΙΕΥΘΥΝΣΗ:</td>
+                                        <td>{{myschool.address}}</td>												
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
