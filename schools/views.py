@@ -1,4 +1,4 @@
-from django.shortcuts import render, HttpResponseRedirect
+from django.shortcuts import render, HttpResponseRedirect, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.urls import reverse
 from .models import School, SchoolUser
@@ -55,3 +55,13 @@ def load_schools(request):
     department_id = request.GET.get('department')
     schools = School.objects.filter(department_id=department_id).order_by('name')
     return render(request, 'schools/school_dropdown_list_options.html', {'schools': schools})
+
+
+def SchoolUserDeleteView(request, school_id):
+    school_delete = get_object_or_404(SchoolUser, id=school_id) 
+
+    if request.method == 'POST':         
+        school_delete.delete()                    
+        return redirect('schools:schooluser_list')           
+
+    #return render(request, 'schools/schools.html', {'school_delete': school_delete})

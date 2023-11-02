@@ -3,7 +3,7 @@
 
 {% block content %}
   <h2>School Form</h2>
-  <form method="post" id="schoolForm" data-schools-url="{% url 'ajax_load_schools' %}" novalidate>
+  <form method="post" id="schoolForm" data-schools-url="{% url 'schools:ajax_load_schools' %}" novalidate>
     {% csrf_token %}
 
     {% if error_message %}
