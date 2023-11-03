@@ -31,7 +31,6 @@ class SchoolUser(models.Model):
     city = models.CharField(max_length=50)
     zipcode = models.IntegerField()
     phone = models.IntegerField()
-    email = models.EmailField(default=None)
     privacy_accepted = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

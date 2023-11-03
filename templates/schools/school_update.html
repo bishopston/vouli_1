@@ -1,0 +1,27 @@
+{% extends '../base/_base.html' %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+
+<div class="my-3 d-flex justify-content-center">
+    <div class="col-md-6">
+        <div class="d-flex flex-wrap align-content-center justify-content-center">
+            <div class="card">
+                <h5 class="card-header">{{school_update.school}}</h5>
+                <div class="card-body">
+                    <form action="{% url 'schools:schooluser_update' school_update.id %}" method="post">
+                        {% csrf_token %}
+                        {% for error in schoolUpdateForm.errors %}
+                        <center><p><strong class="text-danger">Please select a valid {{ error }} value</strong></p></center>
+                        {% endfor %} 
+                        {{ schoolUpdateForm.director_name|as_crispy_field }}
+                        {{ schoolUpdateForm.director_surname|as_crispy_field }}
+                        <button type="submit" class="btn btn-success">ΕΝΗΜΕΡΩΣΗ ΣΧΟΛΕΙΟΥ</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>   
+</div>
+
+{% endblock %}

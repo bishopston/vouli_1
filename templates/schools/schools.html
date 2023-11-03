@@ -10,7 +10,7 @@
             {% if my_schools %}
                 {% for myschool in my_schools %}
                     <div class="my-3">
-                        <div class="d-flex justify-content-center"><h5>ΣΤΟΙΧΕΙΑ ΣΧΟΛΕΙΟΥ</h5></div>
+                        <div class="d-flex justify-content-center mb-2"><h5>ΣΤΟΙΧΕΙΑ ΣΧΟΛΕΙΟΥ</h5></div>
                         <div class="row">
                         <table class="table table-bordered">
                             <tbody>
@@ -44,7 +44,7 @@
                                 </tr>
                                 <tr>
                                     <td>Email:</td>
-                                    <td>{{myschool.email}}</td>												
+                                    <td>{{user.email}}</td>												
                                 </tr>
                                 <tr>
                                     <td>ΟΝΟΜΑ ΔΙΕΥΘΥΝΤΗ:</td>
@@ -65,22 +65,23 @@
                     </div>
                     <div class="row">
                         <div class="my-1">
-                            <form action="{% url 'schools:schooluser_delete' myschool.id %}" method="post">
+                            <!--<form action="{% url 'schools:schooluser_delete' myschool.id %}" method="post">
                                 {% csrf_token %}
                                 <button type="submit" class="btn btn-danger">Delete</button>
-                            </form>
+                            </form>-->
+                            <a class="btn btn-danger me-3" href="{% url 'schools:schooluser_delete' myschool.id %}" role="button">ΔΙΑΓΡΑΦΗ</a>
+                            <a class="btn btn-success" href="{% url 'schools:schooluser_update' myschool.id %}" role="button">ΕΝΗΜΕΡΩΣΗ</a>
                         </div>
                     </div>
                 {% endfor %}
             {% else %}
                 <div class="my-3">
                     <div class="card">
-                        
                         <div class="card-body">
                         <h5 class="card-title d-flex justify-content-center">ΕΓΓΡΑΦΗ ΣΧΟΛΕΙΟΥ</h5>
                           <p class="card-text d-flex justify-content-center">Δεν έχετε προχωρήσει ακόμα σε εγγραφή κάποιου σχολείου.</p>
                           <div class="d-flex justify-content-center">
-                            <a href="{% url 'schools:schooluser_add' %}" class="btn btn-primary ">ΠΡΟΣΘΕΣΗ ΣΧΟΛΕΙΟΥ</a>
+                            <a href="{% url 'schools:schooluser_add' %}" class="btn btn-primary">ΠΡΟΣΘΕΣΗ ΣΧΟΛΕΙΟΥ</a>
                           </div>
                         </div>
                       </div>
