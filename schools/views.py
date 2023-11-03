@@ -1,6 +1,7 @@
 from django.shortcuts import render, HttpResponseRedirect, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.urls import reverse
+from django.contrib import messages
 from .models import School, SchoolUser
 from .forms import SchoolUserForm, SchoolUserUpdateForm
 
@@ -37,7 +38,7 @@ def SchoolUserCreateView(request):
             )
             if len(my_schools) == 0 and privacy_accepted_ == True:
                 school_user.save()
-                #form.save()
+                messages.success(request, 'Πραγματοποιήσατε με επιτυχία την εγγραφή σχολείου')
                 return HttpResponseRedirect(reverse('schools:schooluser_list'))
             if len(my_schools) > 0:
                 form = SchoolUserForm()
@@ -45,7 +46,7 @@ def SchoolUserCreateView(request):
             if privacy_accepted_ == False:
                 form = SchoolUserForm()
                 return render(request, 'schools/school_add.html', {'form': form, 'error_message': "Πρέπει να συναινέσετε στην πολιτική συλλογής και επεξεργασίας προσωπικών δεδομένων"})                
-
+            
         # else:
         #     form = SchoolUserForm()
 

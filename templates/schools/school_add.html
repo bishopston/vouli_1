@@ -11,41 +11,9 @@
     <div class="row">
       <form method="post" id="schoolForm" data-schools-url="{% url 'schools:ajax_load_schools' %}" novalidate>
         {% csrf_token %}
-
         {% if error_message %}
           <center><p><strong class="text-danger">{{ error_message }}</strong></p></center>
         {% endif %}
-
-        <!--{{ form|crispy}}
-        {{ form.department|as_crispy_field }}
-        {{ form.school|as_crispy_field }}
-        <div class="form-row">
-          <div class="form-group col-md-4 mb-0">
-            {{ form.address|as_crispy_field }}
-          </div>
-          <div class="form-group col-md-4 mb-0">
-            {{ form.address_number|as_crispy_field }}
-          </div>
-        </div>
-        <div class="form-row">
-          <div class="form-group col-md-4 mb-0">
-            {{ form.city|as_crispy_field }}
-          </div>
-          <div class="form-group col-md-1 mb-0">
-            {{ form.zipcode|as_crispy_field }}
-          </div>
-          <div class="form-group col-md-3 mb-0">
-            {{ form.phone|as_crispy_field }}
-          </div>
-        </div>
-        <div class="form-row">
-          <div class="form-group col-md-4 mb-0">
-            {{ form.director_name|as_crispy_field }}
-          </div>
-          <div class="form-group col-md-4 mb-0">
-            {{ form.director_surname|as_crispy_field }}
-          </div>
-        </div>-->
         <div class="col">
           {{ form.department|as_crispy_field }}
         </div>

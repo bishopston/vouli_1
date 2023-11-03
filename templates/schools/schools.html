@@ -2,7 +2,6 @@
 
 {% block content %}
 
-
 <div class="my-3 mx-auto">
     <div class="row">
         <div class="col-md-2"></div>
@@ -10,6 +9,15 @@
             {% if my_schools %}
                 {% for myschool in my_schools %}
                     <div class="my-3">
+                        <div class="success-message">
+                            {% if messages %}
+                                {% for message in messages %}
+                                    <h5 class="alert-success text-center" style="padding-top: 5px; padding-bottom: 5px;">
+                                        {{ message }}
+                                    </h5>
+                                {% endfor %}
+                             {% endif %}
+                        </div>
                         <div class="d-flex justify-content-center mb-2"><h5>ΣΤΟΙΧΕΙΑ ΣΧΟΛΕΙΟΥ</h5></div>
                         <div class="row">
                         <table class="table table-bordered">
@@ -70,7 +78,7 @@
                                 <button type="submit" class="btn btn-danger">Delete</button>
                             </form>-->
                             <a class="btn btn-danger me-3" href="{% url 'schools:schooluser_delete' myschool.id %}" role="button">ΔΙΑΓΡΑΦΗ</a>
-                            <a class="btn btn-success" href="{% url 'schools:schooluser_update' myschool.id %}" role="button">ΕΝΗΜΕΡΩΣΗ</a>
+                            <a class="btn btn-success" href="{% url 'schools:schooluser_update' myschool.id %}" role="button">ΑΛΛΑΓΗ</a>
                         </div>
                     </div>
                 {% endfor %}

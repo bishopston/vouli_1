@@ -16,7 +16,10 @@
                         {% endfor %} 
                         {{ schoolUpdateForm.director_name|as_crispy_field }}
                         {{ schoolUpdateForm.director_surname|as_crispy_field }}
-                        <button type="submit" class="btn btn-success">ΕΝΗΜΕΡΩΣΗ ΣΧΟΛΕΙΟΥ</button>
+                        <div class="d-flex justify-content-between">
+                            <button type="submit" class="btn btn-success">ΕΝΗΜΕΡΩΣΗ</button>
+                            <a href="{% url 'schools:schooluser_list' %}" class="btn btn-primary">ΑΚΥΡΟ</a>
+                        </div>
                     </form>
                 </div>
             </div>
