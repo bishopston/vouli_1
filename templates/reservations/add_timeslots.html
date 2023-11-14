@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Add Timeslots</title>
+</head>
+<body>
+    <h2>Add Timeslots for Reservation Period</h2>
+    <form method="post" action="{% url 'reservations:add_timeslots' reservation_period.id %}">
+        {% csrf_token %}
+        <input type="hidden" name="reservation_period_id" value="{{ reservation_period.id }}">
+        <table>
+            <thead>
+                <tr>
+                    <th>Day</th>
+                    <th>Time</th>
+                    <th>Available</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for day in days %}
+                    {% for hour in hours %}
+                        <tr>
+                            <td>{{ day }}</td>
+                            <td>{{ hour }}</td>
+                            <td><input type="checkbox" name="timeslots" value="{{ day }} {{ hour }}"></td>
+                        </tr>
+                    {% endfor %}
+                {% endfor %}
+            </tbody>
+        </table>
+        <button type="submit">Add Timeslots</button>
+    </form>
+</body>
+</html>

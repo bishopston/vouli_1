@@ -25,5 +25,6 @@ urlpatterns = [
 
     # Local apps
     path('', include('base.urls')),
-    path('schools/', include('schools.urls'))
+    path('schools/', include('schools.urls')),
+    path('reservations/', include('reservations.urls')),   
 ]
