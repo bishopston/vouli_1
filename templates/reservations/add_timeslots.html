@@ -1,19 +1,22 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Add Timeslots</title>
-</head>
-<body>
+{% extends '../base/_base.html' %}
+{% load crispy_forms_tags %}
+
+{% block content %}
     <h2>Add Timeslots for Reservation Period</h2>
     <form method="post" action="{% url 'reservations:add_timeslots' reservation_period.id %}">
         {% csrf_token %}
+        {% if error_message %}
+            <center><p><strong class="text-danger">{{ error_message }}</strong></p></center>
+        {% endif %}
         <input type="hidden" name="reservation_period_id" value="{{ reservation_period.id }}">
+        <input type="checkbox" id="select-all">
+        <label for="select-all">Select All</label>
         <table>
             <thead>
                 <tr>
                     <th>Day</th>
                     <th>Time</th>
-                    <th>Available</th>
+                    <th>Allowed</th>
                 </tr>
             </thead>
             <tbody>
@@ -22,6 +25,7 @@
                         <tr>
                             <td>{{ day }}</td>
                             <td>{{ hour }}</td>
+                            <!-- <td><input type="checkbox" name="timeslots" value="{{ forloop.counter }}_{{ hour }}"></td> -->
                             <td><input type="checkbox" name="timeslots" value="{{ day }} {{ hour }}"></td>
                         </tr>
                     {% endfor %}
@@ -30,5 +34,17 @@
         </table>
         <button type="submit">Add Timeslots</button>
     </form>
-</body>
-</html>
+
+    <script>
+        // JavaScript code to handle "Select All" functionality
+        document.addEventListener('DOMContentLoaded', function () {
+            document.getElementById('select-all').addEventListener('change', function () {
+                const checkboxes = document.querySelectorAll('input[name="timeslots"]');
+                checkboxes.forEach(checkbox => {
+                    checkbox.checked = document.getElementById('select-all').checked;
+                });
+            });
+        });
+    </script>
+
+{% endblock %}
