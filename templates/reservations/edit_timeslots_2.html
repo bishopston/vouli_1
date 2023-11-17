@@ -21,16 +21,16 @@
                     <table class="table table-striped table-sm">
                         <thead>
                             <tr>
-                                <th>Day</th>
-                                <th>Time</th>
-                                <th>Allowed</th>
+                                <th>Μέρα</th>
+                                <th>Ώρα</th>
+                                <th>Διαθεσιμότητα</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for timeslot in timeslots %}
                                 <tr>
-                                    <td class="{% if timeslot.is_reservation_allowed == 1 %}table-success{% endif %}">{{ timeslot.dayTime.day }}</td>
-                                    <td class="{% if timeslot.is_reservation_allowed == 1 %}table-success{% endif %}">{{ timeslot.dayTime.slot }}</td>
+                                    <td class="{% if timeslot.is_reservation_allowed == 1 %}table-success{% endif %}">{{ timeslot.dayTime.get_day_display }}</td>
+                                    <td class="{% if timeslot.is_reservation_allowed == 1 %}table-success{% endif %}">{{ timeslot.dayTime.slot|time:"H:i" }}</td>
                                     <td><input type="checkbox" name="timeslots" value="{{ timeslot.id }}" {% if timeslot.is_reservation_allowed %}checked{% endif %}></td>
                                 </tr>
                             {% endfor %}

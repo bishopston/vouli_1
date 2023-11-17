@@ -20,13 +20,13 @@
                 </tr>
             </thead>
             <tbody>
-                {% for day in days %}
-                    {% for hour in hours %}
+                {% for qs_day in qs_days %}
+                    {% for qs_slot in qs_slots %}
                         <tr>
-                            <td>{{ day }}</td>
-                            <td>{{ hour }}</td>
+                            <td>{{ qs_day.get_day_display }}</td>
+                            <td>{{ qs_slot.slot|time:"H:i" }}</td>
                             <!-- <td><input type="checkbox" name="timeslots" value="{{ forloop.counter }}_{{ hour }}"></td> -->
-                            <td><input type="checkbox" name="timeslots" value="{{ day }} {{ hour }}"></td>
+                            <td><input type="checkbox" name="timeslots" value="{{ qs_day.day }} {{ qs_slot.slot|time:"H:i:s" }}"></td>
                         </tr>
                     {% endfor %}
                 {% endfor %}

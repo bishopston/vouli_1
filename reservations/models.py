@@ -9,21 +9,21 @@ class Day(models.Model):
 # Model for defining available timeslots
 class DayTime(models.Model):
     DAY_CHOICES = [
-        ('Monday', 'Monday'),
-        ('Tuesday', 'Tuesday'),
-        ('Wednesday', 'Wednesday'),
-        ('Thursday', 'Thursday'),
-        ('Friday', 'Friday'),
-        ('Saturday', 'Saturday'),
-        ('Sunday', 'Sunday'),
+        ('a', 'Δευτέρα'),
+        ('b', 'Τρίτη'),
+        ('c', 'Τετάρτη'),
+        ('d', 'Πέμπτη'),
+        ('e', 'Παρασκευή'),
+        ('f', 'Σάββατο'),
+        ('g', 'Κυριακή'),
     ]
-    day = models.CharField(max_length=9, choices=DAY_CHOICES)
+    day = models.CharField(max_length=1, choices=DAY_CHOICES)
     slot = models.TimeField()
 
     def __str__(self):
-        return f"{self.day} - {self.slot}"
+        return f"{self.get_day_display()} - {self.slot}"
 
-class ReservationPeriod(models.Model):
+class SchoolYear(models.Model):
     start_date = models.DateField()
     end_date = models.DateField()
     name = models.CharField(max_length=100)
@@ -31,23 +31,31 @@ class ReservationPeriod(models.Model):
     def __str__(self):
         return self.name
 
+class ReservationPeriod(models.Model):
+    schoolYear = models.ForeignKey(SchoolYear, on_delete=models.CASCADE, default=None)
+    start_date = models.DateField()
+    end_date = models.DateField()
+    name = models.CharField(max_length=100)
+    is_available = models.BooleanField(default=False)
+
+    def __str__(self):
+        return self.name
+
 class Timeslot(models.Model):
     dayTime = models.ForeignKey(DayTime, on_delete=models.CASCADE)
     reservation_period = models.ForeignKey(ReservationPeriod, on_delete=models.CASCADE)
-    is_available = models.BooleanField(default=True)
     is_reservation_allowed = models.BooleanField(default=True)
 
     def __str__(self):
-        return f"{self.dayTime} - Available: {self.is_available}, Reservation Allowed: {self.is_reservation_allowed}"
+        return f"{self.dayTime}, Reservation Allowed: {self.is_reservation_allowed}"
 
 class ExceptionalRule(models.Model):
     date = models.ForeignKey(Day, on_delete=models.CASCADE)
     timeslot = models.ForeignKey(Timeslot, on_delete=models.CASCADE)
-    is_available = models.BooleanField(default=True)
     is_reservation_allowed = models.BooleanField(default=True)
 
     def __str__(self):
-        return f"{self.date} {self.timeslot} - Available: {self.is_available}, Reservation Allowed: {self.is_reservation_allowed}"
+        return f"{self.date} {self.timeslot}, Reservation Allowed: {self.is_reservation_allowed}"
 
 class Reservation(models.Model):
     reservation_date = models.ForeignKey(Day, on_delete=models.CASCADE)
