@@ -1,0 +1,7 @@
+                <form method="post" action="{% url 'your_reservation_view' %}">
+                    {% csrf_token %}
+                    <label for="reservationDateInput" class="form-label">Selected Date:</label>
+                    <input type="text" class="form-control" id="reservationDateInput" name="reservation_date" readonly>
+                    
+                    <button type="submit" class="btn btn-primary">Submit Reservation</button>
+                </form>

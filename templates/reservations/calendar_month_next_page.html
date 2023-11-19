@@ -1,0 +1,43 @@
+{% extends '../base/base_admin.html' %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+
+<div class="container mt-4">
+    <h1 class="mb-4">Calendar</h1>
+
+    <div class="d-flex justify-content-between mb-3">
+        <a href="{% url 'reservations:calendar_month_year' reservation_period_id=reservation_period_id year=prev_year month=prev_month %}" class="btn btn-primary">&lt; Previous Month</a>
+        <h2 class="current-month">{{ current_month }}</h2>
+        <a href="{% url 'reservations:calendar_month_year' reservation_period_id=reservation_period_id year=next_year month=next_month %}" class="btn btn-primary">Next Month &gt;</a>
+    </div>
+
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Mon</th>
+                <th>Tue</th>
+                <th>Wed</th>
+                <th>Thu</th>
+                <th>Fri</th>
+                <th>Sat</th>
+                <th>Sun</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for week in month_days %}
+                <tr>
+                    {% for day in week %}
+                        <td {% if day.is_vacation %}class="text-muted"{% endif %}>
+                            <a href="{% url 'reservations:reservation_form' reservation_period_id=reservation_period_id date=day.date %}">
+                                {{ day.date.day }}
+                            </a>
+                        </td>
+                    {% endfor %}
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% endblock %}

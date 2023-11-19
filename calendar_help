@@ -1,0 +1,42 @@
+>>> from reservations.models import Day, ReservationPeriod, Timeslot, DayTime
+>>> ReservationPeriod.objects.all()[0].id
+7
+>>> from django.utils import timezone
+>>> from datetime import timedelta
+>>> reservation_period = ReservationPeriod.objects.get(pk=7)
+>>> reservation_period
+<ReservationPeriod: 2023_2024_B>
+>>> start_date = reservation_period.start_date
+>>> prev_month = start_date - timedelta(days=start_date.day)
+>>> prev_month
+datetime.date(2023, 12, 31)
+>>> timedelta(days=start_date.day)
+datetime.timedelta(days=1)
+>>> timedelta(days=(32 - start_date.day))
+datetime.timedelta(days=31)
+>>> next_month = start_date + timedelta(days=(32 - start_date.day))
+>>> prev_month.month
+12
+>>> next_month.month
+2
+>>> next_month.year
+2024
+>>> prev_month.year
+2023
+>>> current_date = datetime.date(2024, 2, 1)
+Traceback (most recent call last):
+  File "<console>", line 1, in <module>
+NameError: name 'datetime' is not defined
+>>> import datetime
+>>> current_date = datetime.date(2024, 2, 1)
+>>> prev_month = current_date - timedelta(days=start_date.day)
+>>> next_month = current_date + timedelta(days=(32 - start_date.day))
+>>> prev_month.month
+1
+>>> next_month.month
+3
+>>> prev_month
+datetime.date(2024, 1, 31)
+>>> day_of_week = datetime.date(2024, 1, 31).strftime('%a')
+>>> day_of_week
+'Wed'

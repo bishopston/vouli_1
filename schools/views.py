@@ -85,3 +85,5 @@ def SchoolUserUpdateView(request, school_id):
             return redirect(reverse('schools:schooluser_list'))
 
     return render(request, 'schools/school_update.html', {'school_update':school_update, 'schoolUpdateForm': schoolUpdateForm,})
+
+

@@ -1,0 +1,85 @@
+{% extends '../base/base_admin.html' %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<div class="container mt-4">
+    <h1 class="mb-4">Calendar</h1>
+
+    <div class="d-flex justify-content-between mb-3">
+        <a href="{% url 'reservations:calendar_month_year' reservation_period_id=reservation_period_id year=prev_year month=prev_month %}" class="btn btn-primary">&lt; Previous Month</a>
+        <h2 class="current-month">{{ current_month }}</h2>
+        <a href="{% url 'reservations:calendar_month_year' reservation_period_id=reservation_period_id year=next_year month=next_month %}" class="btn btn-primary">Next Month &gt;</a>
+    </div>
+
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Mon</th>
+                <th>Tue</th>
+                <th>Wed</th>
+                <th>Thu</th>
+                <th>Fri</th>
+                <th>Sat</th>
+                <th>Sun</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for week in month_days %}
+                <tr>
+                    {% for day in week %}
+                        <td {% if day.is_vacation %}class="text-muted"{% endif %}>
+                            <span class="date" data-bs-toggle="modal" data-bs-target="#reservationModal" data-date="{{ day.date|date:'Y-m-d' }}">{{ day.date.day }}</span>
+                        </td>
+                    {% endfor %}
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="reservationModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Reservation Form</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                
+                <form method="post">
+                    {% csrf_token %}
+                    <label for="reservationDateInput" class="form-label">Selected Date:</label>
+                    <input type="text" class="form-control" id="reservationDateInput" name="reservation_date" readonly>
+                    
+                    <button type="submit" class="btn btn-primary">Submit Reservation</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Click event for date
+        var dateElements = document.querySelectorAll('.date');
+        dateElements.forEach(function (element) {
+            element.addEventListener('click', function () {
+                // Get the date value
+                var date = this.getAttribute('data-date');
+
+                // Set the date value in the modal form
+                document.getElementById('reservationDateInput').value = date;
+
+                // Show the modal
+                var modal = new bootstrap.Modal(document.getElementById('reservationModal'));
+                modal.show();
+            });
+        });
+    });
+</script>
+
+{% endblock %}
