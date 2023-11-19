@@ -1,49 +1,11 @@
 from django.shortcuts import render, redirect, HttpResponseRedirect
 from django.http import Http404
 from django.urls import reverse
+from django.contrib.auth.decorators import login_required, user_passes_test
 from .models import ReservationPeriod, Timeslot, DayTime
 
-# def add_timeslots(request, reservation_period_id):
-#     #reservation_period = ReservationPeriod.objects.get(id=reservation_period_id)
-#     try:
-#         reservation_period = ReservationPeriod.objects.get(pk=reservation_period_id)
-#     except ReservationPeriod.DoesNotExist:
-#         raise Http404("Reservation period does not exist")
-    
-#     if request.method == 'POST':
-#         timeslots = request.POST.getlist('timeslots')
-
-#         # Check for duplicate timeslots before saving
-#         for selected_timeslot in timeslots:
-            
-#             day, time = selected_timeslot.split('_')
-#             existing_timeslots = Timeslot.objects.filter(reservation_period=reservation_period, dayTime__day=day, dayTime__slot=time)
-
-
-#         if existing_timeslots.exists():
-#             return render(request.path_info, {'error_message': "Έχετε προβεί σε διπλοεγγραφή χρονοθυρίδας"})
-        
-#         else:
-#             for timeslot in timeslots:
-#                 day, hour = timeslot.split('_')
-#                 # Create Timeslot objects based on the selected checkboxes
-#                 print(f"Day: {day}, Hour: {hour}")
-#                 day_str = DayTime.DAY_CHOICES[int(day)][1]
-#                 #day_str = day.capitalize()
-#                 Timeslot.objects.create(
-#                     reservation_period=reservation_period,
-#                     dayTime = DayTime.objects.get(day=day_str, slot=hour),
-#                     is_reservation_allowed=True
-#                 )
-#         return HttpResponseRedirect(request.path_info)
-
-#     # Pass the days and hours to the template
-#     days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
-#     hours = ['09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00', '20:00']
-
-#     return render(request, 'reservations/add_timeslots.html', {'reservation_period': reservation_period, 'days': days, 'hours': hours})
-
-
+@login_required
+@user_passes_test(lambda u: u.is_superuser)
 def add_timeslots(request, reservation_period_id):
 
     # Pass the days and hours to the template
@@ -71,7 +33,9 @@ def add_timeslots(request, reservation_period_id):
         for timeslot in timeslots:
             #day = timeslot.day
             #hour = timeslot.hour
-            print(timeslot)
+            # Create Timeslot objects based on the selected checkboxes
+            #print(f"Day: {day}, Hour: {hour}")
+            #print(timeslot)
             day, hour = timeslot.split()
             
             #print(f"Day: {day}, Hour: {hour}")
@@ -90,7 +54,8 @@ def add_timeslots(request, reservation_period_id):
 
     return render(request, 'reservations/add_timeslots.html', {'reservation_period': reservation_period, 'qs_days': qs_days, 'qs_slots': qs_slots})
 
-
+@login_required
+@user_passes_test(lambda u: u.is_superuser)
 def edit_timeslots(request, reservation_period_id):
     reservation_period = ReservationPeriod.objects.get(id=reservation_period_id)
     timeslots = Timeslot.objects.filter(reservation_period=reservation_period).order_by('dayTime__day', 'dayTime__slot')
@@ -108,7 +73,8 @@ def edit_timeslots(request, reservation_period_id):
 
     return render(request, 'reservations/edit_timeslots_2.html', {'reservation_period': reservation_period, 'timeslots': timeslots})
 
-
+@login_required
+@user_passes_test(lambda u: u.is_superuser)
 def delete_timeslots(request):
     if request.method == "POST":
         timeslot_ids = request.POST.getlist('id[]')

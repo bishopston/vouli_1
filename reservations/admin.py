@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Day, DayTime, SchoolYear, ReservationPeriod, Timeslot, ExceptionalRule, Reservation
+from .models import Day, DayTime, SchoolYear, ReservationPeriod, Timeslot, ExceptionalRule, Reservation, ReservationWindow
 from .forms import TimeslotForm, ReservationPeriodForm
 
 class TimeslotInline(admin.TabularInline):
@@ -12,7 +12,7 @@ class ReservationPeriodInline(admin.TabularInline):
 
 @admin.register(Day)
 class DayAdmin(admin.ModelAdmin):
-    list_display = ['date']
+    list_display = ['date', 'is_vacation']
 
 @admin.register(DayTime)
 class DayTimeAdmin(admin.ModelAdmin):
@@ -38,5 +38,8 @@ class ExceptionalRuleAdmin(admin.ModelAdmin):
 
 @admin.register(Reservation)
 class ReservationAdmin(admin.ModelAdmin):
-    list_display = ['reservation_date', 'timeslot', 'user', 'reservation_window']
+    list_display = ['reservation_date', 'timeslot', 'reservation_window']
 
+@admin.register(ReservationWindow)
+class ReservationWindowAdmin(admin.ModelAdmin):
+    list_display = ['start_date', 'end_date', 'reservation_period']

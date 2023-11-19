@@ -4,40 +4,56 @@
 {% block content %}
 
 <nav aria-label="breadcrumb">
-    <div class="container">
-        <ol class="breadcrumb">
-        <li class="breadcrumb-item active" aria-current="page"><h4>Τροποποίηση Χρονοθυρίδων για την Περίοδο Κρατήσεων</h4></li>
-        </ol>
+    <div class="container mt-5">
+        <div class="d-flex justify-content-center mb-2">
+            <ol class="breadcrumb">
+            <li class="breadcrumb-item active" aria-current="page"><h4>Επισκόπηση Χρονοθυρίδων για την Περίοδο Κρατήσεων {{ reservation_period.name }}</h4></li>
+            </ol>
+        </div>
     </div>
 </nav>
 <div class="container bg-white text-dark d-flex flex-wrap overflow-auto">
     <div class="row w-100">
         <div class="container">
-            <div class="table-responsive">
-                <form method="post" action="{% url 'reservations:edit_timeslots' reservation_period.id %}">
-                    {% csrf_token %}
-                    <input type="checkbox" id="select-all">
-                    <label for="select-all">Select All</label>
-                    <table class="table table-striped table-sm">
-                        <thead>
-                            <tr>
-                                <th>Μέρα</th>
-                                <th>Ώρα</th>
-                                <th>Διαθεσιμότητα</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for timeslot in timeslots %}
-                                <tr>
-                                    <td class="{% if timeslot.is_reservation_allowed == 1 %}table-success{% endif %}">{{ timeslot.dayTime.get_day_display }}</td>
-                                    <td class="{% if timeslot.is_reservation_allowed == 1 %}table-success{% endif %}">{{ timeslot.dayTime.slot|time:"H:i" }}</td>
-                                    <td><input type="checkbox" name="timeslots" value="{{ timeslot.id }}" {% if timeslot.is_reservation_allowed %}checked{% endif %}></td>
-                                </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                    <button type="submit">Update Timeslots</button>
-                </form>
+            <div class="d-flex justify-content-center mb-2">
+                <div class="col-md-8">
+                    <div class="d-flex justify-content-center">
+                        <form method="post" action="{% url 'reservations:edit_timeslots' reservation_period.id %}">
+                            {% csrf_token %}
+                            <div class="row">
+                                <div class="d-flex justify-content-start mb-2">
+                                    
+                                        <div class="me-2">
+                                            <input type="checkbox" id="select-all">
+                                        </div>
+                                        <div>
+                                            <label for="select-all">Επιλογή Όλων</label>
+                                        </div>
+                                    
+                                </div>
+                            </div>
+                            <table class="table table-striped table-bordered table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Ημέρα</th>
+                                        <th>Ώρα</th>
+                                        <th>Διαθεσιμότητα</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for timeslot in timeslots %}
+                                        <tr>
+                                            <td class="{% if timeslot.is_reservation_allowed == 1 %}table-success{% endif %}">{{ timeslot.dayTime.get_day_display }}</td>
+                                            <td class="{% if timeslot.is_reservation_allowed == 1 %}table-success{% endif %}">{{ timeslot.dayTime.slot|time:"H:i" }}</td>
+                                            <td><input type="checkbox" name="timeslots" value="{{ timeslot.id }}" {% if timeslot.is_reservation_allowed %}checked{% endif %}></td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                            <button type="submit" class="btn btn-primary mt-2">ΤΡΟΠΟΠΟΙΗΣΗ</button>
+                        </form>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

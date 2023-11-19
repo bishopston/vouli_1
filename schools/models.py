@@ -37,3 +37,4 @@ class SchoolUser(models.Model):
 
     def __str__(self):
         return self.school.name
+

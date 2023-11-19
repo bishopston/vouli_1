@@ -38,7 +38,8 @@ def SchoolUserCreateView(request):
             )
             if len(my_schools) == 0 and privacy_accepted_ == True:
                 school_user.save()
-                messages.success(request, 'Πραγματοποιήσατε με επιτυχία την εγγραφή σχολείου')
+                #messages.success(request, 'Πραγματοποιήσατε με επιτυχία την εγγραφή σχολείου')
+                messages.add_message(request, messages.INFO, '--Πραγματοποιήσατε με επιτυχία την εγγραφή σχολείου--')
                 return HttpResponseRedirect(reverse('schools:schooluser_list'))
             if len(my_schools) > 0:
                 form = SchoolUserForm()
