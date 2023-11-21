@@ -10,6 +10,7 @@ from datetime import timedelta
 #from calendar import monthrange
 import datetime
 from datetime import datetime as dt
+import pytz
 
 @login_required
 @user_passes_test(lambda u: u.is_superuser)
@@ -227,14 +228,23 @@ def chunk_days(days):
 
 #     return render(request, 'your_template.html', {'form': form})
 
-def make_reservation(request):
+def my_reservations(request):
     #query user's reservations
     my_reservations = Reservation.objects.all().filter(schoolTeam__schoolUser__creator=request.user)
-    #query closest available reservation period whose start date hasn't come yet
-    q = ReservationPeriod.objects.filter(is_available=True).filter(start_date__gte=dt.now()).filter(reservationwindow__start_date__gte=dt.now())
+    #query closest available reservation period whose start date hasn't come yet and res window has not finished yet - closest_available_res_period[0]
+    q = ReservationPeriod.objects.filter(is_available=True).filter(start_date__gte=dt.now()).filter(reservationwindow__end_date__gte=dt.now(pytz.utc))
     dates = q.values('start_date').order_by('start_date')
     closest_available_res_period = q.filter(start_date=dates[0]['start_date'])
     #get start date of closest res period
-    closest_available_res_period[0].reservationwindow_set.first().start_date
+    #closest_available_res_period[0].reservationwindow_set.first().start_date
     #check that res window is allowed
-    closest_available_res_period[0].reservationwindow_set.first().is_reservation_allowed()
+    #closest_available_res_period[0].reservationwindow_set.first().is_reservation_allowed()
+
+    context = {'my_reservations': my_reservations,
+            'next_available_res_period': closest_available_res_period[0],
+            'next_available_res_period_start_date': closest_available_res_period[0].start_date,
+            'next_available_res_period_end_date': closest_available_res_period[0].end_date,
+            'reservation_allowed': closest_available_res_period[0].reservationwindow_set.first().is_reservation_allowed(),
+    }
+
+    return render(request, 'reservations/myreservations.html', context)

@@ -1,0 +1,35 @@
+{% extends '../base/base_admin.html' %}
+
+{% block content %}
+
+<div class="container bg-white text-dark d-flex flex-wrap overflow-auto">
+    <div class="row w-100">
+        {% if reservation_allowed %}
+            <div class="card text-center mt-5">
+                <div class="card-header">
+                    Ίδρυμα της Βουλής
+                </div>
+                <div class="card-body">
+                <h5 class="card-title">Αιτήσεις Επίσκεψης Σχολείων</h5>
+                <p class="card-text">Μπορείτε να καταχωρίσετε κράτηση για επίσκεψη στη Βουλή για την περίοδο {{ next_available_res_period_start_date|date:"SHORT_DATE_FORMAT" }} - {{ next_available_res_period_end_date|date:"SHORT_DATE_FORMAT" }}.
+                    Έχετε το δικαίωμα να επισκεφτείτε τη Βουλή σε μία μόνο ημερομηνία κατά τη διάρκεια κάθε σχολικού έτους.
+                </p>
+                <a href="#" class="btn btn-primary">Κράτηση</a>
+                </div>
+            </div>
+        {% else %}
+            <div class="card text-center mt-5">
+                <div class="card-header">
+                    Ίδρυμα της Βουλής
+                </div>
+                <div class="card-body">
+                <h5 class="card-title">Αιτήσεις Επίσκεψης Σχολείων</h5>
+                <p class="card-text">Δεν έχει ξεκινήσει ακόμα η περίοδος δημιουργίας κρατήσεων για την επόμενη περίοδο επισκέψεων στη Βουλή</p>
+                <a href="#" class="btn btn-primary">Πίνακας Ελέγχου</a>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock %}

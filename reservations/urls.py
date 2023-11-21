@@ -11,5 +11,5 @@ urlpatterns = [
     path('calendar_month/<int:reservation_period_id>/', views.calendar_month, name='calendar_month'),
     path('calendar_month/<int:reservation_period_id>/<int:year>/<int:month>/', views.calendar_month, name='calendar_month_year'),
     #path('make_reservation/<int:reservation_period_id>/', views.make_reservation, name='make_reservation'),
-    #path('my_reservations/', views.my_reservations, name='my_reservations'),
+    path('my_reservations/', views.my_reservations, name='my_reservations'),
 ]
