@@ -4,11 +4,12 @@ from django.urls import reverse
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
 from django.utils import timezone
-from .models import Day, ReservationPeriod, Timeslot, DayTime
+from .models import Day, ReservationPeriod, Timeslot, DayTime, Reservation, ReservationWindow, SchoolTeam, ExceptionalRule, SchoolYear
 from .forms import ReservationForm
 from datetime import timedelta
-from calendar import monthrange
+#from calendar import monthrange
 import datetime
+from datetime import datetime as dt
 
 @login_required
 @user_passes_test(lambda u: u.is_superuser)
@@ -225,3 +226,15 @@ def chunk_days(days):
 #         form = ReservationForm()
 
 #     return render(request, 'your_template.html', {'form': form})
+
+def make_reservation(request):
+    #query user's reservations
+    my_reservations = Reservation.objects.all().filter(schoolTeam__schoolUser__creator=request.user)
+    #query closest available reservation period whose start date hasn't come yet
+    q = ReservationPeriod.objects.filter(is_available=True).filter(start_date__gte=dt.now()).filter(reservationwindow__start_date__gte=dt.now())
+    dates = q.values('start_date').order_by('start_date')
+    closest_available_res_period = q.filter(start_date=dates[0]['start_date'])
+    #get start date of closest res period
+    closest_available_res_period[0].reservationwindow_set.first().start_date
+    #check that res window is allowed
+    closest_available_res_period[0].reservationwindow_set.first().is_reservation_allowed()

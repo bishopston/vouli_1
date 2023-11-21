@@ -38,7 +38,7 @@ class ExceptionalRuleAdmin(admin.ModelAdmin):
 
 @admin.register(Reservation)
 class ReservationAdmin(admin.ModelAdmin):
-    list_display = ['reservation_date', 'timeslot', 'reservation_window']
+    list_display = ['reservation_date', 'timeslot']
 
 @admin.register(ReservationWindow)
 class ReservationWindowAdmin(admin.ModelAdmin):

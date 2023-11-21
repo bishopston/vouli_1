@@ -2,6 +2,8 @@ from django.db import models
 #from django.contrib.auth.models import User
 #from accounts.models import CustomUser
 from schools.models import SchoolUser
+from datetime import datetime as dt
+import pytz
 
 # Model for defining days
 class Day(models.Model):
@@ -119,14 +121,14 @@ class SchoolTeam(models.Model):
 
 class ReservationWindow(models.Model):
     reservation_period = models.ForeignKey('ReservationPeriod', on_delete=models.CASCADE)
-    start_date = models.DateField()
-    end_date = models.DateField()
+    start_date = models.DateTimeField()
+    end_date = models.DateTimeField()
 
     def __str__(self):
         return f"{self.reservation_period}"
 
-    def is_reservation_allowed(self, reservation_date):
-        return self.start_date <= reservation_date <= self.end_date
+    def is_reservation_allowed(self):
+        return self.start_date <= dt.now(pytz.utc) <= self.end_date
 
 
 class Reservation(models.Model):
@@ -138,7 +140,7 @@ class Reservation(models.Model):
     reservation_date = models.ForeignKey(Day, on_delete=models.CASCADE)
     timeslot = models.ForeignKey(Timeslot, on_delete=models.CASCADE)
     schoolTeam = models.ForeignKey(SchoolTeam, on_delete=models.CASCADE, default=None)
-    reservation_window = models.ForeignKey(ReservationWindow, on_delete=models.CASCADE, default=None)
+    #reservation_window = models.ForeignKey(ReservationWindow, on_delete=models.CASCADE, default=None)
     reservation_period = models.ForeignKey(ReservationPeriod, on_delete=models.CASCADE, default=None)
     status = models.CharField(max_length=8, choices=STATUS_CHOICES)
     is_performed = models.BooleanField(default=False)
