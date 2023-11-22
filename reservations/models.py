@@ -1,6 +1,4 @@
 from django.db import models
-#from django.contrib.auth.models import User
-#from accounts.models import CustomUser
 from schools.models import SchoolUser
 from datetime import datetime as dt
 import pytz
@@ -64,7 +62,25 @@ class ExceptionalRule(models.Model):
     def __str__(self):
         return f"{self.date} {self.timeslot}, Reservation Allowed: {self.is_reservation_allowed}"
 
-class SchoolTeam(models.Model):
+
+class ReservationWindow(models.Model):
+    reservation_period = models.ForeignKey('ReservationPeriod', on_delete=models.CASCADE)
+    start_date = models.DateTimeField()
+    end_date = models.DateTimeField()
+
+    def __str__(self):
+        return f"{self.reservation_period}"
+
+    def is_reservation_allowed(self):
+        return self.start_date <= dt.now(pytz.utc) <= self.end_date
+
+
+class Reservation(models.Model):
+    STATUS_CHOICES = [
+        ('pending', 'Εκκρεμής'),
+        ('denied', 'Ακυρωμένη'),
+        ('approved', 'Επιβεβαιωμένη'),
+    ]
     TEACHER_NUM = [
         ('1', '1'),
         ('2', '2'),
@@ -108,39 +124,12 @@ class SchoolTeam(models.Model):
         ('49', '49'),
         ('50', '50'),
     ]
-    schoolUser = models.ForeignKey(SchoolUser, on_delete=models.CASCADE)
-    teacher_number = models.CharField(max_length=1, choices=TEACHER_NUM)
-    student_number = models.CharField(max_length=2, choices=STUDENT_NUM)
-    reservation_period = models.ForeignKey(ReservationPeriod, on_delete=models.CASCADE)
-    amea = models.BooleanField(default=False)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-    
-    def __str__(self):
-        return f"{self.schoolUser.school.name} - {self.reservation_period.name} - {self.id}"
-
-class ReservationWindow(models.Model):
-    reservation_period = models.ForeignKey('ReservationPeriod', on_delete=models.CASCADE)
-    start_date = models.DateTimeField()
-    end_date = models.DateTimeField()
-
-    def __str__(self):
-        return f"{self.reservation_period}"
-
-    def is_reservation_allowed(self):
-        return self.start_date <= dt.now(pytz.utc) <= self.end_date
-
-
-class Reservation(models.Model):
-    STATUS_CHOICES = [
-        ('pending', 'Εκκρεμής'),
-        ('denied', 'Ακυρωμένη'),
-        ('approved', 'Επιβεβαιωμένη'),
-    ]
+    schoolUser = models.ForeignKey(SchoolUser, on_delete=models.CASCADE, default=None)
     reservation_date = models.ForeignKey(Day, on_delete=models.CASCADE)
     timeslot = models.ForeignKey(Timeslot, on_delete=models.CASCADE)
-    schoolTeam = models.ForeignKey(SchoolTeam, on_delete=models.CASCADE, default=None)
-    #reservation_window = models.ForeignKey(ReservationWindow, on_delete=models.CASCADE, default=None)
+    teacher_number = models.CharField(max_length=1, choices=TEACHER_NUM, default='1')
+    student_number = models.CharField(max_length=2, choices=STUDENT_NUM, default='15')
+    amea = models.BooleanField(default=False)
     reservation_period = models.ForeignKey(ReservationPeriod, on_delete=models.CASCADE, default=None)
     status = models.CharField(max_length=8, choices=STATUS_CHOICES)
     is_performed = models.BooleanField(default=False)
@@ -148,7 +137,7 @@ class Reservation(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"{self.reservation_date} {self.timeslot} - {self.user}"
+        return f"{self.reservation_date} {self.timeslot}"
 
     class Meta:
         # Add a unique constraint to ensure that only one reservation can be made for a specific timeslot on a specific date

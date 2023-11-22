@@ -11,10 +11,10 @@
                 </div>
                 <div class="card-body">
                 <h5 class="card-title">Αιτήσεις Επίσκεψης Σχολείων</h5>
-                <p class="card-text">Μπορείτε να καταχωρίσετε κράτηση για επίσκεψη στη Βουλή για την περίοδο {{ next_available_res_period_start_date|date:"SHORT_DATE_FORMAT" }} - {{ next_available_res_period_end_date|date:"SHORT_DATE_FORMAT" }}.
+                <p class="card-text my-2">Μπορείτε να καταχωρίσετε κράτηση για επίσκεψη στη Βουλή κατά την περίοδο {{ next_available_res_period_start_date|date:'d/m/Y' }} - {{ next_available_res_period_end_date|date:'d/m/Y' }}.
                     Έχετε το δικαίωμα να επισκεφτείτε τη Βουλή σε μία μόνο ημερομηνία κατά τη διάρκεια κάθε σχολικού έτους.
                 </p>
-                <a href="#" class="btn btn-primary">Κράτηση</a>
+                <a href="#" class="btn btn-primary mt-2">Κράτηση</a>
                 </div>
             </div>
         {% else %}
@@ -28,6 +28,21 @@
                 <a href="#" class="btn btn-primary">Πίνακας Ελέγχου</a>
                 </div>
             </div>
+        {% endif %}
+    </div>
+    <div class="row w-100">
+        {% if my_reservations %}
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                <li class="breadcrumb-item active" aria-current="page">Ιστορικό Κρατήσεων για το {{ my_school }}</li>
+                </ol>
+            </nav>
+        {% else %}
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                <li class="breadcrumb-item active" aria-current="page">Ιστορικό Κρατήσεων για το {{ my_school }}</li>
+                </ol>
+            </nav>
         {% endif %}
     </div>
 </div>
