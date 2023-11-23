@@ -192,24 +192,34 @@ def calendar_month(request, reservation_period_id=None, year=None, month=None):
 
 
     # Retrieve days for the current month
-    month_days = get_month_days(year, month)
+    month_days = get_month_days(year, month, reservation_period_id)
 
     context = {
-        'current_month': f'{year}/{month}',
+        #'current_month': f'{month}/{year}',
+        'current_month': month,
+        'current_year': year,
         'prev_year': prev_month.year,
         'prev_month': prev_month.month,
         'next_year': next_month.year,
         'next_month': next_month.month,
         'month_days': month_days,
         'reservation_period_id': reservation_period.id,
+        'reservation_period': reservation_period
     }
 
     return render(request, 'reservations/calendar_month_3.html', context)
 
-def get_month_days(year, month):
+# def get_month_days(year, month):
+#     # Implement your logic to retrieve days for the given month and year
+#     # For simplicity, assuming a Day model with a 'date' field
+#     days = Day.objects.filter(date__year=year, date__month=month)
+#     return chunk_days(days)
+
+def get_month_days(year, month, res_period_id):
     # Implement your logic to retrieve days for the given month and year
     # For simplicity, assuming a Day model with a 'date' field
-    days = Day.objects.filter(date__year=year, date__month=month)
+    res_period = ReservationPeriod.objects.get(pk=res_period_id)
+    days = Day.objects.filter(date__gte=res_period.start_date, date__lte=res_period.end_date).filter(date__year=year, date__month=month)
     return chunk_days(days)
 
 def chunk_days(days):
@@ -234,20 +244,51 @@ def my_reservations(request):
     my_reservations = Reservation.objects.filter(schoolUser__creator=request.user)
     #query closest available reservation period whose start date hasn't come yet and res window has not finished yet - closest_available_res_period[0]
     q = ReservationPeriod.objects.filter(is_available=True).filter(start_date__gte=dt.now()).filter(reservationwindow__end_date__gte=dt.now(pytz.utc))
-    dates = q.values('start_date').order_by('start_date')
-    closest_available_res_period = q.filter(start_date=dates[0]['start_date'])
-    #get start date of closest res period
-    #closest_available_res_period[0].reservationwindow_set.first().start_date
-    #check that res window is allowed
-    #closest_available_res_period[0].reservationwindow_set.first().is_reservation_allowed()
-    my_school = SchoolUser.objects.filter(creator=request.user)[0].school.name
+    
+    #ensure that admin has made a ReservationPeriod available
+    if len(q) > 0:
+    
+        dates = q.values('start_date').order_by('start_date')
+        closest_available_res_period = q.filter(start_date=dates[0]['start_date'])
 
-    context = {'my_reservations': my_reservations,
-            'next_available_res_period': closest_available_res_period[0],
-            'next_available_res_period_start_date': closest_available_res_period[0].start_date,
-            'next_available_res_period_end_date': closest_available_res_period[0].end_date,
-            'reservation_allowed': closest_available_res_period[0].reservationwindow_set.first().is_reservation_allowed(),
-            'my_school': my_school,
-    }
+        try:
+            #ensure that user has created a school
+            my_school = SchoolUser.objects.filter(creator=request.user)[0].school.name
 
-    return render(request, 'reservations/myreservations.html', context)
+            #ensure that admin has created a ReservationWindow
+            if len(ReservationWindow.objects.filter(reservation_period=closest_available_res_period[0])) > 0:
+
+                context = {'my_reservations': my_reservations,
+                        'next_available_res_period': closest_available_res_period[0],
+                        'next_available_res_period_start_date': closest_available_res_period[0].start_date,
+                        'next_available_res_period_end_date': closest_available_res_period[0].end_date,
+                        'reservation_allowed': closest_available_res_period[0].reservationwindow_set.first().is_reservation_allowed(),
+                        'my_school': my_school,
+                }
+
+                return render(request, 'reservations/myreservations.html', context)
+
+            else:
+
+                context = {'my_reservations': my_reservations,
+                        'my_school': my_school,
+                }
+
+                return render(request, 'reservations/myreservations.html', context)               
+
+        except (IndexError, SchoolUser.DoesNotExist):
+            return render(request, 'reservations/myreservations.html')
+
+    else:
+
+        try:
+            my_school = SchoolUser.objects.filter(creator=request.user)[0].school.name
+
+            context = {'my_reservations': my_reservations,
+                    'my_school': my_school,
+            }
+
+            return render(request, 'reservations/myreservations.html', context)
+
+        except (IndexError, SchoolUser.DoesNotExist):
+            return render(request, 'reservations/myreservations.html')

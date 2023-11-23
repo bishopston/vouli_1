@@ -6,24 +6,52 @@
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
 <div class="container mt-4">
-    <h1 class="mb-4">Calendar</h1>
+    <div class="mt-5 d-flex justify-content-center">
+        <h2 class="mb-4">Επιλογή Ημερομηνίας Κράτησης για την Περίοδο {{ reservation_period.start_date|date:'d/m/Y' }} - {{ reservation_period.end_date|date:'d/m/Y' }}</h1>
+    </div>
 
-    <div class="d-flex justify-content-between mb-3">
-        <a href="{% url 'reservations:calendar_month_year' reservation_period_id=reservation_period_id year=prev_year month=prev_month %}" class="btn btn-primary">&lt; Previous Month</a>
-        <h2 class="current-month">{{ current_month }}</h2>
-        <a href="{% url 'reservations:calendar_month_year' reservation_period_id=reservation_period_id year=next_year month=next_month %}" class="btn btn-primary">Next Month &gt;</a>
+    <div class="d-flex justify-content-between my-5">
+        <a href="{% url 'reservations:calendar_month_year' reservation_period_id=reservation_period_id year=prev_year month=prev_month %}" class="btn btn-primary">&lt; Προηγούμενο</a>
+        <h3 class="current-month">
+            {% if current_month == 1 %}
+                Ιανουάριος {{ current_year }}
+            {% elif current_month == 2 %}
+                Φεβρουάριος {{ current_year }}
+            {% elif current_month == 3 %}
+                Μάρτιος {{ current_year }}
+            {% elif current_month == 4 %}
+                Απρίλιος {{ current_year }}
+            {% elif current_month == 5 %}
+                Μάιος {{ current_year }}
+            {% elif current_month == 6 %}
+                Ιούνιος {{ current_year }}
+            {% elif current_month == 7 %}
+                Ιούλιος {{ current_year }}
+            {% elif current_month == 8 %}
+                Αύγουστος {{ current_year }}
+            {% elif current_month == 9 %}
+                Σεπτέμβριος {{ current_year }}
+            {% elif current_month == 10 %}
+                Οκτώβριος {{ current_year }}
+            {% elif current_month == 11 %}
+                Νοέμβριος {{ current_year }}
+            {% else %}
+                Δεκέμβριος {{ current_year }}
+            {% endif %}
+        </h2>
+        <a href="{% url 'reservations:calendar_month_year' reservation_period_id=reservation_period_id year=next_year month=next_month %}" class="btn btn-primary">Επόμενο &gt;</a>
     </div>
 
     <table class="table table-bordered">
         <thead>
             <tr>
-                <th>Mon</th>
-                <th>Tue</th>
-                <th>Wed</th>
-                <th>Thu</th>
-                <th>Fri</th>
-                <th>Sat</th>
-                <th>Sun</th>
+                <th>Δευτέρα</th>
+                <th>Τρίτη</th>
+                <th>Τετάρτη</th>
+                <th>Πέμπτη</th>
+                <th>Παρασκευή</th>
+                <th>Σάββατο</th>
+                <th>Κυριακή</th>
             </tr>
         </thead>
         <tbody>

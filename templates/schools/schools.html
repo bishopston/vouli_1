@@ -4,104 +4,98 @@
 
 <div class="my-3 mx-auto">
     <div class="row">
-        
-            <div class="col-md-8">
-                {% if my_schools %}
-                    {% for myschool in my_schools %}
-                        <div class="my-3">
-                            <div class="success-message">
-                                {% if messages %}
-                                    {% for message in messages %}
-                                        {% if '--' in message.message %}
-                                            <h5 class="alert-success text-center" style="padding-top: 5px; padding-bottom: 5px;">
-                                                {{ message }}
-                                            </h5>
-                                        {% endif %}
-                                    {% endfor %}
+        {% if my_schools %}
+            {% for myschool in my_schools %}
+                <div class="my-3">
+                    <div class="success-message">
+                        {% if messages %}
+                            {% for message in messages %}
+                                {% if '--' in message.message %}
+                                    <h5 class="alert-success text-center" style="padding-top: 5px; padding-bottom: 5px;">
+                                        {{ message }}
+                                    </h5>
                                 {% endif %}
-                            </div>
-                            <div class="d-flex justify-content-center mb-2"><h5>ΣΤΟΙΧΕΙΑ ΣΧΟΛΕΙΟΥ</h5></div>
-                            <div class="row">
-                                <div class="d-flex justify-content-center mb-2">
-                                    <table class="table table-bordered">
-                                        <tbody>
-                                            <tr>
-                                                <td nowrap>ΠΕΡΙΦΕΡΕΙΑΚΗ ΔΙΕΥΘΥΝΣΗ:</td>
-                                                <td nowrap>{{myschool.department.name}}</td>												
-                                            </tr>
-                                            <tr>
-                                                <td nowrap>ΟΝΟΜΑ ΣΧΟΛΕΙΟΥ:</td>
-                                                <td nowrap>{{myschool.school.name}}</td>												
-                                            </tr>
-                                            <tr>
-                                                <td nowrap>ΔΙΕΥΘΥΝΣΗ:</td>
-                                                <td nowrap>{{myschool.address}}</td>												
-                                            </tr>
-                                            <tr>
-                                                <td nowrap>ΑΡΙΘΜΟΣ:</td>
-                                                <td nowrap>{{myschool.address_number}}</td>												
-                                            </tr>
-                                            <tr>
-                                                <td nowrap>ΠΟΛΗ:</td>
-                                                <td nowrap>{{myschool.city}}</td>												
-                                            </tr>
-                                            <tr>
-                                                <td nowrap>ΤΑΧ. ΚΩΔΙΚΑΣ:</td>
-                                                <td nowrap>{{myschool.zipcode}}</td>												
-                                            </tr>
-                                            <tr>
-                                                <td nowrap>ΤΗΛΕΦΩΝΟ:</td>
-                                                <td nowrap>{{myschool.phone}}</td>												
-                                            </tr>
-                                            <tr>
-                                                <td nowrap>Email:</td>
-                                                <td nowrap>{{user.email}}</td>												
-                                            </tr>
-                                            <tr>
-                                                <td nowrap>ΟΝΟΜΑ ΔΙΕΥΘΥΝΤΗ:</td>
-                                                <td nowrap>{{myschool.director_name}}</td>												
-                                            </tr>
-                                            <tr>
-                                                <td nowrap>ΕΠΩΝΥΜΟ ΔΙΕΥΘΥΝΤΗ:</td>
-                                                <td nowrap>{{myschool.director_surname}}</td>												
-                                            </tr>
-                                            <tr>
-                                                <td nowrap>ΗΜΕΡΟΜΗΝΙΑ ΕΓΓΡΑΦΗΣ:</td>
-                                                <td nowrap>{{myschool.created_at|date:"d/m/Y"}}</td>												
-                                            </tr>
-                                        </tbody>
-                                    
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="my-1">
-                                <!--<form action="{% url 'schools:schooluser_delete' myschool.id %}" method="post">
-                                    {% csrf_token %}
-                                    <button type="submit" class="btn btn-danger">Delete</button>
-                                </form>-->
-                                <a class="btn btn-danger me-3" href="{% url 'schools:schooluser_delete' myschool.id %}" role="button">ΔΙΑΓΡΑΦΗ</a>
-                                <a class="btn btn-success" href="{% url 'schools:schooluser_update' myschool.id %}" role="button">ΑΛΛΑΓΗ</a>
-                            </div>
-                        </div>
-                    {% endfor %}
-                {% else %}
-                    <div class="my-3">
-                        <div class="card">
-                            <div class="card-body">
-                            <h5 class="card-title d-flex justify-content-center">ΕΓΓΡΑΦΗ ΣΧΟΛΕΙΟΥ</h5>
-                            <p class="card-text d-flex justify-content-center">Δεν έχετε προχωρήσει ακόμα σε εγγραφή κάποιου σχολείου.</p>
-                            <div class="d-flex justify-content-center">
-                                <a href="{% url 'schools:schooluser_add' %}" class="btn btn-primary">ΠΡΟΣΘΕΣΗ ΣΧΟΛΕΙΟΥ</a>
-                            </div>
-                            </div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                    <div class="d-flex justify-content-center mb-2"><h5>ΣΤΟΙΧΕΙΑ ΣΧΟΛΕΙΟΥ</h5></div>
+                    <div class="row">
+                        <div class="d-flex justify-content-center mb-2">
+                            <table class="table table-bordered">
+                                <tbody>
+                                    <tr>
+                                        <td nowrap>ΠΕΡΙΦΕΡΕΙΑΚΗ ΔΙΕΥΘΥΝΣΗ:</td>
+                                        <td nowrap>{{myschool.department.name}}</td>												
+                                    </tr>
+                                    <tr>
+                                        <td nowrap>ΟΝΟΜΑ ΣΧΟΛΕΙΟΥ:</td>
+                                        <td nowrap>{{myschool.school.name}}</td>												
+                                    </tr>
+                                    <tr>
+                                        <td nowrap>ΔΙΕΥΘΥΝΣΗ:</td>
+                                        <td nowrap>{{myschool.address}}</td>												
+                                    </tr>
+                                    <tr>
+                                        <td nowrap>ΑΡΙΘΜΟΣ:</td>
+                                        <td nowrap>{{myschool.address_number}}</td>												
+                                    </tr>
+                                    <tr>
+                                        <td nowrap>ΠΟΛΗ:</td>
+                                        <td nowrap>{{myschool.city}}</td>												
+                                    </tr>
+                                    <tr>
+                                        <td nowrap>ΤΑΧ. ΚΩΔΙΚΑΣ:</td>
+                                        <td nowrap>{{myschool.zipcode}}</td>												
+                                    </tr>
+                                    <tr>
+                                        <td nowrap>ΤΗΛΕΦΩΝΟ:</td>
+                                        <td nowrap>{{myschool.phone}}</td>												
+                                    </tr>
+                                    <tr>
+                                        <td nowrap>Email:</td>
+                                        <td nowrap>{{user.email}}</td>												
+                                    </tr>
+                                    <tr>
+                                        <td nowrap>ΟΝΟΜΑ ΔΙΕΥΘΥΝΤΗ:</td>
+                                        <td nowrap>{{myschool.director_name}}</td>												
+                                    </tr>
+                                    <tr>
+                                        <td nowrap>ΕΠΩΝΥΜΟ ΔΙΕΥΘΥΝΤΗ:</td>
+                                        <td nowrap>{{myschool.director_surname}}</td>												
+                                    </tr>
+                                    <tr>
+                                        <td nowrap>ΗΜΕΡΟΜΗΝΙΑ ΕΓΓΡΑΦΗΣ:</td>
+                                        <td nowrap>{{myschool.created_at|date:"d/m/Y"}}</td>												
+                                    </tr>
+                                </tbody>
+                            
+                            </table>
                         </div>
                     </div>
-                {% endif %}
-                
+                </div>
+                <div class="row">
+                    <div class="my-1">
+                        <!--<form action="{% url 'schools:schooluser_delete' myschool.id %}" method="post">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-danger">Delete</button>
+                        </form>-->
+                        <a class="btn btn-danger me-3" href="{% url 'schools:schooluser_delete' myschool.id %}" role="button">ΔΙΑΓΡΑΦΗ</a>
+                        <a class="btn btn-success" href="{% url 'schools:schooluser_update' myschool.id %}" role="button">ΑΛΛΑΓΗ</a>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="mt-5 d-flex justify-content-center">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item active" aria-current="page">Δεν έχετε προχωρήσει ακόμα σε εγγραφή σχολείου</li>
+                    </ol>
+                </nav>
             </div>
-        
+            <div class="d-flex justify-content-center">
+                <a href="{% url 'schools:schooluser_add' %}" class="btn btn-success">ΠΡΟΣΘΕΣΗ ΣΧΟΛΕΙΟΥ</a>
+            </div>
+        {% endif %}    
     </div>
 </div>
 

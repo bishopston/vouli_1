@@ -4,45 +4,64 @@
 
 <div class="container bg-white text-dark d-flex flex-wrap overflow-auto">
     <div class="row w-100">
-        {% if reservation_allowed %}
-            <div class="card text-center mt-5">
-                <div class="card-header">
-                    Ίδρυμα της Βουλής
+        {% if my_school %}
+            {% if reservation_allowed %}
+                <div class="card text-center mt-5">
+                    <div class="card-header">
+                        Ίδρυμα της Βουλής
+                    </div>
+                    <div class="card-body">
+                    <h5 class="card-title">Αιτήσεις Επίσκεψης Σχολείων</h5>
+                    <p class="card-text my-2">Μπορείτε να καταχωρίσετε κράτηση για επίσκεψη στη Βουλή κατά την περίοδο {{ next_available_res_period_start_date|date:'d/m/Y' }} - {{ next_available_res_period_end_date|date:'d/m/Y' }}.
+                        Έχετε το δικαίωμα να επισκεφτείτε τη Βουλή σε μία μόνο ημερομηνία κατά τη διάρκεια κάθε σχολικού έτους.
+                    </p>
+                    <a href="{% url 'reservations:calendar_month' next_available_res_period.id %}" class="btn btn-primary mt-2">Κράτηση</a>
+                    </div>
                 </div>
-                <div class="card-body">
-                <h5 class="card-title">Αιτήσεις Επίσκεψης Σχολείων</h5>
-                <p class="card-text my-2">Μπορείτε να καταχωρίσετε κράτηση για επίσκεψη στη Βουλή κατά την περίοδο {{ next_available_res_period_start_date|date:'d/m/Y' }} - {{ next_available_res_period_end_date|date:'d/m/Y' }}.
-                    Έχετε το δικαίωμα να επισκεφτείτε τη Βουλή σε μία μόνο ημερομηνία κατά τη διάρκεια κάθε σχολικού έτους.
-                </p>
-                <a href="#" class="btn btn-primary mt-2">Κράτηση</a>
+            {% else %}
+                <div class="card text-center mt-5">
+                    <div class="card-header">
+                        Ίδρυμα της Βουλής
+                    </div>
+                    <div class="card-body">
+                    <h5 class="card-title">Αιτήσεις Επίσκεψης Σχολείων</h5>
+                    <p class="card-text">Δεν έχει ξεκινήσει ακόμα η περίοδος δημιουργίας κρατήσεων για την επόμενη περίοδο επισκέψεων στη Βουλή</p>
+                    <a href="#" class="btn btn-primary">ΠΙΝΑΚΑΣ ΕΛΕΓΧΟΥ</a>
+                    </div>
                 </div>
-            </div>
-        {% else %}
-            <div class="card text-center mt-5">
-                <div class="card-header">
-                    Ίδρυμα της Βουλής
-                </div>
-                <div class="card-body">
-                <h5 class="card-title">Αιτήσεις Επίσκεψης Σχολείων</h5>
-                <p class="card-text">Δεν έχει ξεκινήσει ακόμα η περίοδος δημιουργίας κρατήσεων για την επόμενη περίοδο επισκέψεων στη Βουλή</p>
-                <a href="#" class="btn btn-primary">Πίνακας Ελέγχου</a>
-                </div>
-            </div>
+            {% endif %}
         {% endif %}
     </div>
     <div class="row w-100">
-        {% if my_reservations %}
-            <nav aria-label="breadcrumb">
-                <ol class="breadcrumb">
-                <li class="breadcrumb-item active" aria-current="page">Ιστορικό Κρατήσεων για το {{ my_school }}</li>
-                </ol>
-            </nav>
+        {% if my_school %}
+            {% if my_reservations %}
+                <div class="card text-center mt-5">
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb">
+                        <li class="breadcrumb-item active" aria-current="page">Ιστορικό Κρατήσεων για το {{ my_school }}</li>
+                        </ol>
+                    </nav>
+                </div>
+            {% else %}
+                <div class="my-5 d-flex justify-content-center">
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item active" aria-current="page">Δεν έχουν δημιουργηθεί ακόμα κρατήσεις για το {{ my_school }}</li>
+                        </ol>
+                    </nav>
+                </div>
+            {% endif %}
         {% else %}
-            <nav aria-label="breadcrumb">
-                <ol class="breadcrumb">
-                <li class="breadcrumb-item active" aria-current="page">Ιστορικό Κρατήσεων για το {{ my_school }}</li>
-                </ol>
-            </nav>
+            <div class="mt-5 d-flex justify-content-center">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item active" aria-current="page">Δεν έχετε προχωρήσει ακόμα σε εγγραφή σχολείου</li>
+                    </ol>
+                </nav>
+            </div>
+            <div class="d-flex justify-content-center">
+                <a href="{% url 'schools:schooluser_add' %}" class="btn btn-success">ΠΡΟΣΘΕΣΗ ΣΧΟΛΕΙΟΥ</a>
+            </div>
         {% endif %}
     </div>
 </div>
