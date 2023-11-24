@@ -130,6 +130,7 @@ class Reservation(models.Model):
     teacher_number = models.CharField(max_length=1, choices=TEACHER_NUM, default='1')
     student_number = models.CharField(max_length=2, choices=STUDENT_NUM, default='15')
     amea = models.BooleanField(default=False)
+    terms_accepted = models.BooleanField(default=False)
     reservation_period = models.ForeignKey(ReservationPeriod, on_delete=models.CASCADE, default=None)
     status = models.CharField(max_length=8, choices=STATUS_CHOICES)
     is_performed = models.BooleanField(default=False)

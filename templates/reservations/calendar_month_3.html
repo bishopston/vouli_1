@@ -5,90 +5,82 @@
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
-<div class="container mt-4">
-    <div class="mt-5 d-flex justify-content-center">
-        <h2 class="mb-4">Επιλογή Ημερομηνίας Κράτησης για την Περίοδο {{ reservation_period.start_date|date:'d/m/Y' }} - {{ reservation_period.end_date|date:'d/m/Y' }}</h1>
-    </div>
+{% if reservation_period_allowed %}
 
-    <div class="d-flex justify-content-between my-5">
-        <a href="{% url 'reservations:calendar_month_year' reservation_period_id=reservation_period_id year=prev_year month=prev_month %}" class="btn btn-primary">&lt; Προηγούμενο</a>
-        <h3 class="current-month">
-            {% if current_month == 1 %}
-                Ιανουάριος {{ current_year }}
-            {% elif current_month == 2 %}
-                Φεβρουάριος {{ current_year }}
-            {% elif current_month == 3 %}
-                Μάρτιος {{ current_year }}
-            {% elif current_month == 4 %}
-                Απρίλιος {{ current_year }}
-            {% elif current_month == 5 %}
-                Μάιος {{ current_year }}
-            {% elif current_month == 6 %}
-                Ιούνιος {{ current_year }}
-            {% elif current_month == 7 %}
-                Ιούλιος {{ current_year }}
-            {% elif current_month == 8 %}
-                Αύγουστος {{ current_year }}
-            {% elif current_month == 9 %}
-                Σεπτέμβριος {{ current_year }}
-            {% elif current_month == 10 %}
-                Οκτώβριος {{ current_year }}
-            {% elif current_month == 11 %}
-                Νοέμβριος {{ current_year }}
-            {% else %}
-                Δεκέμβριος {{ current_year }}
-            {% endif %}
-        </h2>
-        <a href="{% url 'reservations:calendar_month_year' reservation_period_id=reservation_period_id year=next_year month=next_month %}" class="btn btn-primary">Επόμενο &gt;</a>
-    </div>
-
-    <table class="table table-bordered">
-        <thead>
-            <tr>
-                <th>Δευτέρα</th>
-                <th>Τρίτη</th>
-                <th>Τετάρτη</th>
-                <th>Πέμπτη</th>
-                <th>Παρασκευή</th>
-                <th>Σάββατο</th>
-                <th>Κυριακή</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for week in month_days %}
-                <tr>
-                    {% for day in week %}
-                        <td {% if day.is_vacation %}class="text-muted"{% endif %}>
-                            <span class="date" data-bs-toggle="modal" data-bs-target="#reservationModal" data-date="{{ day.date|date:'Y-m-d' }}">{{ day.date.day }}</span>
-                        </td>
-                    {% endfor %}
-                </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</div>
-
-<!-- Modal -->
-<div class="modal fade" id="reservationModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="exampleModalLabel">Reservation Form</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                
-                <form method="post">
-                    {% csrf_token %}
-                    <label for="reservationDateInput" class="form-label">Selected Date:</label>
-                    <input type="text" class="form-control" id="reservationDateInput" name="reservation_date" readonly>
-                    
-                    <button type="submit" class="btn btn-primary">Submit Reservation</button>
-                </form>
-            </div>
+    <div class="container mt-4">
+        <div class="mt-5 d-flex justify-content-center">
+            <h2 class="mb-4">Επιλογή Ημερομηνίας Κράτησης για την Περίοδο {{ reservation_period.start_date|date:'d/m/Y' }} - {{ reservation_period.end_date|date:'d/m/Y' }}</h2>
         </div>
+
+        <div class="d-flex justify-content-between my-5">
+            <a href="{% url 'reservations:calendar_month_year' reservation_period_id=reservation_period_id year=prev_year month=prev_month %}" class="btn btn-primary">&lt; Προηγούμενο</a>
+            <h3 class="current-month">
+                {% if current_month == 1 %}
+                    Ιανουάριος {{ current_year }}
+                {% elif current_month == 2 %}
+                    Φεβρουάριος {{ current_year }}
+                {% elif current_month == 3 %}
+                    Μάρτιος {{ current_year }}
+                {% elif current_month == 4 %}
+                    Απρίλιος {{ current_year }}
+                {% elif current_month == 5 %}
+                    Μάιος {{ current_year }}
+                {% elif current_month == 6 %}
+                    Ιούνιος {{ current_year }}
+                {% elif current_month == 7 %}
+                    Ιούλιος {{ current_year }}
+                {% elif current_month == 8 %}
+                    Αύγουστος {{ current_year }}
+                {% elif current_month == 9 %}
+                    Σεπτέμβριος {{ current_year }}
+                {% elif current_month == 10 %}
+                    Οκτώβριος {{ current_year }}
+                {% elif current_month == 11 %}
+                    Νοέμβριος {{ current_year }}
+                {% else %}
+                    Δεκέμβριος {{ current_year }}
+                {% endif %}
+            </h2>
+            <a href="{% url 'reservations:calendar_month_year' reservation_period_id=reservation_period_id year=next_year month=next_month %}" class="btn btn-primary">Επόμενο &gt;</a>
+        </div>
+
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Δευτέρα</th>
+                    <th>Τρίτη</th>
+                    <th>Τετάρτη</th>
+                    <th>Πέμπτη</th>
+                    <th>Παρασκευή</th>
+                    <th>Σάββατο</th>
+                    <th>Κυριακή</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for week in month_days %}
+                    <tr>
+                        {% for day in week %}
+                            <td {% if day.is_vacation %}class="text-muted"{% endif %}>
+                                <span class="date" data-bs-toggle="modal" data-bs-target="#reservationModal" data-date="{{ day.date|date:'Y-m-d' }}">{{ day.date.day }}</span>
+                            </td>
+                        {% endfor %}
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
-</div>
+
+{% else %}
+
+    <div class="mt-5 d-flex justify-content-center">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item active" aria-current="page">Δεν επιτρέπονται κρατήσεις για τη συγκεκριμένη χρονική περίοδο</li>
+            </ol>
+        </nav>
+    </div>
+
+{% endif %}
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {
@@ -98,16 +90,18 @@
             element.addEventListener('click', function () {
                 // Get the date value
                 var date = this.getAttribute('data-date');
+                var reservationPeriodId = "{{ reservation_period.id }}"; // Use Django template syntax
 
-                // Set the date value in the modal form
-                document.getElementById('reservationDateInput').value = date;
+                // Build the URL for the make_reservation view
+                // var url = `/make_reservation/${reservationPeriodId}/?date=${date}`;
+                var url = "{% url 'reservations:make_reservation' reservation_period_id=reservation_period.id %}?date=" + date;
 
-                // Show the modal
-                var modal = new bootstrap.Modal(document.getElementById('reservationModal'));
-                modal.show();
+                // Redirect to the make_reservation view with the selected date and reservation period id
+                window.location.href = url;
             });
         });
     });
 </script>
+
 
 {% endblock %}

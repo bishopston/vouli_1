@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect, HttpResponseRedirect
+from django.shortcuts import render, redirect, HttpResponseRedirect, get_object_or_404
 from django.http import Http404
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required, user_passes_test
@@ -171,7 +171,8 @@ def delete_timeslots(request):
 def calendar_month(request, reservation_period_id=None, year=None, month=None):
     # If reservation_period_id is provided, get the start date of the reservation period
     if reservation_period_id:
-        reservation_period = ReservationPeriod.objects.get(pk=reservation_period_id)
+        #reservation_period = ReservationPeriod.objects.get(pk=reservation_period_id)
+        reservation_period = get_object_or_404(ReservationPeriod, pk=reservation_period_id)
         if not year and not month:
             start_date = reservation_period.start_date
         else: 
@@ -204,7 +205,8 @@ def calendar_month(request, reservation_period_id=None, year=None, month=None):
         'next_month': next_month.month,
         'month_days': month_days,
         'reservation_period_id': reservation_period.id,
-        'reservation_period': reservation_period
+        'reservation_period': reservation_period,
+        'reservation_period_allowed': reservation_period.reservationwindow_set.first().is_reservation_allowed(),
     }
 
     return render(request, 'reservations/calendar_month_3.html', context)
@@ -227,7 +229,15 @@ def chunk_days(days):
     weeks = [days[i:i + 7] for i in range(0, len(days), 7)]
     return weeks
 
-# def make_reservation(request, reservation_period_id):
+def make_reservation(request, reservation_period_id):
+    #res_period = ReservationPeriod.objects.get(pk=reservation_period_id)
+    res_period = get_object_or_404(ReservationPeriod, pk=reservation_period_id)
+    date = request.GET.get('date')
+
+    context = {'res_period': res_period,
+        'date': date,
+}
+
 #     if request.method == 'POST':
 #         form = ReservationForm(request.POST)
 #         if form.is_valid():
@@ -237,7 +247,7 @@ def chunk_days(days):
 #     else:
 #         form = ReservationForm()
 
-#     return render(request, 'your_template.html', {'form': form})
+    return render(request, 'reservations/reservation.html', context)
 
 def my_reservations(request):
     #query user's reservations

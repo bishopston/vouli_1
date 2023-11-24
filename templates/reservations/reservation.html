@@ -1,0 +1,12 @@
+{% extends '../base/base_admin.html' %}
+
+{% block content %}
+
+<div class="container bg-white text-dark d-flex flex-wrap overflow-auto">
+    <div class="row w-100">
+        <h3 class="mb-4">Περίοδος {{ res_period.start_date|date:'d/m/Y' }} - {{ res_period.end_date|date:'d/m/Y' }}</h3>
+        <h5 class="my-4">Ημερομηνία Κράτησης: {{ date }}</h5>
+    </div>
+</div>
+
+{% endblock %}
