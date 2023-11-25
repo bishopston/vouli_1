@@ -12,6 +12,7 @@ from datetime import timedelta
 import datetime
 from datetime import datetime as dt
 import pytz
+from datetime import datetime
 
 @login_required
 @user_passes_test(lambda u: u.is_superuser)
@@ -133,41 +134,7 @@ def delete_timeslots(request):
 
 #     return render(request, 'your_template.html', {'form': ReservationForm(), 'reservation_period': reservation_period})
 
-# def calendar_month(request, reservation_period_id=None, year=None, month=None):
-#     # If reservation_period_id is provided, get the start date of the reservation period
-#     if reservation_period_id:
-#         reservation_period = ReservationPeriod.objects.get(pk=reservation_period_id)
-#         start_date = reservation_period.start_date
-#     else:
-#         # If no reservation_period_id is provided, use the current date
-#         start_date = timezone.now()
-
-#     # If year and month are not provided, use the start date
-#     if not year:
-#         year = start_date.year
-#     if not month:
-#         month = start_date.month
-
-#     # Calculate previous and next months
-#     prev_month = start_date - timedelta(days=start_date.day)
-#     next_month = start_date + timedelta(days=(32 - start_date.day))
-
-
-#     # Retrieve days for the current month
-#     month_days = get_month_days(year, month)
-
-#     context = {
-#         'current_month': f'{year}/{month}',
-#         'prev_year': prev_month.year,
-#         'prev_month': prev_month.month,
-#         'next_year': next_month.year,
-#         'next_month': next_month.month,
-#         'month_days': month_days,
-#         'reservation_period_id': reservation_period.id,
-#     }
-
-#     return render(request, 'reservations/calendar_month.html', context)
-
+@login_required
 def calendar_month(request, reservation_period_id=None, year=None, month=None):
     # If reservation_period_id is provided, get the start date of the reservation period
     if reservation_period_id:
@@ -211,12 +178,6 @@ def calendar_month(request, reservation_period_id=None, year=None, month=None):
 
     return render(request, 'reservations/calendar_month_3.html', context)
 
-# def get_month_days(year, month):
-#     # Implement your logic to retrieve days for the given month and year
-#     # For simplicity, assuming a Day model with a 'date' field
-#     days = Day.objects.filter(date__year=year, date__month=month)
-#     return chunk_days(days)
-
 def get_month_days(year, month, res_period_id):
     # Implement your logic to retrieve days for the given month and year
     # For simplicity, assuming a Day model with a 'date' field
@@ -229,26 +190,7 @@ def chunk_days(days):
     weeks = [days[i:i + 7] for i in range(0, len(days), 7)]
     return weeks
 
-def make_reservation(request, reservation_period_id):
-    #res_period = ReservationPeriod.objects.get(pk=reservation_period_id)
-    res_period = get_object_or_404(ReservationPeriod, pk=reservation_period_id)
-    date = request.GET.get('date')
-
-    context = {'res_period': res_period,
-        'date': date,
-}
-
-#     if request.method == 'POST':
-#         form = ReservationForm(request.POST)
-#         if form.is_valid():
-#             # Do additional processing if needed
-#             form.save()
-#             return redirect('base:home')
-#     else:
-#         form = ReservationForm()
-
-    return render(request, 'reservations/reservation.html', context)
-
+@login_required
 def my_reservations(request):
     #query user's reservations
     my_reservations = Reservation.objects.filter(schoolUser__creator=request.user)
@@ -302,3 +244,100 @@ def my_reservations(request):
 
         except (IndexError, SchoolUser.DoesNotExist):
             return render(request, 'reservations/myreservations.html')
+
+@login_required
+def make_reservation(request, reservation_period_id):
+    #res_period = ReservationPeriod.objects.get(pk=reservation_period_id)
+    res_period = get_object_or_404(ReservationPeriod, pk=reservation_period_id)
+    date = request.GET.get('date')
+
+    #get week day name
+    selected_date = datetime.strptime(date, "%Y-%m-%d")
+    selected_calendar_date = Day.objects.get(date=selected_date)
+    selected_calendar_date_name = selected_calendar_date.date.strftime("%A")
+
+    #get date string
+    #selected_calendar_date_string = selected_calendar_date.date.strftime("%d %B %Y")
+    selected_calendar_date_day = selected_calendar_date.date.strftime("%d")
+    selected_calendar_date_month = selected_calendar_date.date.strftime("%B")
+    selected_calendar_date_year = selected_calendar_date.date.strftime("%Y")
+
+    allowed_timeslots = get_allowed_daytimes(date, reservation_period_id)
+    occupied_timeslots = get_occupied_daytimes(date, reservation_period_id)
+    non_occupied_timeslots = allowed_timeslots.exclude(id__in=occupied_timeslots)
+    non_occupied_timeslots_count = len(non_occupied_timeslots)
+
+    context = {'res_period': res_period,
+        'date': date,
+        'week_day': selected_calendar_date_name,
+        'selected_calendar_date_day': selected_calendar_date_day,
+        'selected_calendar_date_month': selected_calendar_date_month,
+        'selected_calendar_date_year': selected_calendar_date_year,
+        'allowed_timeslots': allowed_timeslots,
+        'occupied_timeslots': occupied_timeslots,
+        'non_occupied_timeslots': non_occupied_timeslots,
+        'non_occupied_timeslots_count': non_occupied_timeslots_count,
+    }
+
+#     if request.method == 'POST':
+#         form = ReservationForm(request.POST)
+#         if form.is_valid():
+#             # Do additional processing if needed
+#             form.save()
+#             return redirect('base:home')
+#     else:
+#         form = ReservationForm()
+
+    return render(request, 'reservations/reservation.html', context)
+
+def get_occupied_daytimes(selected_date, reservation_period):
+    day_of_week_mapping = {
+        'Monday': 'a',
+        'Tuesday': 'b',
+        'Wednesday': 'c',
+        'Thursday': 'd',
+        'Friday': 'e',
+        'Saturday': 'f',
+        'Sunday': 'g',
+    }
+
+    selected_date_format = datetime.strptime(selected_date, "%Y-%m-%d")
+
+    day_of_week = day_of_week_mapping[selected_date_format.strftime('%A')]
+
+    selected_date_id = Day.objects.get(date=selected_date).id
+    
+    # Retrieve occupied timeslots for the selected date and reservation period
+    occupied_daytimes = Timeslot.objects.filter(
+        dayTime__day=day_of_week,
+        reservation_period=reservation_period,
+        reservation__reservation_date=selected_date_id
+    )
+
+    #non_occupied_daytimes = available_daytimes.exclude(id__in=occupied_timeslots)
+
+    return occupied_daytimes
+
+def get_allowed_daytimes(selected_date, reservation_period):
+    day_of_week_mapping = {
+        'Monday': 'a',
+        'Tuesday': 'b',
+        'Wednesday': 'c',
+        'Thursday': 'd',
+        'Friday': 'e',
+        'Saturday': 'f',
+        'Sunday': 'g',
+    }
+
+    selected_date_format = datetime.strptime(selected_date, "%Y-%m-%d")
+
+    day_of_week = day_of_week_mapping[selected_date_format.strftime('%A')]
+
+    # Retrieve allowed timeslots for the selected date and reservation period
+    allowed_daytimes = Timeslot.objects.filter(
+        dayTime__day=day_of_week,
+        reservation_period=reservation_period,
+        is_reservation_allowed=True
+    )
+
+    return allowed_daytimes

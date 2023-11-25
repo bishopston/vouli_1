@@ -28,6 +28,7 @@ class DayTime(models.Model):
     def __str__(self):
         return f"{self.get_day_display()} - {self.slot}"
 
+
 class SchoolYear(models.Model):
     start_date = models.DateField()
     end_date = models.DateField()
