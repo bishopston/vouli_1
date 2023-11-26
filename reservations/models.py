@@ -54,6 +54,9 @@ class Timeslot(models.Model):
 
     def __str__(self):
         return f"{self.dayTime}, Reservation Allowed: {self.is_reservation_allowed}"
+    
+    def display_time(self):
+        return self.dayTime.slot.strftime('%H:%M')
 
 class ExceptionalRule(models.Model):
     date = models.ForeignKey(Day, on_delete=models.CASCADE)
@@ -83,11 +86,13 @@ class Reservation(models.Model):
         ('approved', 'Επιβεβαιωμένη'),
     ]
     TEACHER_NUM = [
+        ('', 'Επιλέξτε'),
         ('1', '1'),
         ('2', '2'),
         ('3', '3'),
         ]
     STUDENT_NUM = [
+        ('', 'Επιλέξτε'),
         ('15', '15'),
         ('16', '16'),
         ('17', '17'),
@@ -128,12 +133,12 @@ class Reservation(models.Model):
     schoolUser = models.ForeignKey(SchoolUser, on_delete=models.CASCADE, default=None)
     reservation_date = models.ForeignKey(Day, on_delete=models.CASCADE)
     timeslot = models.ForeignKey(Timeslot, on_delete=models.CASCADE)
-    teacher_number = models.CharField(max_length=1, choices=TEACHER_NUM, default='1')
-    student_number = models.CharField(max_length=2, choices=STUDENT_NUM, default='15')
+    teacher_number = models.CharField(max_length=1, choices=TEACHER_NUM, default='')
+    student_number = models.CharField(max_length=2, choices=STUDENT_NUM, default='')
     amea = models.BooleanField(default=False)
     terms_accepted = models.BooleanField(default=False)
     reservation_period = models.ForeignKey(ReservationPeriod, on_delete=models.CASCADE, default=None)
-    status = models.CharField(max_length=8, choices=STATUS_CHOICES)
+    status = models.CharField(max_length=8, choices=STATUS_CHOICES, default='pending')
     is_performed = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

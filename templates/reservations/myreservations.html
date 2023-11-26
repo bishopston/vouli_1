@@ -15,7 +15,7 @@
                     <p class="card-text my-2">Μπορείτε να καταχωρίσετε κράτηση για επίσκεψη στη Βουλή κατά την περίοδο {{ next_available_res_period_start_date|date:'d/m/Y' }} - {{ next_available_res_period_end_date|date:'d/m/Y' }}.
                         Έχετε το δικαίωμα να επισκεφτείτε τη Βουλή σε μία μόνο ημερομηνία κατά τη διάρκεια κάθε σχολικού έτους.
                     </p>
-                    <a href="{% url 'reservations:calendar_month' next_available_res_period.id %}" class="btn btn-primary mt-2">Κράτηση</a>
+                    <a href="{% url 'reservations:calendar_month' next_available_res_period.id my_school.id %}" class="btn btn-primary mt-2">Κράτηση</a>
                     </div>
                 </div>
             {% else %}
@@ -35,10 +35,10 @@
     <div class="row w-100">
         {% if my_school %}
             {% if my_reservations %}
-                <div class="card text-center mt-5">
+                <div class="my-5 d-flex justify-content-center">
                     <nav aria-label="breadcrumb">
                         <ol class="breadcrumb">
-                        <li class="breadcrumb-item active" aria-current="page">Ιστορικό Κρατήσεων για το {{ my_school }}</li>
+                        <li class="breadcrumb-item active" aria-current="page">Ιστορικό Κρατήσεων για το {{ my_school.school.name }}</li>
                         </ol>
                     </nav>
                 </div>
@@ -46,7 +46,7 @@
                 <div class="my-5 d-flex justify-content-center">
                     <nav aria-label="breadcrumb">
                         <ol class="breadcrumb">
-                            <li class="breadcrumb-item active" aria-current="page">Δεν έχουν δημιουργηθεί ακόμα κρατήσεις για το {{ my_school }}</li>
+                            <li class="breadcrumb-item active" aria-current="page">Δεν έχουν δημιουργηθεί ακόμα κρατήσεις για το {{ my_school.school.name }}</li>
                         </ol>
                     </nav>
                 </div>

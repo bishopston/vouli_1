@@ -12,7 +12,7 @@ from datetime import timedelta
 import datetime
 from datetime import datetime as dt
 import pytz
-from datetime import datetime
+from datetime import datetime, date
 
 @login_required
 @user_passes_test(lambda u: u.is_superuser)
@@ -135,15 +135,16 @@ def delete_timeslots(request):
 #     return render(request, 'your_template.html', {'form': ReservationForm(), 'reservation_period': reservation_period})
 
 @login_required
-def calendar_month(request, reservation_period_id=None, year=None, month=None):
+def calendar_month(request, reservation_period_id, school_user_id, year=None, month=None):
     # If reservation_period_id is provided, get the start date of the reservation period
     if reservation_period_id:
         #reservation_period = ReservationPeriod.objects.get(pk=reservation_period_id)
         reservation_period = get_object_or_404(ReservationPeriod, pk=reservation_period_id)
+        school_user = get_object_or_404(SchoolUser, pk=school_user_id)
         if not year and not month:
             start_date = reservation_period.start_date
         else: 
-            start_date = datetime.date(year, month, 1)
+            start_date = date(year, month, 1)
     else:
         # If no reservation_period_id is provided, use the current date
         start_date = timezone.now()
@@ -174,6 +175,7 @@ def calendar_month(request, reservation_period_id=None, year=None, month=None):
         'reservation_period_id': reservation_period.id,
         'reservation_period': reservation_period,
         'reservation_period_allowed': reservation_period.reservationwindow_set.first().is_reservation_allowed(),
+        'school_user': school_user,
     }
 
     return render(request, 'reservations/calendar_month_3.html', context)
@@ -205,7 +207,7 @@ def my_reservations(request):
 
         try:
             #ensure that user has created a school
-            my_school = SchoolUser.objects.filter(creator=request.user)[0].school.name
+            my_school = SchoolUser.objects.filter(creator=request.user)[0]#.school.name
 
             #ensure that admin has created a ReservationWindow
             if len(ReservationWindow.objects.filter(reservation_period=closest_available_res_period[0])) > 0:
@@ -246,8 +248,8 @@ def my_reservations(request):
             return render(request, 'reservations/myreservations.html')
 
 @login_required
-def make_reservation(request, reservation_period_id):
-    #res_period = ReservationPeriod.objects.get(pk=reservation_period_id)
+def make_reservation(request, reservation_period_id, school_user_id):
+    schoolUser = SchoolUser.objects.get(pk=school_user_id)
     res_period = get_object_or_404(ReservationPeriod, pk=reservation_period_id)
     date = request.GET.get('date')
 
@@ -267,7 +269,38 @@ def make_reservation(request, reservation_period_id):
     non_occupied_timeslots = allowed_timeslots.exclude(id__in=occupied_timeslots)
     non_occupied_timeslots_count = len(non_occupied_timeslots)
 
-    context = {'res_period': res_period,
+    form = ReservationForm(
+        reservation_period=res_period,
+        selected_date=date,
+        initial={'reservation_date': date, 'reservation_period': res_period.id}
+    )
+    if request.method == 'POST':
+        form = ReservationForm(request.POST)
+        if form.is_valid():
+            my_reservation = Reservation(
+                schoolUser = schoolUser,
+                reservation_date = selected_calendar_date,
+                timeslot = form.cleaned_data["timeslot"],
+                teacher_number = form.cleaned_data["teacher_number"],
+                student_number = form.cleaned_data["student_number"],
+                amea = form.cleaned_data["amea"],
+                terms_accepted = form.cleaned_data["terms_accepted"],
+                reservation_period = res_period,
+            )
+            my_reservation.save()
+            return HttpResponseRedirect(reverse('reservations:my_reservations'))
+    else:
+    #     form = ReservationForm(reservation_period=res_period_id, initial={'reservation_date': date})
+        form = ReservationForm(
+            reservation_period=res_period,
+            selected_date=date,
+            initial={'reservation_date': date, 'reservation_period': res_period.id}
+        )
+
+    context = {
+        'res_period': res_period,
+        #'res_period_id': res_period.id,
+        'schoolUser': schoolUser,
         'date': date,
         'week_day': selected_calendar_date_name,
         'selected_calendar_date_day': selected_calendar_date_day,
@@ -277,16 +310,8 @@ def make_reservation(request, reservation_period_id):
         'occupied_timeslots': occupied_timeslots,
         'non_occupied_timeslots': non_occupied_timeslots,
         'non_occupied_timeslots_count': non_occupied_timeslots_count,
+        'form': form,
     }
-
-#     if request.method == 'POST':
-#         form = ReservationForm(request.POST)
-#         if form.is_valid():
-#             # Do additional processing if needed
-#             form.save()
-#             return redirect('base:home')
-#     else:
-#         form = ReservationForm()
 
     return render(request, 'reservations/reservation.html', context)
 

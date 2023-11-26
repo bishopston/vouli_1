@@ -13,7 +13,7 @@
         </div>
 
         <div class="d-flex justify-content-between my-5">
-            <a href="{% url 'reservations:calendar_month_year' reservation_period_id=reservation_period_id year=prev_year month=prev_month %}" class="btn btn-primary">&lt; Προηγούμενο</a>
+            <a href="{% url 'reservations:calendar_month_year' reservation_period_id school_user.id prev_year prev_month %}" class="btn btn-primary">&lt; Προηγούμενο</a>
             <h3 class="current-month">
                 {% if current_month == 1 %}
                     Ιανουάριος {{ current_year }}
@@ -41,7 +41,7 @@
                     Δεκέμβριος {{ current_year }}
                 {% endif %}
             </h2>
-            <a href="{% url 'reservations:calendar_month_year' reservation_period_id=reservation_period_id year=next_year month=next_month %}" class="btn btn-primary">Επόμενο &gt;</a>
+            <a href="{% url 'reservations:calendar_month_year' reservation_period_id school_user.id next_year next_month %}" class="btn btn-primary">Επόμενο &gt;</a>
         </div>
 
         <table class="table table-bordered">
@@ -94,7 +94,7 @@
 
                 // Build the URL for the make_reservation view
                 // var url = `/make_reservation/${reservationPeriodId}/?date=${date}`;
-                var url = "{% url 'reservations:make_reservation' reservation_period_id=reservation_period.id %}?date=" + date;
+                var url = "{% url 'reservations:make_reservation' reservation_period.id school_user.id %}?date=" + date;
 
                 // Redirect to the make_reservation view with the selected date and reservation period id
                 window.location.href = url;
