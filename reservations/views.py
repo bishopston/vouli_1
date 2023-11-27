@@ -4,9 +4,11 @@ from django.urls import reverse
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
 from django.utils import timezone
+from django.forms import formset_factory
 from .models import Day, ReservationPeriod, Timeslot, DayTime, Reservation, ReservationWindow, ExceptionalRule, SchoolYear
 from schools.models import SchoolUser
-from .forms import ReservationForm
+from .forms import ReservationForm, BaseReservationFormSet
+from .utils import get_occupied_daytimes, get_allowed_daytimes
 from datetime import timedelta
 #from calendar import monthrange
 import datetime
@@ -269,33 +271,66 @@ def make_reservation(request, reservation_period_id, school_user_id):
     non_occupied_timeslots = allowed_timeslots.exclude(id__in=occupied_timeslots)
     non_occupied_timeslots_count = len(non_occupied_timeslots)
 
-    form = ReservationForm(
-        reservation_period=res_period,
-        selected_date=date,
-        initial={'reservation_date': date, 'reservation_period': res_period.id}
-    )
+    # form = ReservationForm(
+    #     reservation_period=res_period,
+    #     selected_date=date,
+    #     initial={'reservation_date': date, 'reservation_period': res_period.id}
+    # )
+
+    #formset = ReservationFormSet(initial=[{'reservation_date': date, 'reservation_period': res_period.id}] * 3)
+
+    # if request.method == 'POST':
+    #     form = ReservationForm(request.POST)
+    #     if form.is_valid():
+    #         my_reservation = Reservation(
+    #             schoolUser = schoolUser,
+    #             reservation_date = selected_calendar_date,
+    #             timeslot = form.cleaned_data["timeslot"],
+    #             teacher_number = form.cleaned_data["teacher_number"],
+    #             student_number = form.cleaned_data["student_number"],
+    #             amea = form.cleaned_data["amea"],
+    #             terms_accepted = form.cleaned_data["terms_accepted"],
+    #             reservation_period = res_period,
+    #         )
+    #         my_reservation.save()
+    #         return HttpResponseRedirect(reverse('reservations:my_reservations'))
+    # else:
+    # #     form = ReservationForm(reservation_period=res_period_id, initial={'reservation_date': date})
+    #     form = ReservationForm(
+    #         reservation_period=res_period,
+    #         selected_date=date,
+    #         initial={'reservation_date': date, 'reservation_period': res_period.id}
+    #     )
+
+    #ReservationFormSet = formset_factory(extra=3, formset=BaseReservationFormSet)
+    context = {} 
+
+    ReservationFormSet = formset_factory(ReservationForm, extra=3, max_num=3, formset=BaseReservationFormSet)
+
     if request.method == 'POST':
-        form = ReservationForm(request.POST)
-        if form.is_valid():
-            my_reservation = Reservation(
-                schoolUser = schoolUser,
-                reservation_date = selected_calendar_date,
-                timeslot = form.cleaned_data["timeslot"],
-                teacher_number = form.cleaned_data["teacher_number"],
-                student_number = form.cleaned_data["student_number"],
-                amea = form.cleaned_data["amea"],
-                terms_accepted = form.cleaned_data["terms_accepted"],
-                reservation_period = res_period,
-            )
-            my_reservation.save()
+        formset = ReservationFormSet(request.POST, reservation_period=res_period, selected_date=date)
+        if formset.is_valid():
+            for form in formset:
+                # process each form in the formset
+                if form.cleaned_data.get('timeslot'):
+                    my_reservation = Reservation(
+                        schoolUser = schoolUser,
+                        reservation_date = selected_calendar_date,
+                        timeslot = form.cleaned_data["timeslot"],
+                        teacher_number = form.cleaned_data["teacher_number"],
+                        student_number = form.cleaned_data["student_number"],
+                        amea = form.cleaned_data["amea"],
+                        terms_accepted = form.cleaned_data["terms_accepted"],
+                        reservation_period = res_period,
+                    )
+                    my_reservation.save()
+
             return HttpResponseRedirect(reverse('reservations:my_reservations'))
+        else:
+            # Formset is not valid, include it in the context
+            context['formset'] = formset
     else:
-    #     form = ReservationForm(reservation_period=res_period_id, initial={'reservation_date': date})
-        form = ReservationForm(
-            reservation_period=res_period,
-            selected_date=date,
-            initial={'reservation_date': date, 'reservation_period': res_period.id}
-        )
+        formset = ReservationFormSet(reservation_period=res_period, selected_date=date)
 
     context = {
         'res_period': res_period,
@@ -310,59 +345,8 @@ def make_reservation(request, reservation_period_id, school_user_id):
         'occupied_timeslots': occupied_timeslots,
         'non_occupied_timeslots': non_occupied_timeslots,
         'non_occupied_timeslots_count': non_occupied_timeslots_count,
-        'form': form,
+        #'form': form,
+        'formset': formset,
     }
 
     return render(request, 'reservations/reservation.html', context)
-
-def get_occupied_daytimes(selected_date, reservation_period):
-    day_of_week_mapping = {
-        'Monday': 'a',
-        'Tuesday': 'b',
-        'Wednesday': 'c',
-        'Thursday': 'd',
-        'Friday': 'e',
-        'Saturday': 'f',
-        'Sunday': 'g',
-    }
-
-    selected_date_format = datetime.strptime(selected_date, "%Y-%m-%d")
-
-    day_of_week = day_of_week_mapping[selected_date_format.strftime('%A')]
-
-    selected_date_id = Day.objects.get(date=selected_date).id
-    
-    # Retrieve occupied timeslots for the selected date and reservation period
-    occupied_daytimes = Timeslot.objects.filter(
-        dayTime__day=day_of_week,
-        reservation_period=reservation_period,
-        reservation__reservation_date=selected_date_id
-    )
-
-    #non_occupied_daytimes = available_daytimes.exclude(id__in=occupied_timeslots)
-
-    return occupied_daytimes
-
-def get_allowed_daytimes(selected_date, reservation_period):
-    day_of_week_mapping = {
-        'Monday': 'a',
-        'Tuesday': 'b',
-        'Wednesday': 'c',
-        'Thursday': 'd',
-        'Friday': 'e',
-        'Saturday': 'f',
-        'Sunday': 'g',
-    }
-
-    selected_date_format = datetime.strptime(selected_date, "%Y-%m-%d")
-
-    day_of_week = day_of_week_mapping[selected_date_format.strftime('%A')]
-
-    # Retrieve allowed timeslots for the selected date and reservation period
-    allowed_daytimes = Timeslot.objects.filter(
-        dayTime__day=day_of_week,
-        reservation_period=reservation_period,
-        is_reservation_allowed=True
-    )
-
-    return allowed_daytimes

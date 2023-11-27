@@ -12,6 +12,16 @@
         background-color: red;
     }
 
+    .formset-form {
+        border-bottom: 2px solid #ccc;  /* Add a border between forms */
+        padding-bottom: 10px;  /* Add some padding to improve spacing */
+        margin-bottom: 20px;  /* Add margin to create space between forms */
+    }
+
+    .errorlist {
+        color: red;
+}
+
 </style>
 
 <div class="container bg-white text-dark d-flex flex-wrap overflow-auto">
@@ -111,7 +121,7 @@
                             </div>
                             <div class="row w-100">
                                 <small>
-                                * Αν η χρονοθυρίδα έχει επισημανθεί με κόκκινο φόντο, δεν είναι διαθεσιμη για κράτηση 
+                                * Αν η χρονοθυρίδα έχει επισημανθεί με κόκκινο φόντο, δεν είναι διαθέσιμη για κράτηση 
                                 </small>
                             </div>
                         </div>
@@ -120,18 +130,28 @@
             </div>
             <div class="col-md-6">
                 <div class="row w-100">
-
-                        <div class="text-bg-info p-3 text-center ms-2">Μπορείτε να καταχωρίσετε κράτηση για 1 έως 3 ομάδες μαθητών/τριών για τη συγκεκριμένη ημερομηνία</div>
-
+                    <div class="text-bg-info p-3 text-center ms-2">Μπορείτε να καταχωρίσετε κράτηση για 1 έως 3 ομάδες μαθητών/τριών για τη συγκεκριμένη ημερομηνία</div>
                 </div>
                 <div class="row w-100 mt-3">
-
-                        <form method="post">
-                            {% csrf_token %}
-                            {{ form|crispy }}
-                            <button type="submit" class="btn btn-primary">Submit</button>
-                        </form>
-
+                    <form method="post">
+                        {% csrf_token %}
+                        <!-- {{ form|crispy }} -->
+                        {{ formset.management_form }}
+                        <p class="errorlist">{{ formset.non_form_errors }}</p>
+                        {% for form in formset %}
+                            <div class="formset-form">
+                                {{ form|crispy }}
+                                {% if form.errors %}
+                                <ul class="errorlist">
+                                  {% for error in form.errors %}
+                                    <li>{{ error }}</li>
+                                  {% endfor %}
+                                </ul>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                        <button type="submit" class="btn btn-primary">ΚΑΤΑΧΩΡΙΣΗ</button>
+                    </form>
                 </div>
             </div>
         </div>
