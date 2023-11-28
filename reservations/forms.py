@@ -32,6 +32,16 @@ class ReservationForm(forms.ModelForm):
         selected_date = kwargs.pop('selected_date', None)
 
         super(ReservationForm, self).__init__(*args, **kwargs)
+        self.fields['terms_accepted'].required = True
+        self.fields['terms_accepted'].error_messages = {
+            'required': 'Πρέπει να αποδεχτείτε τους όρους συμμετοχής.'
+        }
+        self.fields['student_number'].error_messages = {
+            'required': 'Πρέπει να συμπληρώσετε τον αριθμό των μαθητών/τριών.'
+        }
+        self.fields['teacher_number'].error_messages = {
+            'required': 'Πρέπει να συμπληρώσετε τον αριθμό των εκπαιδευτικών.'
+        }
 
         if reservation_period and selected_date:
             allowed_daytimes = get_allowed_daytimes(selected_date, reservation_period)
@@ -65,15 +75,40 @@ class BaseReservationFormSet(BaseFormSet):
             form.fields['timeslot'].queryset = non_occupied_daytimes
             form.fields['timeslot'].label_from_instance = lambda obj: obj.display_time()
 
+    # def clean(self):
+    #     if any(self.errors):
+    #         # Don't bother validating the formset unless each form is valid on its own
+    #         return
+
+    #     timeslots = set()
+    #     for form in self.forms:
+    #         if form.cleaned_data.get('timeslot'):
+    #             timeslot = form.cleaned_data['timeslot']
+    #             if timeslot in timeslots:
+    #                 raise ValidationError('Έχετε καταχωρίσει δύο φορές την ίδια χρονοθυρίδα.')
+    #             timeslots.add(timeslot)
+    #         if form.cleaned_data.get('terms_accepted') is False:
+    #             raise forms.ValidationError("Πρέπει να αποδεχτείτε τους όρους συμμετοχής.")
+
+
     def clean(self):
         if any(self.errors):
             # Don't bother validating the formset unless each form is valid on its own
             return
 
         timeslots = set()
-        for form in self.forms:
+        for i, form in enumerate(self.forms):
             if form.cleaned_data.get('timeslot'):
                 timeslot = form.cleaned_data['timeslot']
                 if timeslot in timeslots:
-                    raise ValidationError('Έχετε καταχωρίσει δύο φορές την ίδια χρονοθυρίδα')
+                    form.add_error('timeslot', ValidationError('Έχετε καταχωρίσει δύο φορές την ίδια χρονοθυρίδα.'))
+                    # Remove the duplicated timeslot from the set to avoid global validation error
+                    timeslots.remove(timeslot)
                 timeslots.add(timeslot)
+            if form.cleaned_data.get('terms_accepted') is False:
+                form.add_error('terms_accepted', ValidationError("Πρέπει να αποδεχτείτε τους όρους συμμετοχής."))
+
+
+        # Check if all forms are empty
+        if not any(form.cleaned_data for form in self.forms):
+            raise ValidationError("Συμπληρώστε τουλάχιστον μία φόρμα για να πραγματοποιήσετε την κράτηση.")

@@ -5,6 +5,7 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
 from django.utils import timezone
 from django.forms import formset_factory
+from django.core.exceptions import ValidationError
 from .models import Day, ReservationPeriod, Timeslot, DayTime, Reservation, ReservationWindow, ExceptionalRule, SchoolYear
 from schools.models import SchoolUser
 from .forms import ReservationForm, BaseReservationFormSet
@@ -326,15 +327,39 @@ def make_reservation(request, reservation_period_id, school_user_id):
                     my_reservation.save()
 
             return HttpResponseRedirect(reverse('reservations:my_reservations'))
+        
         else:
             # Formset is not valid, include it in the context
             context['formset'] = formset
+            # Include specific error messages in the context
+            context['timeslot_error'] = any(formset.errors) and formset.errors[0].get('timeslot')
+            context['terms_accepted_error'] = any(formset.errors) and formset.errors[0].get('terms_accepted')
+
+            #return render(request, 'reservations/reservation.html', context)
+    
     else:
         formset = ReservationFormSet(reservation_period=res_period, selected_date=date)
+        
 
-    context = {
+    # context = {
+    #     'res_period': res_period,
+    #     #'res_period_id': res_period.id,
+    #     'schoolUser': schoolUser,
+    #     'date': date,
+    #     'week_day': selected_calendar_date_name,
+    #     'selected_calendar_date_day': selected_calendar_date_day,
+    #     'selected_calendar_date_month': selected_calendar_date_month,
+    #     'selected_calendar_date_year': selected_calendar_date_year,
+    #     'allowed_timeslots': allowed_timeslots,
+    #     'occupied_timeslots': occupied_timeslots,
+    #     'non_occupied_timeslots': non_occupied_timeslots,
+    #     'non_occupied_timeslots_count': non_occupied_timeslots_count,
+    #     #'form': form,
+    #     'formset': formset,
+    # }
+
+    context.update({
         'res_period': res_period,
-        #'res_period_id': res_period.id,
         'schoolUser': schoolUser,
         'date': date,
         'week_day': selected_calendar_date_name,
@@ -345,8 +370,7 @@ def make_reservation(request, reservation_period_id, school_user_id):
         'occupied_timeslots': occupied_timeslots,
         'non_occupied_timeslots': non_occupied_timeslots,
         'non_occupied_timeslots_count': non_occupied_timeslots_count,
-        #'form': form,
         'formset': formset,
-    }
+    })
 
     return render(request, 'reservations/reservation.html', context)
