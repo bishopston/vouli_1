@@ -1,6 +1,8 @@
 from django.contrib import admin
+from django import forms
 from .models import Day, DayTime, SchoolYear, ReservationPeriod, Timeslot, ExceptionalRule, Reservation, ReservationWindow
-from .forms import TimeslotForm, ReservationPeriodForm
+from .forms import TimeslotForm, ReservationPeriodForm, ExceptionalRuleAdminForm
+from datetime import datetime
 
 class TimeslotInline(admin.TabularInline):
     model = Timeslot
@@ -32,9 +34,35 @@ class ReservationPeriodAdmin(admin.ModelAdmin):
 class TimeslotAdmin(admin.ModelAdmin):
     list_display = ['dayTime', 'reservation_period', 'is_reservation_allowed']
 
-@admin.register(ExceptionalRule)
-class ExceptionalRuleAdmin(admin.ModelAdmin):
-    list_display = ['date', 'timeslot', 'is_reservation_allowed']
+# class ExceptionalRuleAdminForm(forms.ModelForm):
+#     class Meta:
+#         model = ExceptionalRule
+#         fields = '__all__'
+#         widgets = {
+#             'date': forms.DateInput(attrs={'type': 'date'}),
+#         }
+
+# class ExceptionalRuleAdmin(admin.ModelAdmin):
+#     form = ExceptionalRuleAdminForm
+
+#     def formfield_for_foreignkey(self, db_field, request, **kwargs):
+#         if db_field.name == 'timeslot':
+#             # Get the date from the request
+#             date_str = request.GET.get('date')
+            
+#             if date_str:
+#                 # Convert the date string to a datetime object
+#                 date = datetime.strptime(date_str, "%Y-%m-%d").date()
+                
+#                 # Get the day of the week for the given date
+#                 day_of_week = date.strftime('%a').lower()
+                
+#                 # Filter the available timeslots based on the day of the week
+#                 kwargs["queryset"] = Timeslot.objects.filter(dayTime__day=day_of_week)
+
+#         return super().formfield_for_foreignkey(db_field, request, **kwargs)
+
+# admin.site.register(ExceptionalRule, ExceptionalRuleAdmin)
 
 @admin.register(Reservation)
 class ReservationAdmin(admin.ModelAdmin):

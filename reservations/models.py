@@ -53,14 +53,14 @@ class Timeslot(models.Model):
     is_reservation_allowed = models.BooleanField(default=True)
 
     def __str__(self):
-        return f"{self.dayTime}, Reservation Allowed: {self.is_reservation_allowed}"
+        return self.dayTime.slot.strftime('%H:%M')
     
     def display_time(self):
         return self.dayTime.slot.strftime('%H:%M')
 
 class ExceptionalRule(models.Model):
     date = models.ForeignKey(Day, on_delete=models.CASCADE)
-    timeslot = models.ForeignKey(Timeslot, on_delete=models.CASCADE)
+    timeslot = models.ForeignKey(DayTime, on_delete=models.CASCADE)
     is_reservation_allowed = models.BooleanField(default=True)
 
     def __str__(self):

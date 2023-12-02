@@ -6,9 +6,10 @@ from django.contrib import messages
 from django.utils import timezone
 from django.forms import formset_factory
 from django.core.exceptions import ValidationError
+from django.http import JsonResponse
 from .models import Day, ReservationPeriod, Timeslot, DayTime, Reservation, ReservationWindow, ExceptionalRule, SchoolYear
 from schools.models import SchoolUser
-from .forms import ReservationForm, BaseReservationFormSet
+from .forms import ReservationForm, BaseReservationFormSet, ExceptionalRuleForm
 from .utils import get_occupied_daytimes, get_allowed_daytimes
 from datetime import timedelta
 #from calendar import monthrange
@@ -66,6 +67,141 @@ def add_timeslots(request, reservation_period_id):
         return HttpResponseRedirect(request.path_info)
 
     return render(request, 'reservations/add_timeslots.html', {'reservation_period': reservation_period, 'qs_days': qs_days, 'qs_slots': qs_slots})
+
+
+# def add_exceptional_rule(request):
+#     selected_date = request.GET.get('date')
+#     print(selected_date)
+
+#     # Get the selected day and corresponding DayTime instances
+#     selected_day = Day.objects.get(date=selected_date)
+    # day_of_week_mapping = {
+    #     'Monday': 'a',
+    #     'Tuesday': 'b',
+    #     'Wednesday': 'c',
+    #     'Thursday': 'd',
+    #     'Friday': 'e',
+    #     'Saturday': 'f',
+    #     'Sunday': 'g',
+    # }
+#     selected_day_of_week = day_of_week_mapping[selected_day.date.strftime('%A')]
+
+#     # Find the corresponding DayTime instances for the determined day
+#     available_daytimes = DayTime.objects.filter(day=selected_day_of_week)
+
+#     if request.method == 'POST':
+#         daytimes = request.POST.getlist('daytimes')
+#         selected_date = request.POST.get('selected_date')
+#         selected_day = Day.objects.get(date=selected_date)
+#         # day_of_week_mapping = {
+#         #     'Monday': 'a',
+#         #     'Tuesday': 'b',
+#         #     'Wednesday': 'c',
+#         #     'Thursday': 'd',
+#         #     'Friday': 'e',
+#         #     'Saturday': 'f',
+#         #     'Sunday': 'g',
+#         # }
+#         # selected_day_of_week = day_of_week_mapping[selected_day.date.strftime('%A')]
+
+#         for daytime in daytimes:
+                        
+#             #print(f"Day: {day}, Hour: {hour}")
+#             print(selected_day)
+#             submitted_daytimes = ExceptionalRule.objects.filter(date=selected_day, timeslot=daytime)
+
+#             if submitted_daytimes.exists():
+#                 return render(request, 'reservations/add_exceptional_rule.html', {'selected_date': selected_date, 'available_daytimes': available_daytimes, 'error_message': 'Έχετε προβεί σε διπλοεγγραφή χρονοθυρίδας. Η ενέργεια ακυρώθηκε.'})
+
+#             else:
+#                 # Create ExceptionalRule objects based on the selected checkboxes
+#                 ExceptionalRule.objects.create(
+#                     date=selected_day,
+#                     timeslot=daytime
+#                 )
+#         return HttpResponseRedirect(request.path_info)
+
+#     context = {
+#         'selected_date': selected_date,
+#         'available_daytimes': available_daytimes,
+#     }
+
+#     return render(request, 'reservations/add_exceptional_rule.html', context)
+
+def add_exceptional_rule(request):
+
+    # If the form was not submitted via POST, handle accordingly
+    #selected_date = request.GET.get('date')
+    selected_date = request.GET.get('date') or request.POST.get('selected_date')
+    print(selected_date)
+    day_of_week_mapping = {
+        'Monday': 'a',
+        'Tuesday': 'b',
+        'Wednesday': 'c',
+        'Thursday': 'd',
+        'Friday': 'e',
+        'Saturday': 'f',
+        'Sunday': 'g',
+    }
+    #selected_day_of_week = day_of_week_mapping[Day.objects.get(date=selected_date).weekday()]
+    selected_day = Day.objects.get(date=selected_date)
+    print(selected_day)
+    selected_day_of_week = day_of_week_mapping[selected_day.date.strftime('%A')]
+    print(selected_day_of_week)
+
+    # Find the corresponding DayTime instances for the determined day
+    available_daytimes = DayTime.objects.filter(day=selected_day_of_week)
+    print(available_daytimes)
+
+    if request.method == 'POST':
+        #selected_date = request.POST.get('selected_date')
+        #selected_date = request.GET.get('selected_date')
+        selected_daytimes = request.POST.getlist('daytimes')
+        print(selected_date)
+
+        # Check if the submitted daytimes already exist
+        for daytime_id in selected_daytimes:
+            print(daytime_id)
+            submitted_daytimes = ExceptionalRule.objects.filter(date=Day.objects.get(date=selected_date), timeslot=DayTime.objects.get(id=daytime_id))
+
+
+            if submitted_daytimes.exists():
+                available_daytimes = DayTime.objects.filter(day=selected_day_of_week)
+                error_message = 'Έχετε προβεί σε διπλοεγγραφή χρονοθυρίδας. Η ενέργεια ακυρώθηκε.'
+                return render(request, 'reservations/add_exceptional_rule.html', {'selected_date': selected_date, 'available_daytimes': available_daytimes, 'error_message': error_message})
+
+            # Create ExceptionalRule instances for the selected daytimes
+            else:
+                ExceptionalRule.objects.create(
+                    date=Day.objects.get(date=selected_date),
+                    timeslot=DayTime.objects.get(id=daytime_id),
+                )
+
+        # Redirect to a success page or any other page
+        return render(request, 'reservations/add_exceptional_rule.html', {'selected_date': selected_date, 'selected_day': selected_day, 'available_daytimes': available_daytimes})
+
+    # else:
+    #     # If the form was not submitted via POST, handle accordingly
+    #     selected_date = request.GET.get('date')
+    #     day_of_week_mapping = {
+    #         'Monday': 'a',
+    #         'Tuesday': 'b',
+    #         'Wednesday': 'c',
+    #         'Thursday': 'd',
+    #         'Friday': 'e',
+    #         'Saturday': 'f',
+    #         'Sunday': 'g',
+    #     }
+    #     #selected_day_of_week = day_of_week_mapping[Day.objects.get(date=selected_date).weekday()]
+    #     selected_day = Day.objects.get(date=selected_date)
+    #     print(selected_day)
+    #     selected_day_of_week = day_of_week_mapping[selected_day.date.strftime('%A')]
+
+    #     # Find the corresponding DayTime instances for the determined day
+    #     available_daytimes = DayTime.objects.filter(day=selected_day_of_week)
+
+    return render(request, 'reservations/add_exceptional_rule.html', {'selected_date': selected_date, 'selected_day': selected_day, 'available_daytimes': available_daytimes})
+
 
 @login_required
 @user_passes_test(lambda u: u.is_superuser)
@@ -374,3 +510,136 @@ def make_reservation(request, reservation_period_id, school_user_id):
     })
 
     return render(request, 'reservations/reservation.html', context)
+
+@login_required
+def calendar_timeslot(request, reservation_period_id, year=None, month=None):
+    # If reservation_period_id is provided, get the start date of the reservation period
+    if reservation_period_id:
+        #reservation_period = ReservationPeriod.objects.get(pk=reservation_period_id)
+        reservation_period = get_object_or_404(ReservationPeriod, pk=reservation_period_id)
+        if not year and not month:
+            start_date = reservation_period.start_date
+        else: 
+            start_date = date(year, month, 1)
+    else:
+        # If no reservation_period_id is provided, use the current date
+        start_date = timezone.now()
+
+    # If year and month are not provided, use the start date
+    if not year:
+        year = start_date.year
+    if not month:
+        month = start_date.month
+
+    # Calculate previous and next months
+    prev_month = start_date - timedelta(days=start_date.day)
+    next_month = start_date + timedelta(days=(32 - start_date.day))
+
+
+    # Retrieve days for the current month
+    month_days = get_month_days(year, month, reservation_period_id)
+
+    context = {
+        #'current_month': f'{month}/{year}',
+        'current_month': month,
+        'current_year': year,
+        'prev_year': prev_month.year,
+        'prev_month': prev_month.month,
+        'next_year': next_month.year,
+        'next_month': next_month.month,
+        'month_days': month_days,
+        'reservation_period_id': reservation_period.id,
+        'reservation_period': reservation_period,
+    }
+
+    return render(request, 'reservations/calendar_exceptional_timeslot.html', context)
+
+# def modify_timeslots(request, reservation_period_id):
+#     reservation_period = get_object_or_404(ReservationPeriod, id=reservation_period_id)
+    
+#     selected_date = request.GET.get('date')
+#     selected_day = get_object_or_404(Day, date=selected_date)
+
+#     # Fetch all timeslots for the selected date
+#     timeslots = Timeslot.objects.filter(dayTime__day=selected_day)
+#     print(len(timeslots))
+
+#     return render(request, 'reservations/modify_timeslots.html', {
+#         'reservation_period': reservation_period,
+#         'selected_day': selected_day,
+#         'timeslots': timeslots,
+#     })
+
+# def exceptional_timeslots(request, reservation_period_id):
+#     selected_date = request.GET.get('date')
+#     selected_day = get_object_or_404(Day, date=selected_date)
+
+#     # Get the day of the week for the selected date
+#     day_of_week_mapping = {
+#         0: 'a',  # Monday
+#         1: 'b',  # Tuesday
+#         2: 'c',  # Wednesday
+#         3: 'd',  # Thursday
+#         4: 'e',  # Friday
+#         5: 'f',  # Saturday
+#         6: 'g',  # Sunday
+#     }
+#     selected_day_of_week = day_of_week_mapping[selected_day.date.weekday()]
+
+#     # Find the corresponding DayTime instances for the determined day
+#     available_daytimes = DayTime.objects.filter(day=selected_day_of_week)
+
+#     # Get the UnavailableTime instances for the selected date
+#     exceptional_timeslots = ExceptionalRule.objects.filter(date=selected_day)
+
+#     context = {
+#         'selected_date': selected_date,
+#         'available_daytimes': available_daytimes,
+#         'exceptional_timeslots': exceptional_timeslots,
+#         'reservation_period_id': reservation_period_id,
+#     }
+
+#     return render(request, 'reservations/exceptional_timeslots.html', context)
+
+# def update_exceptional_timeslots(request, reservation_period_id):
+#     if request.method == 'POST':
+#         selected_date = request.POST.get('selected_date')
+#         selected_day = get_object_or_404(Day, date=selected_date)
+
+#         # Get the selected timeslot IDs from the form submission
+#         selected_timeslots = request.POST.getlist('timeslots')
+
+#         # Get or create UnavailableTime instances for the selected date and timeslots
+#         for timeslot_id in selected_timeslots:
+#             timeslot = get_object_or_404(DayTime, id=timeslot_id)
+#             exceptional_timeslot_instance, created = ExceptionalRule.objects.get_or_create(date=selected_day, timeslot=timeslot)
+#             #exceptional_timeslot_instance.is_reservation_allowed = False  # You can change this based on your form input
+#             exceptional_timeslot_instance.save()
+
+#     return redirect('reservations:exceptional_timeslots', reservation_period_id=reservation_period_id)
+
+# def create_exceptional_rule(request):
+#     selected_date = request.GET.get('date')
+
+#     # Get the selected day and corresponding DayTime instances
+#     selected_day = Day.objects.get(date=selected_date)
+#     day_of_week_mapping = {
+#         'Monday': 'a',
+#         'Tuesday': 'b',
+#         'Wednesday': 'c',
+#         'Thursday': 'd',
+#         'Friday': 'e',
+#         'Saturday': 'f',
+#         'Sunday': 'g',
+#     }
+#     selected_day_of_week = day_of_week_mapping[selected_day.date.strftime('%A')]
+
+#     # Find the corresponding DayTime instances for the determined day
+#     available_daytimes = DayTime.objects.filter(day=selected_day_of_week)
+
+#     context = {
+#         'selected_date': selected_date,
+#         'available_daytimes': available_daytimes,
+#     }
+
+#     return render(request, 'reservations/create_exceptional_rule.html', context)

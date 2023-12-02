@@ -1,0 +1,28 @@
+{% extends '../base/base_admin.html' %}
+
+{% block content %}
+  <h2>Create Exceptional Rule for {{ selected_date }}</h2>
+
+  <form method="post" >
+    {% csrf_token %}
+
+    <table>
+      <thead>
+        <tr>
+          <th>Time</th>
+          <th>Allow Reservation</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for daytime in available_daytimes %}
+          <tr>
+            <td>{{ daytime.slot|time }}</td>
+            <td><input type="checkbox" name="timeslots" value="{{ daytime.id }}"></td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <button type="submit">Submit</button>
+  </form>
+{% endblock %}

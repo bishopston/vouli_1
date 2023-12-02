@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+
+{% block content %}
+  <h2>Available Timeslots for {{ selected_date }}</h2>
+
+  <form method="post" action="{% url 'reservations:update_exceptional_timeslots' reservation_period_id %}">
+    {% csrf_token %}
+    
+    {% for daytime in available_daytimes %}
+      {% with timeslot=daytime.get_timeslot %}
+        <label>
+          {{ timeslot|time:"H:i" }}
+
+          <input type="checkbox" name="timeslots" value="{{ timeslot.id }}" {% if timeslot.id in exceptional_timeslots.values_list 'timeslot_id' %}checked{% endif %}>
+
+        </label><br>
+      {% endwith %}
+    {% endfor %}
+
+    <input type="submit" value="Save">
+  </form>
+{% endblock %}

@@ -1,7 +1,8 @@
 from django import forms
 from django.forms import BaseFormSet
 from django.core.exceptions import ValidationError
-from .models import ReservationPeriod, Timeslot, Reservation
+from django.contrib.admin.widgets import AdminDateWidget
+from .models import ReservationPeriod, Timeslot, Reservation, ExceptionalRule
 from .utils import get_occupied_daytimes, get_allowed_daytimes
 
 class TimeslotForm(forms.ModelForm):
@@ -112,3 +113,26 @@ class BaseReservationFormSet(BaseFormSet):
         # Check if all forms are empty
         if not any(form.cleaned_data for form in self.forms):
             raise ValidationError("Συμπληρώστε τουλάχιστον μία φόρμα για να πραγματοποιήσετε την κράτηση.")
+        
+class CustomAdminDateWidget(AdminDateWidget):
+    def __init__(self, attrs=None, format=None):
+        final_attrs = {'class': 'datepicker'}
+        if attrs is not None:
+            final_attrs.update(attrs)
+        super().__init__(attrs=final_attrs, format=format)
+
+class ExceptionalRuleAdminForm(forms.ModelForm):
+    date = forms.DateField(widget=CustomAdminDateWidget)
+
+    class Meta:
+        model = ExceptionalRule
+        fields = '__all__'
+
+
+class ExceptionalRuleForm(forms.ModelForm):
+    class Meta:
+        model = ExceptionalRule
+        fields = ['date', 'timeslot', 'is_reservation_allowed']
+        widgets = {
+            'date': forms.DateInput(attrs={'type': 'date'}),
+        }

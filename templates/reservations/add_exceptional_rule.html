@@ -1,0 +1,78 @@
+{% extends '../base/base_admin.html' %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<nav aria-label="breadcrumb">
+    <div class="container mt-5">
+        <div class="d-flex justify-content-center mb-2">
+            <ol class="breadcrumb">
+            <li class="breadcrumb-item active" aria-current="page"><h4>Δημιουργία Κατα Εξαίρεση Χρονοθυρίδων για την Ημερομηνία {{ selected_date }}</h4></li>
+            </ol>
+        </div>
+    </div>
+</nav>
+<div class="container bg-white text-dark d-flex flex-wrap overflow-auto">
+    <div class="row w-100">
+        <div class="container">
+            <div class="d-flex justify-content-center mb-2">
+                <div class="col-md-8">
+                    <div class="d-flex justify-content-center">
+                        <form method="post" action="{% url 'reservations:add_exceptional_rule' %}">
+                            {% csrf_token %}
+
+                            {% if error_message %}
+                                <center><p><strong class="text-danger">{{ error_message }}</strong></p></center>
+                            {% endif %}
+                            <div class="row">
+                                <div class="d-flex justify-content-start mb-2">
+                                    <div class="me-2">       
+                                        <input type="hidden" name="selected_date" value="{{ selected_date }}">                               
+                                        <input type="checkbox" id="select-all">
+                                    </div>
+                                    <div>
+                                        <label for="select-all">Επιλογή Όλων</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <table class="table table-striped table-bordered table-sm">
+                                    <thead>
+                                        <tr>
+
+                                            <th>Ώρα</th>
+                                            <th>Διαθεσιμότητα</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for daytime in available_daytimes %}
+                                        <tr>
+
+                                            <td>{{ daytime.slot|time:"H:i" }}</td>
+                                            <td><input type="checkbox" name="daytimes" value="{{ daytime.id }}"></td>
+                                        </tr>
+                                      {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            <button type="submit" class="btn btn-primary mt-2">ΠΡΟΣΘΗΚΗ</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+    <script>
+        // JavaScript code to handle "Select All" functionality
+        document.addEventListener('DOMContentLoaded', function () {
+            document.getElementById('select-all').addEventListener('change', function () {
+                const checkboxes = document.querySelectorAll('input[name="daytimes"]');
+                checkboxes.forEach(checkbox => {
+                    checkbox.checked = document.getElementById('select-all').checked;
+                });
+            });
+        });
+    </script>
+
+{% endblock %}
