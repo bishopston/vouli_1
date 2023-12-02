@@ -2,11 +2,22 @@
 {% load crispy_forms_tags %}
 
 {% block content %}
+
+<style>
+
+    .horizontal-line {
+        border-bottom: 2px solid #ccc;  /* Add a border between forms */
+        padding-bottom: 10px;  /* Add some padding to improve spacing */
+        margin-bottom: 20px;  /* Add margin to create space between forms */
+    }
+
+</style>
+
 <nav aria-label="breadcrumb">
     <div class="container mt-5">
         <div class="d-flex justify-content-center mb-2">
             <ol class="breadcrumb">
-            <li class="breadcrumb-item active" aria-current="page"><h4>Δημιουργία Κατα Εξαίρεση Χρονοθυρίδων για την Ημερομηνία {{ selected_date }}</h4></li>
+            <li class="breadcrumb-item active" aria-current="page"><h4>Δημιουργία Κατα Εξαίρεση Χρονοθυρίδων για την Ημερομηνία {{ selected_day.date|date:'d/m/Y' }}</h4></li>
             </ol>
         </div>
     </div>
@@ -14,19 +25,18 @@
 <div class="container bg-white text-dark d-flex flex-wrap overflow-auto">
     <div class="row w-100">
         <div class="container">
-            <div class="d-flex justify-content-center mb-2">
-                <div class="col-md-8">
+            <div class="d-flex justify-content-center mb-2">    
                     <div class="d-flex justify-content-center">
                         <form method="post" action="{% url 'reservations:add_exceptional_rule' %}">
                             {% csrf_token %}
-
                             {% if error_message %}
                                 <center><p><strong class="text-danger">{{ error_message }}</strong></p></center>
                             {% endif %}
                             <div class="row">
                                 <div class="d-flex justify-content-start mb-2">
                                     <div class="me-2">       
-                                        <input type="hidden" name="selected_date" value="{{ selected_date }}">                               
+                                        <input type="hidden" name="selected_date" value="{{ selected_date }}">
+                                        <input type="hidden" name="res_period_id" value="{{ res_period_id }}">                             
                                         <input type="checkbox" id="select-all">
                                     </div>
                                     <div>
@@ -54,11 +64,83 @@
                                     </tbody>
                                 </table>
                             </div>
-                            <button type="submit" class="btn btn-primary mt-2">ΠΡΟΣΘΗΚΗ</button>
+                            <div class="d-flex justify-content-center">
+                                <button type="submit" class="btn btn-primary me-2">ΠΡΟΣΘΗΚΗ</button>
+                                <a href="{% url 'reservations:calendar_timeslot' res_period_id %}" class="btn btn-success">ΗΜΕΡΟΛΟΓΙΟ</a>
+                                
+                            </div>
                         </form>
                     </div>
-                </div>
             </div>
+        </div>
+    </div>
+    <div class="row w-100">
+        <div class="horizontal-line">
+        </div>
+    </div>
+    <div class="row w-100">
+        <div class="container">
+            
+                {% if created_exceptional_rules %}
+                <div class="d-flex justify-content-center">
+                    <nav aria-label="breadcrumb">
+                        <div class="container mt-5">
+                            <div class="d-flex justify-content-center mb-2">
+                                <ol class="breadcrumb">
+                                <li class="breadcrumb-item active" aria-current="page"><h4>Επισκόπηση Κατα Εξαίρεση Χρονοθυρίδων για την Ημερομηνία {{ selected_day.date|date:'d/m/Y' }}</h4></li>
+                                </ol>
+                            </div>
+                        </div>
+                    </nav>
+                </div>
+                <div class="d-flex justify-content-center">
+                    <form method="post" action="{% url 'reservations:edit_exceptional_rule' %}">
+                        {% csrf_token %}
+                        <!-- {% if error_message %}
+                            <center><p><strong class="text-danger">{{ error_message }}</strong></p></center>
+                        {% endif %} -->
+                        <div class="row">
+                            <div class="d-flex justify-content-start mb-2">
+                                <div class="me-2">
+                                    <input type="hidden" name="selected_date" value="{{ selected_date }}">
+                                    <input type="hidden" name="res_period_id" value="{{ res_period_id }}">                     
+                                    <input type="checkbox" id="select-all-edit">
+                                </div>
+                                <div>
+                                    <label for="select-all">Επιλογή Όλων</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <table class="table table-striped table-bordered table-sm">
+                                <thead>
+                                    <tr>
+
+                                        <th>Ώρα</th>
+                                        <th>Διαθεσιμότητα</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for timeslot in created_exceptional_rules %}
+                                    <tr>
+                                        <td class="{% if timeslot.is_reservation_allowed == 1 %}table-success{% else %}table-danger{% endif %}">{{ timeslot.timeslot.slot|time:"H:i" }}</td>
+                                        <td><input type="checkbox" name="timeslots" value="{{ timeslot.id }}"></td>
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="d-flex justify-content-center">
+                            <button type="submit" class="btn btn-primary me-2">ΤΡΟΠΟΠΟΙΗΣΗ</button>
+                            <a href="{% url 'reservations:calendar_timeslot' res_period_id %}" class="btn btn-success">ΗΜΕΡΟΛΟΓΙΟ</a>
+
+                        </div>
+                    </form>
+                </div>
+                {% else %}
+                    <h5>Δεν υπαρχουν χρονοθυριδες</h5>
+                {% endif %} 
+            
         </div>
     </div>
 </div>
@@ -70,6 +152,18 @@
                 const checkboxes = document.querySelectorAll('input[name="daytimes"]');
                 checkboxes.forEach(checkbox => {
                     checkbox.checked = document.getElementById('select-all').checked;
+                });
+            });
+        });
+    </script>
+
+    <script>
+        // JavaScript code to handle "Select All" functionality
+        document.addEventListener('DOMContentLoaded', function () {
+            document.getElementById('select-all-edit').addEventListener('change', function () {
+                const checkboxes = document.querySelectorAll('input[name="timeslots"]');
+                checkboxes.forEach(checkbox => {
+                    checkbox.checked = document.getElementById('select-all-edit').checked;
                 });
             });
         });

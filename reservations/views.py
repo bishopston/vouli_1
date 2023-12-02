@@ -128,12 +128,14 @@ def add_timeslots(request, reservation_period_id):
 
 #     return render(request, 'reservations/add_exceptional_rule.html', context)
 
+@login_required
+@user_passes_test(lambda u: u.is_superuser)
 def add_exceptional_rule(request):
 
     # If the form was not submitted via POST, handle accordingly
-    #selected_date = request.GET.get('date')
+    res_period_id = request.GET.get('reservationPeriodId') or request.POST.get('res_period_id')
     selected_date = request.GET.get('date') or request.POST.get('selected_date')
-    print(selected_date)
+    #print(selected_date)
     day_of_week_mapping = {
         'Monday': 'a',
         'Tuesday': 'b',
@@ -145,62 +147,91 @@ def add_exceptional_rule(request):
     }
     #selected_day_of_week = day_of_week_mapping[Day.objects.get(date=selected_date).weekday()]
     selected_day = Day.objects.get(date=selected_date)
-    print(selected_day)
+    #print(selected_day)
     selected_day_of_week = day_of_week_mapping[selected_day.date.strftime('%A')]
-    print(selected_day_of_week)
+    #print(selected_day_of_week)
 
     # Find the corresponding DayTime instances for the determined day
     available_daytimes = DayTime.objects.filter(day=selected_day_of_week)
-    print(available_daytimes)
+    #print(available_daytimes)
+
+    created_exceptional_rules = ExceptionalRule.objects.filter(date=selected_day).order_by('timeslot')
+
+    context = {}
 
     if request.method == 'POST':
         #selected_date = request.POST.get('selected_date')
         #selected_date = request.GET.get('selected_date')
         selected_daytimes = request.POST.getlist('daytimes')
-        print(selected_date)
+        #print(selected_date)
 
         # Check if the submitted daytimes already exist
         for daytime_id in selected_daytimes:
-            print(daytime_id)
+            #print(daytime_id)
             submitted_daytimes = ExceptionalRule.objects.filter(date=Day.objects.get(date=selected_date), timeslot=DayTime.objects.get(id=daytime_id))
 
 
             if submitted_daytimes.exists():
-                available_daytimes = DayTime.objects.filter(day=selected_day_of_week)
+                #available_daytimes = DayTime.objects.filter(day=selected_day_of_week)
                 error_message = 'Έχετε προβεί σε διπλοεγγραφή χρονοθυρίδας. Η ενέργεια ακυρώθηκε.'
-                return render(request, 'reservations/add_exceptional_rule.html', {'selected_date': selected_date, 'available_daytimes': available_daytimes, 'error_message': error_message})
-
+                context['error_message'] = error_message
+                #messages.error(request, 'Έχετε προβεί σε διπλοεγγραφή χρονοθυρίδας. Η ενέργεια ακυρώθηκε.')
+                #return render(request, 'reservations/add_exceptional_rule.html', {'selected_date': selected_date, 'available_daytimes': available_daytimes, 'error_message': error_message})
+                #return redirect(reverse('reservations:add_exceptional_rule'))
+            
             # Create ExceptionalRule instances for the selected daytimes
             else:
                 ExceptionalRule.objects.create(
                     date=Day.objects.get(date=selected_date),
                     timeslot=DayTime.objects.get(id=daytime_id),
                 )
-
+        context.update({
+            'selected_date': selected_date, 
+            'selected_day': selected_day, 
+            'available_daytimes': available_daytimes,
+            'created_exceptional_rules': created_exceptional_rules,
+            'res_period_id': res_period_id,
+        })
         # Redirect to a success page or any other page
-        return render(request, 'reservations/add_exceptional_rule.html', {'selected_date': selected_date, 'selected_day': selected_day, 'available_daytimes': available_daytimes})
+        return render(request, 'reservations/add_exceptional_rule.html', context)
+        #return redirect(reverse('reservations:add_exceptional_rule'))
 
-    # else:
-    #     # If the form was not submitted via POST, handle accordingly
-    #     selected_date = request.GET.get('date')
-    #     day_of_week_mapping = {
-    #         'Monday': 'a',
-    #         'Tuesday': 'b',
-    #         'Wednesday': 'c',
-    #         'Thursday': 'd',
-    #         'Friday': 'e',
-    #         'Saturday': 'f',
-    #         'Sunday': 'g',
-    #     }
-    #     #selected_day_of_week = day_of_week_mapping[Day.objects.get(date=selected_date).weekday()]
-    #     selected_day = Day.objects.get(date=selected_date)
-    #     print(selected_day)
-    #     selected_day_of_week = day_of_week_mapping[selected_day.date.strftime('%A')]
+    context.update({
+        'selected_date': selected_date, 
+        'selected_day': selected_day, 
+        'available_daytimes': available_daytimes,
+        'created_exceptional_rules': created_exceptional_rules,
+        'res_period_id': res_period_id,
+    })
 
-    #     # Find the corresponding DayTime instances for the determined day
-    #     available_daytimes = DayTime.objects.filter(day=selected_day_of_week)
 
-    return render(request, 'reservations/add_exceptional_rule.html', {'selected_date': selected_date, 'selected_day': selected_day, 'available_daytimes': available_daytimes})
+    return render(request, 'reservations/add_exceptional_rule.html', context)
+
+@login_required
+@user_passes_test(lambda u: u.is_superuser)
+def edit_exceptional_rule(request):
+
+    res_period_id = request.GET.get('reservationPeriodId') or request.POST.get('res_period_id')
+    selected_date = request.GET.get('date') or request.POST.get('selected_date')
+
+    # selected_day = Day.objects.get(date=selected_date)
+
+    # created_exceptional_rules = ExceptionalRule.objects.filter(date=selected_day)
+
+    redirect_url = reverse('reservations:add_exceptional_rule')
+    redirect_url += f'?date={selected_date}&reservationPeriodId={res_period_id}'
+    
+    if request.method == 'POST':
+        selected_timeslots = request.POST.getlist('timeslots')
+        
+        # Update availability based on selected checkboxes
+        for timeslot_id in selected_timeslots:
+            timeslot = ExceptionalRule.objects.get(id=timeslot_id)
+            timeslot.is_reservation_allowed = not timeslot.is_reservation_allowed
+            timeslot.save()
+        
+    #return HttpResponseRedirect(request.path_info)
+    return redirect(redirect_url)
 
 
 @login_required

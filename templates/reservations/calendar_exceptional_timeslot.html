@@ -93,7 +93,8 @@ document.addEventListener('DOMContentLoaded', function () {
             var reservationPeriodId = "{{ reservation_period.id }}"; // Use Django template syntax
 
             // Build the URL for the modify_timeslots view
-            var url = "{% url 'reservations:add_exceptional_rule' %}?date=" + date;
+            
+            var url = "{% url 'reservations:add_exceptional_rule' %}?date=" + date + "&reservationPeriodId=" + reservationPeriodId;
 
             // Redirect to the modify_timeslots view with the selected date and reservation period id
             window.location.href = url;
