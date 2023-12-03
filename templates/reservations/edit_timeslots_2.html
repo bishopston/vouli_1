@@ -42,10 +42,15 @@
                                 </thead>
                                 <tbody>
                                     {% for timeslot in timeslots %}
-                                        <tr>
+                                        <!-- <tr>
                                             <td class="{% if timeslot.is_reservation_allowed == 1 %}table-success{% endif %}">{{ timeslot.dayTime.get_day_display }}</td>
                                             <td class="{% if timeslot.is_reservation_allowed == 1 %}table-success{% endif %}">{{ timeslot.dayTime.slot|time:"H:i" }}</td>
                                             <td><input type="checkbox" name="timeslots" value="{{ timeslot.id }}" {% if timeslot.is_reservation_allowed %}checked{% endif %}></td>
+                                        </tr> -->
+                                        <tr>
+                                            <td class="{% if timeslot.is_reservation_allowed == 1 %}table-success{% else %}table-danger{% endif %}">{{ timeslot.dayTime.get_day_display }}</td>
+                                            <td class="{% if timeslot.is_reservation_allowed == 1 %}table-success{% else %}table-danger{% endif %}">{{ timeslot.dayTime.slot|time:"H:i" }}</td>
+                                            <td><input type="checkbox" name="timeslots" value="{{ timeslot.id }}"></td>
                                         </tr>
                                     {% endfor %}
                                 </tbody>

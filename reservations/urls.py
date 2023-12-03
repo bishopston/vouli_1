@@ -20,4 +20,5 @@ urlpatterns = [
     # path('create_exceptional_rule/', views.create_exceptional_rule, name='create_exceptional_rule'),
     path('add_exceptional_rule/', views.add_exceptional_rule, name='add_exceptional_rule'),
     path('edit_exceptional_rule/', views.edit_exceptional_rule, name='edit_exceptional_rule'),
+    #path('delete_exceptional_rule/', views.delete_exceptional_rule, name='delete_exceptional_rule'),
 ]

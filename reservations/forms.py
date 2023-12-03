@@ -2,8 +2,10 @@ from django import forms
 from django.forms import BaseFormSet
 from django.core.exceptions import ValidationError
 from django.contrib.admin.widgets import AdminDateWidget
-from .models import ReservationPeriod, Timeslot, Reservation, ExceptionalRule
-from .utils import get_occupied_daytimes, get_allowed_daytimes
+from django.db.models import Q
+from .models import ReservationPeriod, Timeslot, Reservation, ExceptionalRule, Day
+from .utils import get_occupied_daytimes, get_allowed_daytimes, get_occupied_exceptional_daytimes, get_allowed_exceptional_daytimes
+from datetime import datetime
 
 class TimeslotForm(forms.ModelForm):
     class Meta:
@@ -45,17 +47,72 @@ class ReservationForm(forms.ModelForm):
         }
 
         if reservation_period and selected_date:
-            allowed_daytimes = get_allowed_daytimes(selected_date, reservation_period)
-            occupied_daytimes = get_occupied_daytimes(selected_date, reservation_period)
+            # allowed_daytimes = get_allowed_daytimes(selected_date, reservation_period)
+            # occupied_daytimes = get_occupied_daytimes(selected_date, reservation_period)
 
-            # Calculate available_timeslots by excluding occupied timeslots
-            non_occupied_daytimes = allowed_daytimes.exclude(id__in=occupied_daytimes)
 
-            # Set choices for the timeslot field based on available_timeslots
-            self.fields['timeslot'].queryset = non_occupied_daytimes
 
-            # Customize the display of timeslots
-            self.fields['timeslot'].label_from_instance = lambda obj: obj.display_time()
+            #selected_date = datetime.strptime(selected_date, "%Y-%m-%d")
+            selected_calendar_date = Day.objects.get(date=selected_date)
+
+            if len(ExceptionalRule.objects.filter(date = selected_calendar_date)) > 0:
+
+                reservations_on_date = Reservation.objects.filter(reservation_date=selected_calendar_date).exclude(status='denied')
+                reservation_daytimes = [reservation.timeslot.dayTime for reservation in reservations_on_date]
+                non_occupied_daytimes = ExceptionalRule.objects.filter(date=selected_calendar_date,is_reservation_allowed=True).exclude(timeslot__in=reservation_daytimes).order_by('timeslot')
+                non_occupied_timeslots = [Timeslot.objects.get(dayTime=rule.timeslot, reservation_period=reservation_period) for rule in non_occupied_daytimes]
+                non_occupied_timeslot_ids = [timeslot.id for timeslot in non_occupied_timeslots]
+                q_objects = Q()
+                for timeslot_id in non_occupied_timeslot_ids:
+                    q_objects |= Q(id=timeslot_id)
+                non_occupied_timeslots_queryset = Timeslot.objects.filter(q_objects)
+
+                # #*************************************
+                # allowed_daytimes = get_allowed_exceptional_daytimes(selected_date, reservation_period)
+                # occupied_daytimes = get_occupied_exceptional_daytimes(selected_date, reservation_period)
+
+                # # Look up equivalent Timeslot instances for occupied_daytimes
+                # occupied_timeslots = [Timeslot.objects.get(dayTime=rule.timeslot, reservation_period=reservation_period) for rule in occupied_daytimes]
+
+
+                # # Calculate available_timeslots by excluding occupied timeslots
+                # #non_occupied_daytimes = allowed_daytimes.exclude(id__in=occupied_daytimes)
+                # non_occupied_daytimes = [daytime for daytime in allowed_daytimes if daytime not in occupied_timeslots]
+
+                # # Convert the list to a queryset
+                # non_occupied_daytimes_queryset = Timeslot.objects.filter(id__in=[daytime.id for daytime in non_occupied_daytimes])
+                # #*************************************
+
+
+                # Set choices for the timeslot field based on available_timeslots
+                self.fields['timeslot'].queryset = non_occupied_timeslots_queryset
+                self.fields['timeslot'].label_from_instance = lambda obj: obj.display_time()
+
+
+            else:
+
+                allowed_daytimes = get_allowed_daytimes(selected_date, reservation_period)
+                occupied_daytimes = get_occupied_daytimes(selected_date, reservation_period)
+
+                # Calculate available_timeslots by excluding occupied timeslots
+                non_occupied_daytimes = allowed_daytimes.exclude(id__in=occupied_daytimes)
+
+                # Set choices for the timeslot field based on available_timeslots
+                self.fields['timeslot'].queryset = non_occupied_daytimes
+
+                # Customize the display of timeslots
+                self.fields['timeslot'].label_from_instance = lambda obj: obj.display_time()
+
+
+
+            # # Calculate available_timeslots by excluding occupied timeslots
+            # non_occupied_daytimes = allowed_daytimes.exclude(id__in=occupied_daytimes)
+
+            # # Set choices for the timeslot field based on available_timeslots
+            # self.fields['timeslot'].queryset = non_occupied_daytimes
+
+            # # Customize the display of timeslots
+            # self.fields['timeslot'].label_from_instance = lambda obj: obj.display_time()
 
 
 class BaseReservationFormSet(BaseFormSet):
@@ -67,30 +124,62 @@ class BaseReservationFormSet(BaseFormSet):
 
         for form in self.forms:
             if reservation_period and selected_date:
-                allowed_daytimes = get_allowed_daytimes(selected_date, reservation_period)
-                occupied_daytimes = get_occupied_daytimes(selected_date, reservation_period)
+                # allowed_daytimes = get_allowed_daytimes(selected_date, reservation_period)
+                # occupied_daytimes = get_occupied_daytimes(selected_date, reservation_period)
+
+
+                #selected_date = datetime.strptime(selected_date, "%Y-%m-%d")
+                selected_calendar_date = Day.objects.get(date=selected_date)
+
+                if len(ExceptionalRule.objects.filter(date = selected_calendar_date)) > 0:
+
+
+                    reservations_on_date = Reservation.objects.filter(reservation_date=selected_calendar_date).exclude(status='denied')
+                    reservation_daytimes = [reservation.timeslot.dayTime for reservation in reservations_on_date]
+                    non_occupied_daytimes = ExceptionalRule.objects.filter(date=selected_calendar_date,is_reservation_allowed=True).exclude(timeslot__in=reservation_daytimes).order_by('timeslot')
+                    non_occupied_timeslots = [Timeslot.objects.get(dayTime=rule.timeslot, reservation_period=reservation_period) for rule in non_occupied_daytimes]
+                    non_occupied_timeslot_ids = [timeslot.id for timeslot in non_occupied_timeslots]
+                    q_objects = Q()
+                    for timeslot_id in non_occupied_timeslot_ids:
+                        q_objects |= Q(id=timeslot_id)
+                    non_occupied_timeslots_queryset = Timeslot.objects.filter(q_objects)
+
+                    # # #*************************************
+                    # allowed_daytimes = get_allowed_exceptional_daytimes(selected_date, reservation_period)
+                    # occupied_daytimes = get_occupied_exceptional_daytimes(selected_date, reservation_period)
+
+                    # # Look up equivalent Timeslot instances for occupied_daytimes
+                    # occupied_timeslots = [Timeslot.objects.get(dayTime=rule.timeslot, reservation_period=reservation_period) for rule in occupied_daytimes]
+
+
+                    # # Calculate available_timeslots by excluding occupied timeslots
+                    # #non_occupied_daytimes = allowed_daytimes.exclude(id__in=occupied_daytimes)
+                    # non_occupied_daytimes = [daytime for daytime in allowed_daytimes if daytime not in occupied_timeslots]
+
+                    # # Convert the list to a queryset
+                    # non_occupied_daytimes_queryset = Timeslot.objects.filter(id__in=[daytime.id for daytime in non_occupied_daytimes])
+                    # # #*************************************
+
+
+                    form.fields['timeslot'].queryset = non_occupied_timeslots_queryset
+                    form.fields['timeslot'].label_from_instance = lambda obj: obj.display_time()
+
+                else:
+
+                    allowed_daytimes = get_allowed_daytimes(selected_date, reservation_period)
+                    occupied_daytimes = get_occupied_daytimes(selected_date, reservation_period)
+                    non_occupied_daytimes = allowed_daytimes.exclude(id__in=occupied_daytimes)
+
+                    form.fields['timeslot'].queryset = non_occupied_daytimes
+                    form.fields['timeslot'].label_from_instance = lambda obj: obj.display_time()
+
+
 
                 # Calculate available_timeslots by excluding occupied timeslots
-                non_occupied_daytimes = allowed_daytimes.exclude(id__in=occupied_daytimes)
+                # non_occupied_daytimes = allowed_daytimes.exclude(id__in=occupied_daytimes)
 
-            form.fields['timeslot'].queryset = non_occupied_daytimes
-            form.fields['timeslot'].label_from_instance = lambda obj: obj.display_time()
-
-    # def clean(self):
-    #     if any(self.errors):
-    #         # Don't bother validating the formset unless each form is valid on its own
-    #         return
-
-    #     timeslots = set()
-    #     for form in self.forms:
-    #         if form.cleaned_data.get('timeslot'):
-    #             timeslot = form.cleaned_data['timeslot']
-    #             if timeslot in timeslots:
-    #                 raise ValidationError('Έχετε καταχωρίσει δύο φορές την ίδια χρονοθυρίδα.')
-    #             timeslots.add(timeslot)
-    #         if form.cleaned_data.get('terms_accepted') is False:
-    #             raise forms.ValidationError("Πρέπει να αποδεχτείτε τους όρους συμμετοχής.")
-
+            # form.fields['timeslot'].queryset = non_occupied_daytimes
+            # form.fields['timeslot'].label_from_instance = lambda obj: obj.display_time()
 
     def clean(self):
         if any(self.errors):

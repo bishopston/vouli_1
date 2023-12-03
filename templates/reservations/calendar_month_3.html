@@ -71,10 +71,20 @@
             <tbody>
                 {% for week in month_days %}
                     <tr>
-                        {% for day in week %}
+                        <!-- {% for day in week %}
                             <td {% if day.is_vacation %}class="text-muted"{% endif %}>
                                 <span class="date" data-bs-toggle="modal" data-bs-target="#reservationModal" data-date="{{ day.date|date:'Y-m-d' }}">{{ day.date.day }}</span>
                             </td>
+                        {% endfor %} -->
+                        {% for day in week %}
+                            {% with availability_percentage=day.availability_percentage %}
+                                <td {% if day.is_vacation %}class="text-muted"{% endif %}
+                                    {% if availability_percentage is not None %}
+                                        class="{% if availability_percentage == 0 %}bg-danger{% elif availability_percentage < 0.25 %}bg-warning{% else %}bg-light{% endif %}"
+                                    {% endif %}>
+                                    <span class="date" data-bs-toggle="modal" data-bs-target="#reservationModal" data-date="{{ day.date|date:'Y-m-d' }}">{{ day.date.day }}</span>
+                                </td>
+                            {% endwith %}
                         {% endfor %}
                     </tr>
                 {% endfor %}

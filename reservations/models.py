@@ -1,4 +1,5 @@
 from django.db import models
+from django.core.exceptions import ValidationError
 from schools.models import SchoolUser
 from datetime import datetime as dt
 import pytz
@@ -65,6 +66,9 @@ class ExceptionalRule(models.Model):
 
     def __str__(self):
         return f"{self.date} {self.timeslot}, Reservation Allowed: {self.is_reservation_allowed}"
+    
+    def display_time(self):
+        return self.timeslot.slot.strftime('%H:%M')
 
 
 class ReservationWindow(models.Model):
@@ -146,8 +150,30 @@ class Reservation(models.Model):
     def __str__(self):
         return f"{self.reservation_date} {self.timeslot}"
 
-    class Meta:
-        # Add a unique constraint to ensure that only one reservation can be made for a specific timeslot on a specific date
-        unique_together = ('reservation_date', 'timeslot')
+    def save(self, *args, **kwargs):
+        # Check if reservation_date is not set (it might be None)
+        if self.reservation_date_id is None:
+            # If reservation_date is None, raise a ValidationError
+            raise ValidationError("Reservation date must be set.")
 
+        # Check if there is an existing reservation with the same date and timeslot
+        existing_reservations = Reservation.objects.filter(
+            reservation_date=self.reservation_date,
+            timeslot=self.timeslot,
+        ).exclude(id=self.id)  # Exclude the current instance if it's being updated
+
+        # Check if there are any existing reservations with status 'denied'
+        denied_reservations = existing_reservations.filter(status='denied')
+
+        if denied_reservations.exists():
+            # If there are denied reservations, allow submitting a new reservation regardless of its status
+            super().save(*args, **kwargs)
+            return
+
+        # Continue with the save process
+        super().save(*args, **kwargs)
+
+    # class Meta:
+    #     # Add a unique constraint to ensure that only one reservation can be made for a specific timeslot on a specific date
+    #     unique_together = ('reservation_date', 'timeslot')
 

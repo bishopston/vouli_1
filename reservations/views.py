@@ -10,7 +10,7 @@ from django.http import JsonResponse
 from .models import Day, ReservationPeriod, Timeslot, DayTime, Reservation, ReservationWindow, ExceptionalRule, SchoolYear
 from schools.models import SchoolUser
 from .forms import ReservationForm, BaseReservationFormSet, ExceptionalRuleForm
-from .utils import get_occupied_daytimes, get_allowed_daytimes
+from .utils import get_occupied_daytimes, get_allowed_daytimes, get_occupied_exceptional_daytimes, get_allowed_exceptional_daytimes, calculate_availability_percentage
 from datetime import timedelta
 #from calendar import monthrange
 import datetime
@@ -233,6 +233,30 @@ def edit_exceptional_rule(request):
     #return HttpResponseRedirect(request.path_info)
     return redirect(redirect_url)
 
+# @login_required
+# @user_passes_test(lambda u: u.is_superuser)
+# def delete_exceptional_rule(request):
+
+#     res_period_id = request.GET.get('reservationPeriodId') or request.POST.get('res_period_id')
+#     selected_date = request.GET.get('date') or request.POST.get('selected_date')
+
+#     # selected_day = Day.objects.get(date=selected_date)
+
+#     # created_exceptional_rules = ExceptionalRule.objects.filter(date=selected_day)
+
+#     redirect_url = reverse('reservations:add_exceptional_rule')
+#     redirect_url += f'?date={selected_date}&reservationPeriodId={res_period_id}'
+
+#     if request.method == 'POST':
+#         selected_timeslots = request.POST.getlist('timeslots')
+        
+#         # Update availability based on selected checkboxes
+#         for timeslot_id in selected_timeslots:
+#             timeslot = ExceptionalRule.objects.get(id=timeslot_id)
+#             timeslot.delete()
+    
+#     return redirect(redirect_url)
+
 
 @login_required
 @user_passes_test(lambda u: u.is_superuser)
@@ -332,6 +356,12 @@ def calendar_month(request, reservation_period_id, school_user_id, year=None, mo
 
     # Retrieve days for the current month
     month_days = get_month_days(year, month, reservation_period_id)
+
+    for week in month_days:
+        for day in week:
+            day.availability_percentage = calculate_availability_percentage(day.date, reservation_period_id)
+            print(day.availability_percentage)
+
 
     context = {
         #'current_month': f'{month}/{year}',
@@ -434,8 +464,16 @@ def make_reservation(request, reservation_period_id, school_user_id):
     selected_calendar_date_month = selected_calendar_date.date.strftime("%B")
     selected_calendar_date_year = selected_calendar_date.date.strftime("%Y")
 
-    allowed_timeslots = get_allowed_daytimes(date, reservation_period_id)
-    occupied_timeslots = get_occupied_daytimes(date, reservation_period_id)
+    if len(ExceptionalRule.objects.filter(date = selected_calendar_date)) > 0:
+
+        allowed_timeslots = get_allowed_exceptional_daytimes(date, reservation_period_id)
+        occupied_timeslots = get_occupied_exceptional_daytimes(date, reservation_period_id)
+
+    else:
+
+        allowed_timeslots = get_allowed_daytimes(date, reservation_period_id)
+        occupied_timeslots = get_occupied_daytimes(date, reservation_period_id)
+
     non_occupied_timeslots = allowed_timeslots.exclude(id__in=occupied_timeslots)
     non_occupied_timeslots_count = len(non_occupied_timeslots)
 
@@ -489,7 +527,7 @@ def make_reservation(request, reservation_period_id, school_user_id):
                         student_number = form.cleaned_data["student_number"],
                         amea = form.cleaned_data["amea"],
                         terms_accepted = form.cleaned_data["terms_accepted"],
-                        reservation_period = res_period,
+                        reservation_period = res_period
                     )
                     my_reservation.save()
 
@@ -538,6 +576,7 @@ def make_reservation(request, reservation_period_id, school_user_id):
         'non_occupied_timeslots': non_occupied_timeslots,
         'non_occupied_timeslots_count': non_occupied_timeslots_count,
         'formset': formset,
+        'exceptional_rules': ExceptionalRule.objects.filter(date = selected_calendar_date),
     })
 
     return render(request, 'reservations/reservation.html', context)

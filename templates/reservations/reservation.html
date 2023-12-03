@@ -100,6 +100,20 @@
                                             <th>Επιτρεπτές Χρονοθυρίδες*</th>
                                         </tr>
                                     </thead>
+                                    {% if exceptional_rules %}
+                                    <tbody>
+                                        {% for daytime in allowed_timeslots %}
+                                            <tr>
+                                                <td class="{% if daytime in occupied_timeslots %}occupied{% else %}non-occupied{% endif %}">
+                                                    <!-- {{ daytime.dayTime.get_day_display }} - -->
+                                                    <div class="d-flex justify-content-center">
+                                                        {{ daytime.timeslot.slot|time:"H:i" }}
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                    {% else %}
                                     <tbody>
                                         {% for daytime in allowed_timeslots %}
                                             <tr>
@@ -112,6 +126,7 @@
                                             </tr>
                                         {% endfor %}
                                     </tbody>
+                                    {% endif %}
                                 </table>
                             </div>
                             <div class="row w-100">
