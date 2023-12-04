@@ -174,3 +174,5 @@ def calculate_availability_percentage(selected_date, reservation_period):
         return 0
     else:
         return (len(non_occupied_timeslots)/len(allowed_timeslots))
+    
+

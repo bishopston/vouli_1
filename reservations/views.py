@@ -7,6 +7,7 @@ from django.utils import timezone
 from django.forms import formset_factory
 from django.core.exceptions import ValidationError
 from django.http import JsonResponse
+from django.db.models import Q
 from .models import Day, ReservationPeriod, Timeslot, DayTime, Reservation, ReservationWindow, ExceptionalRule, SchoolYear
 from schools.models import SchoolUser
 from .forms import ReservationForm, BaseReservationFormSet, ExceptionalRuleForm
@@ -17,6 +18,8 @@ import datetime
 from datetime import datetime as dt
 import pytz
 from datetime import datetime, date
+from dateutil.relativedelta import relativedelta
+import calendar
 
 @login_required
 @user_passes_test(lambda u: u.is_superuser)
@@ -353,14 +356,45 @@ def calendar_month(request, reservation_period_id, school_user_id, year=None, mo
     prev_month = start_date - timedelta(days=start_date.day)
     next_month = start_date + timedelta(days=(32 - start_date.day))
 
+    # # Calculate previous and next months
+    # prev_month = start_date - relativedelta(months=1)
+    # next_month = start_date + relativedelta(months=1)
+
+    # # Set the day of the month to 1 for both previous and next months
+    # prev_month = prev_month.replace(day=1)
+    # next_month = next_month.replace(day=1)
+
+    # Calculate previous and next months
+    # prev_month = start_date.replace(day=1) - timedelta(days=1)
+    # next_month = start_date.replace(day=calendar.monthrange(year, month)[1]) + timedelta(days=1)
+
+    # Calculate previous and next months
+    # _, last_day_of_current_month = calendar.monthrange(year, month)
+    # prev_month = start_date.replace(day=1) - timedelta(days=start_date.day)
+    # next_month = start_date.replace(day=last_day_of_current_month) + timedelta(days=1)
+
+    # Calculate previous and next months
+    # prev_month = start_date.replace(day=1) - timedelta(days=1)
+    # next_month = start_date.replace(day=calendar.monthrange(year, month)[1]) + timedelta(days=1)
+
 
     # Retrieve days for the current month
     month_days = get_month_days(year, month, reservation_period_id)
 
+    # for week in month_days:
+    #     for day in week:
+    #         day.availability_percentage = calculate_availability_percentage(day.date, reservation_period_id)
+    #         #print(day.availability_percentage)
+
+    # for week in month_days:
+    #     for day in week:
+    #         day.availability_percentage = calculate_availability_percentage(day, reservation_period_id)
+            #print(day.availability_percentage)
+
     for week in month_days:
         for day in week:
-            day.availability_percentage = calculate_availability_percentage(day.date, reservation_period_id)
-            print(day.availability_percentage)
+            if isinstance(day, Day):
+                day.availability_percentage = calculate_availability_percentage(day.date, reservation_period_id)
 
 
     context = {
@@ -380,12 +414,93 @@ def calendar_month(request, reservation_period_id, school_user_id, year=None, mo
 
     return render(request, 'reservations/calendar_month_3.html', context)
 
+# def get_month_days(year, month, res_period_id):
+#     # Implement your logic to retrieve days for the given month and year
+#     # For simplicity, assuming a Day model with a 'date' field
+#     res_period = ReservationPeriod.objects.get(pk=res_period_id)
+#     days = Day.objects.filter(date__gte=res_period.start_date, date__lte=res_period.end_date).filter(date__year=year, date__month=month)
+
+#     # # Find the weekday of the first day of the month
+#     # first_day_weekday = days[0].date.weekday()
+
+#     # # Rotate days to start the weeks with the correct day
+#     # days = list(days[7 - first_day_weekday:]) + list(days[:7 - first_day_weekday])
+
+#     # # Find the weekday of the first day of the month
+#     # first_day_weekday = calendar.monthrange(year, month)[0]
+
+#     # # Rotate days to start the weeks with the correct day
+#     # days = list(days[7 - first_day_weekday:]) + list(days[:7 - first_day_weekday])
+
+#     # Find the weekday of the first day of the month and the number of days in the month
+#     # first_day_weekday, num_days_in_month = calendar.monthrange(year, month)
+
+#     # # Generate a list of days for the month
+#     # days = [date(year, month, day) for day in range(1, num_days_in_month + 1)]
+
+#     # # Pad the beginning of the list with days from the previous week
+#     # # days = [date(year, month, 1 - first_day_weekday) - timedelta(days=1)] * first_day_weekday + days
+#     # days = [date(year, month, max(1, 1 - first_day_weekday)) - timedelta(days=1)] * max(0, first_day_weekday) + days
+
+
+#     # # Find the weekday of the first day of the month and the number of days in the month
+#     # first_day_weekday, num_days_in_month = calendar.monthrange(year, month)
+
+#     # # Generate a list of days for the month
+#     # days = [date(year, month, day) for day in range(1, num_days_in_month + 1)]
+
+#     # # Pad the beginning of the list with days from the previous week
+#     # days = [date(year, month, max(1, 1 - first_day_weekday)) - timedelta(days=1)] * max(0, first_day_weekday) + days
+
+#     # # Split the list into weeks
+#     # weeks = [days[i:i + 7] for i in range(0, len(days), 7)]
+
+#     # return weeks
+
+
+#     return chunk_days(days)
+
+# def get_month_days(year, month, res_period_id):
+#     # Assuming a Day model with a 'date' field
+#     res_period = ReservationPeriod.objects.get(pk=res_period_id)
+
+#     # Fetch the Day objects for the given month and year
+#     days = Day.objects.filter(
+#         Q(date__year=year, date__month=month) &
+#         Q(date__gte=res_period.start_date, date__lte=res_period.end_date)
+#     ).order_by('date')
+
+#     # Pad the beginning of the list with days from the previous week
+#     first_day_weekday = days[0].date.weekday()
+#     days = [days[0].date - timedelta(days=first_day_weekday)] * first_day_weekday + list(days)
+
+#     # Split the list into weeks
+#     weeks = [days[i:i + 7] for i in range(0, len(days), 7)]
+
+#     return weeks
+
 def get_month_days(year, month, res_period_id):
-    # Implement your logic to retrieve days for the given month and year
-    # For simplicity, assuming a Day model with a 'date' field
+    # Assuming a Day model with a 'date' field
     res_period = ReservationPeriod.objects.get(pk=res_period_id)
-    days = Day.objects.filter(date__gte=res_period.start_date, date__lte=res_period.end_date).filter(date__year=year, date__month=month)
-    return chunk_days(days)
+
+    # Fetch the Day objects for the given month and year
+    days = Day.objects.filter(
+        Q(date__year=year, date__month=month) &
+        Q(date__gte=res_period.start_date, date__lte=res_period.end_date)
+    ).order_by('date')
+
+    if not days:
+        return []
+
+    # Pad the beginning of the list with days from the previous week
+    first_day_weekday = days[0].date.weekday()
+    days = [days[0].date - timedelta(days=first_day_weekday)] * first_day_weekday + list(days)
+
+    # Split the list into weeks
+    weeks = [days[i:i + 7] for i in range(0, len(days), 7)]
+
+    return weeks
+
 
 def chunk_days(days):
     # Helper function to chunk days into weeks for rendering in the template

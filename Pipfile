@@ -9,6 +9,7 @@ psycopg2-binary = "==2.9.9"
 django-allauth = "==0.57.0"
 crispy-bootstrap5 = "*"
 pytz = "*"
+python-dateutil = "*"
 
 [dev-packages]
 
