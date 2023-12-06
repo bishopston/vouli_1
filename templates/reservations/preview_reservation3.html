@@ -1,0 +1,23 @@
+{% extends '../base/base_admin.html' %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<div class="container bg-white text-dark">
+    <h3 class="my-4">Reservation Preview</h3>
+
+    <!-- Display the formset data for confirmation -->
+    <form method="post" action="{% url 'reservations:preview_reservation' reservation_period_id=reservation_period_id school_user_id=school_user_id %}">
+        {% csrf_token %}
+        
+        <!-- Iterate through formset data and display only filled data -->
+
+        {{ formset.management_form }}
+        {% for form in formset %}
+            {{ form|crispy }}
+        {% endfor %}  
+
+        <button type="submit" class="btn btn-primary" name="submit">Confirm</button>
+    </form>
+
+</div>
+{% endblock %}

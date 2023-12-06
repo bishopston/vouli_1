@@ -6,6 +6,7 @@ from django.contrib import messages
 from django.utils import timezone
 from django.forms import formset_factory
 from django.core.exceptions import ValidationError
+from django.core.serializers import serialize
 from django.http import JsonResponse
 from django.db.models import Q
 from django.http import QueryDict
@@ -737,39 +738,69 @@ def make_reservation(request, reservation_period_id, school_user_id):
         
         formset = ReservationFormSet(request.POST, reservation_period=res_period, selected_date=date)
 
+        # if request.POST.get('preview') == '1':
+        #     # If the preview button is clicked, store formset data in the session
+        #     # request.session['formset_data'] = request.POST
+        #     # return redirect('reservations:preview_reservation', reservation_period_id=reservation_period_id, school_user_id=school_user_id)
+        #     #selected_date = request.GET.get('date', None)
+
+        #     formset_data = {}
+        #     for key, value in request.POST.items():
+        #         if key.startswith('form-'):
+        #             if 'timeslot' in key:
+        #                 try:
+        #                     timeslot_id = int(value)
+        #                     print(timeslot_id)
+        #                     timeslot = Timeslot.objects.get(pk=timeslot_id)
+        #                     formset_data[key] = timeslot.dayTime.slot.strftime("%H:%M")  # Assuming display_time is the attribute you want to show
+        #                 except (ValueError, Timeslot.DoesNotExist):
+        #                     # Handle the case where the value is not a valid timeslot ID
+        #                     formset_data[key] = value
+        #             else:
+        #                 formset_data[key] = value
+
+
+        #     request.session['formset_data'] = formset_data
+
+        #     print(formset_data)
+        #     print(formset_data['form-0-timeslot'])
+
+        #     # Pass formset data to the context when rendering the confirmation page
+        #     #context.update({'formset_data': formset_data})
+        #     # Redirect to the preview page
+        #     #return redirect('reservations:preview_reservation', reservation_period_id=reservation_period_id, school_user_id=school_user_id)
+        #     return HttpResponseRedirect(reverse('reservations:preview_reservation', args=(reservation_period_id, school_user_id,)) + f'?date={date}')
+
+        #     # Redirect to the preview page
+        #     # preview_url = reverse('reservations:preview_reservation', args=(reservation_period_id, school_user_id,))
+        #     # return HttpResponseRedirect(preview_url + f'?date={date}')
+
         if request.POST.get('preview') == '1':
-            # If the preview button is clicked, store formset data in the session
-            # request.session['formset_data'] = request.POST
-            # return redirect('reservations:preview_reservation', reservation_period_id=reservation_period_id, school_user_id=school_user_id)
-            #selected_date = request.GET.get('date', None)
 
-            formset_data = {}
-            for key, value in request.POST.items():
-                if key.startswith('form-'):
-                    if 'timeslot' in key:
-                        try:
-                            timeslot_id = int(value)
-                            print(timeslot_id)
-                            timeslot = Timeslot.objects.get(pk=timeslot_id)
-                            formset_data[key] = timeslot.dayTime.slot.strftime("%H:%M")  # Assuming display_time is the attribute you want to show
-                        except (ValueError, Timeslot.DoesNotExist):
-                            # Handle the case where the value is not a valid timeslot ID
-                            formset_data[key] = value
-                    else:
-                        formset_data[key] = value
+            if formset.is_valid():
+
+                formset_data = []
+
+                # for key, value in request.POST.items():
+                #     if key.startswith('form-'):
+                #         # Add other form fields as needed
+                #         formset_data.append({key: value})
 
 
-            request.session['formset_data'] = formset_data
+                for form in formset:
+                    form_data = form.cleaned_data
 
-            # Pass formset data to the context when rendering the confirmation page
-            context.update({'formset_data': formset_data})
-            # Redirect to the preview page
-            #return redirect('reservations:preview_reservation', reservation_period_id=reservation_period_id, school_user_id=school_user_id)
-            #return HttpResponseRedirect(reverse('reservations:preview_reservation', args=(reservation_period_id, school_user_id,)) + f'?date={date}')
+                    # Convert Timeslot object to a serializable format
+                    if 'timeslot' in form_data:
+                        form_data['timeslot'] = form_data['timeslot'].dayTime.slot.strftime("%H:%M")  # Adjust this based on your Timeslot model
 
-            # Redirect to the preview page
-            preview_url = reverse('reservations:preview_reservation', args=(reservation_period_id, school_user_id,))
-            return HttpResponseRedirect(preview_url + f'?date={date}')
+                    formset_data.append(form_data)
+                # Store formset data in the session
+                request.session['formset_data'] = formset_data
+
+                print(formset.cleaned_data)
+
+                return HttpResponseRedirect(reverse('reservations:preview_reservation', args=(reservation_period_id, school_user_id,)) + f'?date={date}')
 
         elif formset.is_valid():
             # Process and save the reservations
@@ -817,34 +848,47 @@ def make_reservation(request, reservation_period_id, school_user_id):
     return render(request, 'reservations/reservation2.html', context)
 
 
-def preview_reservation(request, reservation_period_id, school_user_id):
+# def preview_reservation(request, reservation_period_id, school_user_id):
 
-    date = request.GET.get('date')
-    # Retrieve formset data from the session
+#     date = request.GET.get('date')
+#     # Retrieve formset data from the session
 
-    formset_data = request.session.get('formset_data', None)
+#     formset_data = request.session.get('formset_data', None)
 
-    print("Formset Data:", formset_data)
+#     #print("Formset Data:", formset_data)
 
-    if formset_data:
+#     if formset_data:
         
-        # Create a list of form prefixes to exclude in the template
-        form_prefixes = ['form-TOTAL_FORMS', 'form-INITIAL_FORMS', 'form-MIN_NUM_FORMS', 'form-MAX_NUM_FORMS']
-        #field_names = [key for key in formset_data.keys() if key not in ['form-TOTAL_FORMS', 'form-INITIAL_FORMS', 'form-MIN_NUM_FORMS', 'form-MAX_NUM_FORMS']]
+#         # Create a list of form prefixes to exclude in the template
+#         form_prefixes = ['form-TOTAL_FORMS', 'form-INITIAL_FORMS', 'form-MIN_NUM_FORMS', 'form-MAX_NUM_FORMS']
+#         #field_names = [key for key in formset_data.keys() if key not in ['form-TOTAL_FORMS', 'form-INITIAL_FORMS', 'form-MIN_NUM_FORMS', 'form-MAX_NUM_FORMS']]
 
-        # # Filter out unnecessary keys
-        # filtered_data = {key: formset_querydict.getlist(key) for key in formset_querydict.keys() if key and not key.startswith('form-') and key not in ['csrfmiddlewaretoken', 'preview']}
+#         # # Filter out unnecessary keys
+#         # filtered_data = {key: formset_querydict.getlist(key) for key in formset_querydict.keys() if key and not key.startswith('form-') and key not in ['csrfmiddlewaretoken', 'preview']}
                 
-        # Render the preview page with the formset data
-        return render(request, 'reservations/preview_reservation.html', {'formset_data': formset_data, 
-                                                                         'reservation_period_id': reservation_period_id,
-                                                                         'school_user_id': school_user_id,
-                                                                         'form_prefixes': form_prefixes,
-                                                                         'date': date
-                                                                         })
-    else:
-        # If there is no formset data, redirect to the reservation page
-        return redirect('reservations:make_reservation', reservation_period_id=reservation_period_id, school_user_id=school_user_id)
+#         # Render the preview page with the formset data
+#         return render(request, 'reservations/preview_reservation.html', {'formset_data': formset_data, 
+#                                                                          'reservation_period_id': reservation_period_id,
+#                                                                          'school_user_id': school_user_id,
+#                                                                          'form_prefixes': form_prefixes,
+#                                                                          'date': date
+#                                                                          })
+#     if request.method == 'POST':
+
+#         print(request.POST.items())
+#         print("giouxou")
+
+#         return redirect('reservations:make_reservation', reservation_period_id=reservation_period_id, school_user_id=school_user_id)
+#         # return render(request, 'reservations/preview_reservation.html', {'formset_data': formset_data, 
+#         #                                                             'reservation_period_id': reservation_period_id,
+#         #                                                             'school_user_id': school_user_id,
+#         #                                                             'form_prefixes': form_prefixes,
+#         #                                                             'date': date
+#         #                                                             })
+    
+#     else:
+#         # If there is no formset data, redirect to the reservation page
+#         return redirect('reservations:make_reservation', reservation_period_id=reservation_period_id, school_user_id=school_user_id)
 
 # def preview_reservation(request, reservation_period_id, school_user_id):
 #     # Retrieve formset data from the session
@@ -895,6 +939,78 @@ def preview_reservation(request, reservation_period_id, school_user_id):
 
 #     return render(request, 'reservations/preview_reservation2.html', context)
 
+
+def preview_reservation(request, reservation_period_id, school_user_id):
+
+    date = request.GET.get('date')
+    res_period = get_object_or_404(ReservationPeriod, pk=reservation_period_id)
+    # Retrieve formset data from the session
+
+    #formset_data = request.session.get('formset_data', None)
+    formset_data = request.session.get('formset_data', [])
+
+    print('--------')
+    print(formset_data)
+
+    # Extract the data for each form from formset_data
+    form_data_list = [data for data in formset_data if data]
+    print('--------')
+    print(form_data_list)
+
+    day_of_week_mapping = {
+        'Monday': 'a',
+        'Tuesday': 'b',
+        'Wednesday': 'c',
+        'Thursday': 'd',
+        'Friday': 'e',
+        'Saturday': 'f',
+        'Sunday': 'g',
+    }
+
+    # Create a new formset with prefilled data
+    ReservationFormSet = formset_factory(ReservationForm, extra=0, max_num=3, formset=BaseReservationFormSet)
+
+    for form_data in form_data_list:
+
+        # Convert the time back to Timeslot instance
+        time_str = form_data['timeslot']
+        print(time_str)
+        #day_str = date  # Assuming date is passed as a query parameter
+        selected_date_format = datetime.strptime(date, "%Y-%m-%d")
+        print(selected_date_format)
+        day_of_week = day_of_week_mapping[selected_date_format.strftime('%A')]
+        print(day_of_week)
+        day_time = DayTime.objects.get(day=day_of_week, slot=time_str)
+        print(day_time)
+        form_data['timeslot'] = Timeslot.objects.filter(dayTime=day_time).first()
+        print(form_data['timeslot'])
+    
+    formset = ReservationFormSet(initial=form_data_list)
+
+    # Handle form submission on the new page
+    if request.method == 'POST':
+        formset = ReservationFormSet(request.POST, reservation_period=res_period, selected_date=date)
+
+        if formset.is_valid():
+            # Process and save formset data to the model
+            for form_data in formset.cleaned_data:
+
+                timeslot = form_data['timeslot']
+
+                Reservation.objects.create(timeslot=timeslot, **form_data)  # Replace YourModel with the actual model name
+
+            # Clear the session data
+            request.session.pop('formset_data', None)
+
+            # Redirect to a success page or another view
+            return HttpResponseRedirect(reverse('reservations:my_reservations'))
+
+    return render(request, 'reservations/preview_reservation3.html', {'formset': formset,
+                                                                        'reservation_period_id': reservation_period_id,
+                                                                        'school_user_id': school_user_id,
+                                                                        'date': date,
+                                                                        })
+    
 
 @login_required
 def calendar_timeslot(request, reservation_period_id, year=None, month=None):
