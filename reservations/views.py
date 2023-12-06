@@ -8,6 +8,7 @@ from django.forms import formset_factory
 from django.core.exceptions import ValidationError
 from django.http import JsonResponse
 from django.db.models import Q
+from django.http import QueryDict
 from .models import Day, ReservationPeriod, Timeslot, DayTime, Reservation, ReservationWindow, ExceptionalRule, SchoolYear
 from schools.models import SchoolUser
 from .forms import ReservationForm, BaseReservationFormSet, ExceptionalRuleForm
@@ -20,6 +21,7 @@ import pytz
 from datetime import datetime, date
 from dateutil.relativedelta import relativedelta
 import calendar
+import json
 
 @login_required
 @user_passes_test(lambda u: u.is_superuser)
@@ -562,6 +564,141 @@ def my_reservations(request):
         except (IndexError, SchoolUser.DoesNotExist):
             return render(request, 'reservations/myreservations.html')
 
+# @login_required
+# def make_reservation(request, reservation_period_id, school_user_id):
+#     schoolUser = SchoolUser.objects.get(pk=school_user_id)
+#     res_period = get_object_or_404(ReservationPeriod, pk=reservation_period_id)
+#     date = request.GET.get('date')
+
+#     #get week day name
+#     selected_date = datetime.strptime(date, "%Y-%m-%d")
+#     selected_calendar_date = Day.objects.get(date=selected_date)
+#     selected_calendar_date_name = selected_calendar_date.date.strftime("%A")
+
+#     #get date string
+#     #selected_calendar_date_string = selected_calendar_date.date.strftime("%d %B %Y")
+#     selected_calendar_date_day = selected_calendar_date.date.strftime("%d")
+#     selected_calendar_date_month = selected_calendar_date.date.strftime("%B")
+#     selected_calendar_date_year = selected_calendar_date.date.strftime("%Y")
+
+#     if len(ExceptionalRule.objects.filter(date = selected_calendar_date)) > 0:
+
+#         allowed_timeslots = get_allowed_exceptional_daytimes(date, reservation_period_id)
+#         occupied_timeslots = get_occupied_exceptional_daytimes(date, reservation_period_id)
+
+#     else:
+
+#         allowed_timeslots = get_allowed_daytimes(date, reservation_period_id)
+#         occupied_timeslots = get_occupied_daytimes(date, reservation_period_id)
+
+#     non_occupied_timeslots = allowed_timeslots.exclude(id__in=occupied_timeslots)
+#     non_occupied_timeslots_count = len(non_occupied_timeslots)
+
+#     # form = ReservationForm(
+#     #     reservation_period=res_period,
+#     #     selected_date=date,
+#     #     initial={'reservation_date': date, 'reservation_period': res_period.id}
+#     # )
+
+#     #formset = ReservationFormSet(initial=[{'reservation_date': date, 'reservation_period': res_period.id}] * 3)
+
+#     # if request.method == 'POST':
+#     #     form = ReservationForm(request.POST)
+#     #     if form.is_valid():
+#     #         my_reservation = Reservation(
+#     #             schoolUser = schoolUser,
+#     #             reservation_date = selected_calendar_date,
+#     #             timeslot = form.cleaned_data["timeslot"],
+#     #             teacher_number = form.cleaned_data["teacher_number"],
+#     #             student_number = form.cleaned_data["student_number"],
+#     #             amea = form.cleaned_data["amea"],
+#     #             terms_accepted = form.cleaned_data["terms_accepted"],
+#     #             reservation_period = res_period,
+#     #         )
+#     #         my_reservation.save()
+#     #         return HttpResponseRedirect(reverse('reservations:my_reservations'))
+#     # else:
+#     # #     form = ReservationForm(reservation_period=res_period_id, initial={'reservation_date': date})
+#     #     form = ReservationForm(
+#     #         reservation_period=res_period,
+#     #         selected_date=date,
+#     #         initial={'reservation_date': date, 'reservation_period': res_period.id}
+#     #     )
+
+#     #ReservationFormSet = formset_factory(extra=3, formset=BaseReservationFormSet)
+#     context = {} 
+
+#     ReservationFormSet = formset_factory(ReservationForm, extra=3, max_num=3, formset=BaseReservationFormSet)
+
+#     if request.method == 'POST':
+#         formset = ReservationFormSet(request.POST, reservation_period=res_period, selected_date=date)
+#         if formset.is_valid():
+#             for form in formset:
+#                 # process each form in the formset
+#                 if form.cleaned_data.get('timeslot'):
+#                     my_reservation = Reservation(
+#                         schoolUser = schoolUser,
+#                         reservation_date = selected_calendar_date,
+#                         timeslot = form.cleaned_data["timeslot"],
+#                         teacher_number = form.cleaned_data["teacher_number"],
+#                         student_number = form.cleaned_data["student_number"],
+#                         amea = form.cleaned_data["amea"],
+#                         terms_accepted = form.cleaned_data["terms_accepted"],
+#                         reservation_period = res_period
+#                     )
+#                     my_reservation.save()
+
+#             return HttpResponseRedirect(reverse('reservations:my_reservations'))
+        
+#         else:
+#             # Formset is not valid, include it in the context
+#             context['formset'] = formset
+#             # Include specific error messages in the context
+#             context['timeslot_error'] = any(formset.errors) and formset.errors[0].get('timeslot')
+#             context['terms_accepted_error'] = any(formset.errors) and formset.errors[0].get('terms_accepted')
+
+#             #return render(request, 'reservations/reservation.html', context)
+    
+#     else:
+#         formset = ReservationFormSet(reservation_period=res_period, selected_date=date)
+        
+
+#     # context = {
+#     #     'res_period': res_period,
+#     #     #'res_period_id': res_period.id,
+#     #     'schoolUser': schoolUser,
+#     #     'date': date,
+#     #     'week_day': selected_calendar_date_name,
+#     #     'selected_calendar_date_day': selected_calendar_date_day,
+#     #     'selected_calendar_date_month': selected_calendar_date_month,
+#     #     'selected_calendar_date_year': selected_calendar_date_year,
+#     #     'allowed_timeslots': allowed_timeslots,
+#     #     'occupied_timeslots': occupied_timeslots,
+#     #     'non_occupied_timeslots': non_occupied_timeslots,
+#     #     'non_occupied_timeslots_count': non_occupied_timeslots_count,
+#     #     #'form': form,
+#     #     'formset': formset,
+#     # }
+
+#     context.update({
+#         'res_period': res_period,
+#         'schoolUser': schoolUser,
+#         'date': date,
+#         'week_day': selected_calendar_date_name,
+#         'selected_calendar_date_day': selected_calendar_date_day,
+#         'selected_calendar_date_month': selected_calendar_date_month,
+#         'selected_calendar_date_year': selected_calendar_date_year,
+#         'allowed_timeslots': allowed_timeslots,
+#         'occupied_timeslots': occupied_timeslots,
+#         'non_occupied_timeslots': non_occupied_timeslots,
+#         'non_occupied_timeslots_count': non_occupied_timeslots_count,
+#         'formset': formset,
+#         'exceptional_rules': ExceptionalRule.objects.filter(date = selected_calendar_date),
+#     })
+
+#     return render(request, 'reservations/reservation.html', context)
+
+
 @login_required
 def make_reservation(request, reservation_period_id, school_user_id):
     schoolUser = SchoolUser.objects.get(pk=school_user_id)
@@ -592,62 +729,65 @@ def make_reservation(request, reservation_period_id, school_user_id):
     non_occupied_timeslots = allowed_timeslots.exclude(id__in=occupied_timeslots)
     non_occupied_timeslots_count = len(non_occupied_timeslots)
 
-    # form = ReservationForm(
-    #     reservation_period=res_period,
-    #     selected_date=date,
-    #     initial={'reservation_date': date, 'reservation_period': res_period.id}
-    # )
-
-    #formset = ReservationFormSet(initial=[{'reservation_date': date, 'reservation_period': res_period.id}] * 3)
-
-    # if request.method == 'POST':
-    #     form = ReservationForm(request.POST)
-    #     if form.is_valid():
-    #         my_reservation = Reservation(
-    #             schoolUser = schoolUser,
-    #             reservation_date = selected_calendar_date,
-    #             timeslot = form.cleaned_data["timeslot"],
-    #             teacher_number = form.cleaned_data["teacher_number"],
-    #             student_number = form.cleaned_data["student_number"],
-    #             amea = form.cleaned_data["amea"],
-    #             terms_accepted = form.cleaned_data["terms_accepted"],
-    #             reservation_period = res_period,
-    #         )
-    #         my_reservation.save()
-    #         return HttpResponseRedirect(reverse('reservations:my_reservations'))
-    # else:
-    # #     form = ReservationForm(reservation_period=res_period_id, initial={'reservation_date': date})
-    #     form = ReservationForm(
-    #         reservation_period=res_period,
-    #         selected_date=date,
-    #         initial={'reservation_date': date, 'reservation_period': res_period.id}
-    #     )
-
-    #ReservationFormSet = formset_factory(extra=3, formset=BaseReservationFormSet)
     context = {} 
 
     ReservationFormSet = formset_factory(ReservationForm, extra=3, max_num=3, formset=BaseReservationFormSet)
 
     if request.method == 'POST':
+        
         formset = ReservationFormSet(request.POST, reservation_period=res_period, selected_date=date)
-        if formset.is_valid():
+
+        if request.POST.get('preview') == '1':
+            # If the preview button is clicked, store formset data in the session
+            # request.session['formset_data'] = request.POST
+            # return redirect('reservations:preview_reservation', reservation_period_id=reservation_period_id, school_user_id=school_user_id)
+            #selected_date = request.GET.get('date', None)
+
+            formset_data = {}
+            for key, value in request.POST.items():
+                if key.startswith('form-'):
+                    if 'timeslot' in key:
+                        try:
+                            timeslot_id = int(value)
+                            print(timeslot_id)
+                            timeslot = Timeslot.objects.get(pk=timeslot_id)
+                            formset_data[key] = timeslot.dayTime.slot.strftime("%H:%M")  # Assuming display_time is the attribute you want to show
+                        except (ValueError, Timeslot.DoesNotExist):
+                            # Handle the case where the value is not a valid timeslot ID
+                            formset_data[key] = value
+                    else:
+                        formset_data[key] = value
+
+
+            request.session['formset_data'] = formset_data
+
+            # Pass formset data to the context when rendering the confirmation page
+            context.update({'formset_data': formset_data})
+            # Redirect to the preview page
+            #return redirect('reservations:preview_reservation', reservation_period_id=reservation_period_id, school_user_id=school_user_id)
+            #return HttpResponseRedirect(reverse('reservations:preview_reservation', args=(reservation_period_id, school_user_id,)) + f'?date={date}')
+
+            # Redirect to the preview page
+            preview_url = reverse('reservations:preview_reservation', args=(reservation_period_id, school_user_id,))
+            return HttpResponseRedirect(preview_url + f'?date={date}')
+
+        elif formset.is_valid():
+            # Process and save the reservations
             for form in formset:
-                # process each form in the formset
                 if form.cleaned_data.get('timeslot'):
                     my_reservation = Reservation(
-                        schoolUser = schoolUser,
-                        reservation_date = selected_calendar_date,
-                        timeslot = form.cleaned_data["timeslot"],
-                        teacher_number = form.cleaned_data["teacher_number"],
-                        student_number = form.cleaned_data["student_number"],
-                        amea = form.cleaned_data["amea"],
-                        terms_accepted = form.cleaned_data["terms_accepted"],
-                        reservation_period = res_period
+                        schoolUser=schoolUser,
+                        reservation_date=selected_calendar_date,
+                        timeslot=form.cleaned_data["timeslot"],
+                        teacher_number=form.cleaned_data["teacher_number"],
+                        student_number=form.cleaned_data["student_number"],
+                        amea=form.cleaned_data["amea"],
+                        terms_accepted=form.cleaned_data["terms_accepted"],
+                        reservation_period=res_period
                     )
                     my_reservation.save()
 
             return HttpResponseRedirect(reverse('reservations:my_reservations'))
-        
         else:
             # Formset is not valid, include it in the context
             context['formset'] = formset
@@ -655,28 +795,8 @@ def make_reservation(request, reservation_period_id, school_user_id):
             context['timeslot_error'] = any(formset.errors) and formset.errors[0].get('timeslot')
             context['terms_accepted_error'] = any(formset.errors) and formset.errors[0].get('terms_accepted')
 
-            #return render(request, 'reservations/reservation.html', context)
-    
     else:
         formset = ReservationFormSet(reservation_period=res_period, selected_date=date)
-        
-
-    # context = {
-    #     'res_period': res_period,
-    #     #'res_period_id': res_period.id,
-    #     'schoolUser': schoolUser,
-    #     'date': date,
-    #     'week_day': selected_calendar_date_name,
-    #     'selected_calendar_date_day': selected_calendar_date_day,
-    #     'selected_calendar_date_month': selected_calendar_date_month,
-    #     'selected_calendar_date_year': selected_calendar_date_year,
-    #     'allowed_timeslots': allowed_timeslots,
-    #     'occupied_timeslots': occupied_timeslots,
-    #     'non_occupied_timeslots': non_occupied_timeslots,
-    #     'non_occupied_timeslots_count': non_occupied_timeslots_count,
-    #     #'form': form,
-    #     'formset': formset,
-    # }
 
     context.update({
         'res_period': res_period,
@@ -694,7 +814,87 @@ def make_reservation(request, reservation_period_id, school_user_id):
         'exceptional_rules': ExceptionalRule.objects.filter(date = selected_calendar_date),
     })
 
-    return render(request, 'reservations/reservation.html', context)
+    return render(request, 'reservations/reservation2.html', context)
+
+
+def preview_reservation(request, reservation_period_id, school_user_id):
+
+    date = request.GET.get('date')
+    # Retrieve formset data from the session
+
+    formset_data = request.session.get('formset_data', None)
+
+    print("Formset Data:", formset_data)
+
+    if formset_data:
+        
+        # Create a list of form prefixes to exclude in the template
+        form_prefixes = ['form-TOTAL_FORMS', 'form-INITIAL_FORMS', 'form-MIN_NUM_FORMS', 'form-MAX_NUM_FORMS']
+        #field_names = [key for key in formset_data.keys() if key not in ['form-TOTAL_FORMS', 'form-INITIAL_FORMS', 'form-MIN_NUM_FORMS', 'form-MAX_NUM_FORMS']]
+
+        # # Filter out unnecessary keys
+        # filtered_data = {key: formset_querydict.getlist(key) for key in formset_querydict.keys() if key and not key.startswith('form-') and key not in ['csrfmiddlewaretoken', 'preview']}
+                
+        # Render the preview page with the formset data
+        return render(request, 'reservations/preview_reservation.html', {'formset_data': formset_data, 
+                                                                         'reservation_period_id': reservation_period_id,
+                                                                         'school_user_id': school_user_id,
+                                                                         'form_prefixes': form_prefixes,
+                                                                         'date': date
+                                                                         })
+    else:
+        # If there is no formset data, redirect to the reservation page
+        return redirect('reservations:make_reservation', reservation_period_id=reservation_period_id, school_user_id=school_user_id)
+
+# def preview_reservation(request, reservation_period_id, school_user_id):
+#     # Retrieve formset data from the session
+#     formset_data = request.session.get('formset_data', None)
+
+#     # Add the following line to handle the formset
+#     ReservationFormSet = formset_factory(ReservationForm, extra=3, max_num=3, formset=BaseReservationFormSet)
+#     formset = ReservationFormSet(data=formset_data) if formset_data else None
+
+#     #print(formset)
+#     schoolUser = SchoolUser.objects.get(pk=school_user_id)
+#     res_period = get_object_or_404(ReservationPeriod, pk=reservation_period_id)
+
+#     date = request.GET.get('date')
+
+#     #get week day name
+#     selected_date = datetime.strptime(date, "%Y-%m-%d")
+#     selected_calendar_date = Day.objects.get(date=selected_date)
+
+#     if request.method == 'POST':
+#         formset = ReservationFormSet(request.POST, reservation_period=res_period, selected_date=date)
+
+#         if formset.is_valid():
+#             # Process and save the reservations
+#             for form in formset:
+#                 if form.cleaned_data.get('timeslot'):
+#                     my_reservation = Reservation(
+#                         schoolUser=schoolUser,
+#                         reservation_date=selected_calendar_date,
+#                         timeslot=form.cleaned_data["timeslot"],
+#                         teacher_number=form.cleaned_data["teacher_number"],
+#                         student_number=form.cleaned_data["student_number"],
+#                         amea=form.cleaned_data["amea"],
+#                         terms_accepted=form.cleaned_data["terms_accepted"],
+#                         reservation_period=res_period
+#                     )
+#                     my_reservation.save()
+
+#             # Redirect to the confirmation page or any other page
+#             return HttpResponseRedirect(reverse('reservations:my_reservations'))
+
+#     context = {
+#         'formset_data': formset_data,
+#         'formset': formset,
+#         'reservation_period_id': reservation_period_id,
+#         'school_user_id': school_user_id,
+#     }
+
+#     return render(request, 'reservations/preview_reservation2.html', context)
+
 
 @login_required
 def calendar_timeslot(request, reservation_period_id, year=None, month=None):

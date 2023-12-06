@@ -1,0 +1,38 @@
+{% extends '../base/base_admin.html' %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<div class="container bg-white text-dark">
+    <h3 class="my-4">Reservation Preview</h3>
+
+    <!-- Display the formset data for confirmation -->
+    <form method="post" action="{% url 'reservations:make_reservation' reservation_period_id=reservation_period_id school_user_id=school_user_id %}">
+        {% csrf_token %}
+        
+        <!-- Iterate through formset data and display only filled data -->
+
+
+
+        {% for key, value in formset_data.items %}
+        {% if value and key != 'form-TOTAL_FORMS' and key != 'form-INITIAL_FORMS' and key != 'form-MIN_NUM_FORMS' and key != 'form-MAX_NUM_FORMS' %}
+            {% if 'timeslot' in key %}
+                <p>Ώρα: {{ value }}</p>
+            {% endif %}
+            {% if 'student_number' in key %}
+                <p>Αριθμός Μαθητών: {{ value }}</p>
+            {% endif %}
+            {% if 'teacher_number' in key %}
+                <p>Αριθμός Εκπαιδευτικών: {{ value }}</p>
+            {% endif %}
+            {% if 'terms_accepted' in key %}
+                <p>Αποδοχή Όρων: {% if value == 'on' %} ΝΑΙ {% else %} ΟΧΙ {% endif %}</p>
+            {% endif %}
+        {% endif %}
+    {% endfor %}
+    
+
+        <button type="submit" class="btn btn-primary" name="submit">Confirm</button>
+    </form>
+
+</div>
+{% endblock %}
