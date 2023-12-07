@@ -33,10 +33,14 @@ class ReservationForm(forms.ModelForm):
         # Pop 'reservation_period' from kwargs, default to None if not present
         reservation_period = kwargs.pop('reservation_period', None)
         selected_date = kwargs.pop('selected_date', None)
-        # preview_page = kwargs.pop('preview_page', False)
 
         super(ReservationForm, self).__init__(*args, **kwargs)
         self.fields['terms_accepted'].required = True
+        # self.fields['student_number'].required = False
+        # self.fields['teacher_number'].required = False
+        # self.fields['amea'].required = False
+        # self.fields['terms_accepted'].required = False
+
         self.fields['terms_accepted'].error_messages = {
             'required': 'Πρέπει να αποδεχτείτε τους όρους συμμετοχής.'
         }
@@ -47,9 +51,7 @@ class ReservationForm(forms.ModelForm):
             'required': 'Πρέπει να συμπληρώσετε τον αριθμό των εκπαιδευτικών.'
         }
 
-        # if preview_page:
-        #     # Disable the timeslot dropdown if on the preview page
-        #     self.fields['timeslot'].widget.attrs['disabled'] = 'disabled'
+
 
         if reservation_period and selected_date:
             # allowed_daytimes = get_allowed_daytimes(selected_date, reservation_period)
@@ -120,11 +122,23 @@ class ReservationForm(forms.ModelForm):
             # self.fields['timeslot'].label_from_instance = lambda obj: obj.display_time()
 
 
+    # def clean(self):
+    #     cleaned_data = super().clean()
+
+    #     # If timeslot is selected, ensure other fields are also provided
+    #     if cleaned_data.get('timeslot'):
+    #         if not cleaned_data.get('student_number'):
+    #             self.add_error('student_number', 'This field is required.')
+    #         if not cleaned_data.get('teacher_number'):
+    #             self.add_error('teacher_number', 'This field is required.')
+    #         if not cleaned_data.get('terms_accepted'):
+    #             self.add_error('terms_accepted', 'This field is required.')
+    #     return cleaned_data
+
 class BaseReservationFormSet(BaseFormSet):
     def __init__(self, *args, **kwargs):
         reservation_period = kwargs.pop('reservation_period', None)
         selected_date = kwargs.pop('selected_date', None)
-        # self.request = kwargs.pop('request', None)
 
         super(BaseReservationFormSet, self).__init__(*args, **kwargs)
 
@@ -209,6 +223,10 @@ class BaseReservationFormSet(BaseFormSet):
         if not any(form.cleaned_data for form in self.forms):
             raise ValidationError("Συμπληρώστε τουλάχιστον μία φόρμα για να πραγματοποιήσετε την κράτηση.")
         
+
+
+
+
 class CustomAdminDateWidget(AdminDateWidget):
     def __init__(self, attrs=None, format=None):
         final_attrs = {'class': 'datepicker'}

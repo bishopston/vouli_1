@@ -950,13 +950,13 @@ def preview_reservation(request, reservation_period_id, school_user_id):
     #formset_data = request.session.get('formset_data', None)
     formset_data = request.session.get('formset_data', [])
 
-    print('--------')
-    print(formset_data)
+    # print('--------')
+    # print(formset_data)
 
     # Extract the data for each form from formset_data
     form_data_list = [data for data in formset_data if data]
-    print('--------')
-    print(form_data_list)
+    # print('--------')
+    # print(form_data_list)
 
     day_of_week_mapping = {
         'Monday': 'a',
@@ -975,25 +975,32 @@ def preview_reservation(request, reservation_period_id, school_user_id):
 
         # Convert the time back to Timeslot instance
         time_str = form_data['timeslot']
-        print(time_str)
+        #print(time_str)
         #day_str = date  # Assuming date is passed as a query parameter
         selected_date_format = datetime.strptime(date, "%Y-%m-%d")
-        print(selected_date_format)
+        #print(selected_date_format)
         day_of_week = day_of_week_mapping[selected_date_format.strftime('%A')]
-        print(day_of_week)
+        #print(day_of_week)
         day_time = DayTime.objects.get(day=day_of_week, slot=time_str)
-        print(day_time)
+        #print(day_time)
         form_data['timeslot'] = Timeslot.objects.filter(dayTime=day_time).first()
-        print(form_data['timeslot'])
+        #print(form_data['timeslot'])
     
     #formset = ReservationFormSet(initial=form_data_list, preview_page=True)
     #formset = ReservationFormSet(request.POST or None, initial=form_data_list, request=request)
     formset = ReservationFormSet(request.POST or None, initial=form_data_list)
 
+    # Disable fields for read-only display
     if 'preview_reservation' in request.path:
         for form in formset.forms:
-            form.fields['timeslot'].widget.attrs['readonly'] = True
-
+            for field_name, field in form.fields.items():
+                form.fields[field_name].widget.attrs['readonly'] = True
+                #form.fields[field_name].widget.attrs['disabled'] = 'disabled'
+            form.fields['timeslot'].widget.attrs['disabled'] = 'disabled'
+            form.fields['student_number'].widget.attrs['disabled'] = 'disabled'
+            form.fields['teacher_number'].widget.attrs['disabled'] = 'disabled'
+            form.fields['amea'].widget.attrs['disabled'] = 'disabled'
+            #form.fields['terms_accepted'].widget.attrs['disabled'] = 'disabled'
 
     # Handle form submission on the new page
     if request.method == 'POST':
@@ -1031,6 +1038,54 @@ def preview_reservation(request, reservation_period_id, school_user_id):
                                                                         'date': date,
                                                                         })
     
+
+# def preview_reservation(request, reservation_period_id, school_user_id):
+
+#     date = request.GET.get('date') or request.POST.get('date')
+#     res_period = get_object_or_404(ReservationPeriod, pk=reservation_period_id)
+    
+#     # Retrieve formset data from the session
+#     formset_data = request.session.get('formset_data', [])
+#     print(formset_data)
+
+#     # Instantiate ReservationFormSetClass using formset_factory
+#     ReservationFormSetClass = formset_factory(ReservationForm, extra=0, max_num=3, formset=BaseReservationFormSet)
+#     formset = ReservationFormSetClass(initial=formset_data)
+
+#     if request.method == 'POST':
+#         # Do not pass the 'queryset' parameter here
+#         formset = ReservationFormSetClass(request.POST)
+
+#         if formset.is_valid():
+#             # Process and save formset data to the model
+#             for form_data in formset.cleaned_data:
+#                 # timeslot = form_data['timeslot'].id
+#                 # Reservation.objects.create(timeslot=timeslot, **form_data)
+#                 selected_date_id = Day.objects.get(date=date).id
+
+#                 timeslot_instance = form_data.pop('timeslot')  # Remove 'timeslot' from form_data
+#                 print(timeslot_instance)
+#                 timeslot_id = timeslot_instance.id
+#                 print(timeslot_id)
+#                 Reservation.objects.create(timeslot_id=timeslot_id, 
+#                                            reservation_period=ReservationPeriod.objects.get(id=reservation_period_id), 
+#                                            schoolUser=SchoolUser.objects.get(id=school_user_id),
+#                                            reservation_date=Day.objects.get(id=selected_date_id),
+#                                            **form_data)
+
+#             # Clear the session data
+#             request.session.pop('formset_data', None)
+
+#             # Redirect to a success page or another view
+#             return HttpResponseRedirect(reverse('reservations:my_reservations'))
+
+
+#     return render(request, 'reservations/preview_readonly.html', {'formset': formset,
+#                                                                 'reservation_period_id': reservation_period_id,
+#                                                                 'school_user_id': school_user_id,
+#                                                                 'date': date,
+#                                                                   })
+
 
 @login_required
 def calendar_timeslot(request, reservation_period_id, year=None, month=None):
