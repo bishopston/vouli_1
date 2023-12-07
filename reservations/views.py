@@ -942,7 +942,8 @@ def make_reservation(request, reservation_period_id, school_user_id):
 
 def preview_reservation(request, reservation_period_id, school_user_id):
 
-    date = request.GET.get('date')
+    #date = request.GET.get('date')
+    date = request.GET.get('date') or request.POST.get('date')
     res_period = get_object_or_404(ReservationPeriod, pk=reservation_period_id)
     # Retrieve formset data from the session
 
@@ -995,9 +996,21 @@ def preview_reservation(request, reservation_period_id, school_user_id):
             # Process and save formset data to the model
             for form_data in formset.cleaned_data:
 
-                timeslot = form_data['timeslot']
+                # timeslot = form_data['timeslot'].id
 
-                Reservation.objects.create(timeslot=timeslot, **form_data)  # Replace YourModel with the actual model name
+                # Reservation.objects.create(timeslot=timeslot, **form_data)  # Replace YourModel with the actual model name
+                selected_date_id = Day.objects.get(date=date).id
+
+                timeslot_instance = form_data.pop('timeslot')  # Remove 'timeslot' from form_data
+                print(timeslot_instance)
+                timeslot_id = timeslot_instance.id
+                print(timeslot_id)
+                Reservation.objects.create(timeslot_id=timeslot_id, 
+                                           reservation_period=ReservationPeriod.objects.get(id=reservation_period_id), 
+                                           schoolUser=SchoolUser.objects.get(id=school_user_id),
+                                           reservation_date=Day.objects.get(id=selected_date_id),
+                                           **form_data)
+
 
             # Clear the session data
             request.session.pop('formset_data', None)
