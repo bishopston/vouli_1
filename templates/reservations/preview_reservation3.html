@@ -20,4 +20,23 @@
     </form>
 
 </div>
+
+<!-- Add this script at the end of your HTML template -->
+<script>
+    $(document).ready(function () {
+        // Check if the page is the preview page
+        var isPreviewPage = window.location.href.indexOf('/preview_reservation/') !== -1;
+
+        // Make timeslot dropdown non-editable if on the preview page
+        if (isPreviewPage) {
+            $('select[name$="-timeslot"]').prop('readonly', true);
+
+            // Handle form submission to prevent changing the value
+            $('form').submit(function (event) {
+                $('select[name$="-timeslot"]').prop('disabled', false);
+            });
+        }
+    });
+</script>
+
 {% endblock %}

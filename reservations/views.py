@@ -986,7 +986,14 @@ def preview_reservation(request, reservation_period_id, school_user_id):
         form_data['timeslot'] = Timeslot.objects.filter(dayTime=day_time).first()
         print(form_data['timeslot'])
     
-    formset = ReservationFormSet(initial=form_data_list)
+    #formset = ReservationFormSet(initial=form_data_list, preview_page=True)
+    #formset = ReservationFormSet(request.POST or None, initial=form_data_list, request=request)
+    formset = ReservationFormSet(request.POST or None, initial=form_data_list)
+
+    if 'preview_reservation' in request.path:
+        for form in formset.forms:
+            form.fields['timeslot'].widget.attrs['readonly'] = True
+
 
     # Handle form submission on the new page
     if request.method == 'POST':

@@ -33,6 +33,7 @@ class ReservationForm(forms.ModelForm):
         # Pop 'reservation_period' from kwargs, default to None if not present
         reservation_period = kwargs.pop('reservation_period', None)
         selected_date = kwargs.pop('selected_date', None)
+        # preview_page = kwargs.pop('preview_page', False)
 
         super(ReservationForm, self).__init__(*args, **kwargs)
         self.fields['terms_accepted'].required = True
@@ -45,6 +46,10 @@ class ReservationForm(forms.ModelForm):
         self.fields['teacher_number'].error_messages = {
             'required': 'Πρέπει να συμπληρώσετε τον αριθμό των εκπαιδευτικών.'
         }
+
+        # if preview_page:
+        #     # Disable the timeslot dropdown if on the preview page
+        #     self.fields['timeslot'].widget.attrs['disabled'] = 'disabled'
 
         if reservation_period and selected_date:
             # allowed_daytimes = get_allowed_daytimes(selected_date, reservation_period)
@@ -119,6 +124,7 @@ class BaseReservationFormSet(BaseFormSet):
     def __init__(self, *args, **kwargs):
         reservation_period = kwargs.pop('reservation_period', None)
         selected_date = kwargs.pop('selected_date', None)
+        # self.request = kwargs.pop('request', None)
 
         super(BaseReservationFormSet, self).__init__(*args, **kwargs)
 
