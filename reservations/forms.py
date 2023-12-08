@@ -36,11 +36,6 @@ class ReservationForm(forms.ModelForm):
 
         super(ReservationForm, self).__init__(*args, **kwargs)
         self.fields['terms_accepted'].required = True
-        # self.fields['student_number'].required = False
-        # self.fields['teacher_number'].required = False
-        # self.fields['amea'].required = False
-        # self.fields['terms_accepted'].required = False
-
         self.fields['terms_accepted'].error_messages = {
             'required': 'Πρέπει να αποδεχτείτε τους όρους συμμετοχής.'
         }
@@ -66,13 +61,13 @@ class ReservationForm(forms.ModelForm):
 
                 reservations_on_date = Reservation.objects.filter(reservation_date=selected_calendar_date).exclude(status='denied')
                 reservation_daytimes = [reservation.timeslot.dayTime for reservation in reservations_on_date]
-                non_occupied_daytimes = ExceptionalRule.objects.filter(date=selected_calendar_date,is_reservation_allowed=True).exclude(timeslot__in=reservation_daytimes).order_by('timeslot')
+                non_occupied_daytimes = ExceptionalRule.objects.filter(date=selected_calendar_date,is_reservation_allowed=True).exclude(timeslot__in=reservation_daytimes).order_by('timeslot__slot')
                 non_occupied_timeslots = [Timeslot.objects.get(dayTime=rule.timeslot, reservation_period=reservation_period) for rule in non_occupied_daytimes]
                 non_occupied_timeslot_ids = [timeslot.id for timeslot in non_occupied_timeslots]
                 q_objects = Q()
                 for timeslot_id in non_occupied_timeslot_ids:
                     q_objects |= Q(id=timeslot_id)
-                non_occupied_timeslots_queryset = Timeslot.objects.filter(q_objects)
+                non_occupied_timeslots_queryset = Timeslot.objects.filter(q_objects).order_by('dayTime__slot')
 
                 # #*************************************
                 # allowed_daytimes = get_allowed_exceptional_daytimes(selected_date, reservation_period)
@@ -92,6 +87,9 @@ class ReservationForm(forms.ModelForm):
 
 
                 # Set choices for the timeslot field based on available_timeslots
+
+            
+
                 self.fields['timeslot'].queryset = non_occupied_timeslots_queryset
                 self.fields['timeslot'].label_from_instance = lambda obj: obj.display_time()
 
@@ -156,13 +154,13 @@ class BaseReservationFormSet(BaseFormSet):
 
                     reservations_on_date = Reservation.objects.filter(reservation_date=selected_calendar_date).exclude(status='denied')
                     reservation_daytimes = [reservation.timeslot.dayTime for reservation in reservations_on_date]
-                    non_occupied_daytimes = ExceptionalRule.objects.filter(date=selected_calendar_date,is_reservation_allowed=True).exclude(timeslot__in=reservation_daytimes).order_by('timeslot')
+                    non_occupied_daytimes = ExceptionalRule.objects.filter(date=selected_calendar_date,is_reservation_allowed=True).exclude(timeslot__in=reservation_daytimes).order_by('timeslot__slot')
                     non_occupied_timeslots = [Timeslot.objects.get(dayTime=rule.timeslot, reservation_period=reservation_period) for rule in non_occupied_daytimes]
                     non_occupied_timeslot_ids = [timeslot.id for timeslot in non_occupied_timeslots]
                     q_objects = Q()
                     for timeslot_id in non_occupied_timeslot_ids:
                         q_objects |= Q(id=timeslot_id)
-                    non_occupied_timeslots_queryset = Timeslot.objects.filter(q_objects)
+                    non_occupied_timeslots_queryset = Timeslot.objects.filter(q_objects).order_by('dayTime__slot')
 
                     # # #*************************************
                     # allowed_daytimes = get_allowed_exceptional_daytimes(selected_date, reservation_period)

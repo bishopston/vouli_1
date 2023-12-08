@@ -49,7 +49,7 @@ def get_allowed_daytimes(selected_date, reservation_period):
         dayTime__day=day_of_week,
         reservation_period=reservation_period,
         is_reservation_allowed=True
-    )
+    ).order_by('dayTime__slot')
 
     return allowed_daytimes
 
@@ -120,7 +120,7 @@ def get_allowed_exceptional_daytimes(selected_date, reservation_period):
     allowed_daytimes = ExceptionalRule.objects.filter(
         date = selected_date_id,
         is_reservation_allowed=True
-    ).order_by('timeslot')
+    ).order_by('timeslot__slot')
     # else:
     #     allowed_daytimes = Timeslot.objects.filter(
     #         dayTime__day=day_of_week,
@@ -170,9 +170,11 @@ def calculate_availability_percentage(selected_date, reservation_period):
 
     non_occupied_timeslots = allowed_timeslots.exclude(id__in=occupied_timeslots)
 
-    if len(occupied_timeslots) == len(allowed_timeslots):
-        return 0
+    if len(allowed_timeslots) > 0:
+        if len(occupied_timeslots) == len(allowed_timeslots):
+            return 0
+        else:
+            return (len(non_occupied_timeslots)/len(allowed_timeslots))
     else:
-        return (len(non_occupied_timeslots)/len(allowed_timeslots))
-    
+        return 1
 

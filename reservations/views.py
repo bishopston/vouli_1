@@ -141,7 +141,9 @@ def add_exceptional_rule(request):
     # If the form was not submitted via POST, handle accordingly
     res_period_id = request.GET.get('reservationPeriodId') or request.POST.get('res_period_id')
     selected_date = request.GET.get('date') or request.POST.get('selected_date')
-    #print(selected_date)
+    error = request.GET.get('error', None)
+    print(error)
+
     day_of_week_mapping = {
         'Monday': 'a',
         'Tuesday': 'b',
@@ -164,6 +166,9 @@ def add_exceptional_rule(request):
     created_exceptional_rules = ExceptionalRule.objects.filter(date=selected_day).order_by('timeslot')
 
     context = {}
+
+    redirect_url = reverse('reservations:add_exceptional_rule')
+    redirect_url += f'?date={selected_date}&reservationPeriodId={res_period_id}'
 
     if request.method == 'POST':
         #selected_date = request.POST.get('selected_date')
@@ -198,9 +203,10 @@ def add_exceptional_rule(request):
             'created_exceptional_rules': created_exceptional_rules,
             'res_period_id': res_period_id,
         })
+
         # Redirect to a success page or any other page
-        return render(request, 'reservations/add_exceptional_rule.html', context)
-        #return redirect(reverse('reservations:add_exceptional_rule'))
+        #return render(request, 'reservations/add_exceptional_rule.html', context)
+        return redirect(redirect_url)
 
     context.update({
         'selected_date': selected_date, 
@@ -208,6 +214,7 @@ def add_exceptional_rule(request):
         'available_daytimes': available_daytimes,
         'created_exceptional_rules': created_exceptional_rules,
         'res_period_id': res_period_id,
+        'error': error,
     })
 
 
@@ -220,7 +227,7 @@ def edit_exceptional_rule(request):
     res_period_id = request.GET.get('reservationPeriodId') or request.POST.get('res_period_id')
     selected_date = request.GET.get('date') or request.POST.get('selected_date')
 
-    # selected_day = Day.objects.get(date=selected_date)
+    selected_day = Day.objects.get(date=selected_date)
 
     # created_exceptional_rules = ExceptionalRule.objects.filter(date=selected_day)
 
@@ -229,39 +236,47 @@ def edit_exceptional_rule(request):
     
     if request.method == 'POST':
         selected_timeslots = request.POST.getlist('timeslots')
-        
-        # Update availability based on selected checkboxes
+
+        #print(len(ExceptionalRule.objects.filter(date=selected_day,is_reservation_allowed=True)))
+
         for timeslot_id in selected_timeslots:
             timeslot = ExceptionalRule.objects.get(id=timeslot_id)
             timeslot.is_reservation_allowed = not timeslot.is_reservation_allowed
-            timeslot.save()
+            if len(ExceptionalRule.objects.filter(date=selected_day,is_reservation_allowed=True)) == 1:
+                err_all_delete_message = 'Δεν μπορείτε να απενεργοποιήσετε όλες τις χρονοθυρίδες.'
+                return redirect(redirect_url + f'&error={err_all_delete_message}')
+
+            else:
+                timeslot.save()
         
     #return HttpResponseRedirect(request.path_info)
     return redirect(redirect_url)
 
-# @login_required
-# @user_passes_test(lambda u: u.is_superuser)
-# def delete_exceptional_rule(request):
 
-#     res_period_id = request.GET.get('reservationPeriodId') or request.POST.get('res_period_id')
-#     selected_date = request.GET.get('date') or request.POST.get('selected_date')
 
-#     # selected_day = Day.objects.get(date=selected_date)
+@login_required
+@user_passes_test(lambda u: u.is_superuser)
+def delete_exceptional_rule(request):
 
-#     # created_exceptional_rules = ExceptionalRule.objects.filter(date=selected_day)
+    res_period_id = request.GET.get('reservationPeriodId') or request.POST.get('res_period_id')
+    selected_date = request.GET.get('date') or request.POST.get('selected_date')
 
-#     redirect_url = reverse('reservations:add_exceptional_rule')
-#     redirect_url += f'?date={selected_date}&reservationPeriodId={res_period_id}'
+    # selected_day = Day.objects.get(date=selected_date)
 
-#     if request.method == 'POST':
-#         selected_timeslots = request.POST.getlist('timeslots')
+    # created_exceptional_rules = ExceptionalRule.objects.filter(date=selected_day)
+
+    redirect_url = reverse('reservations:add_exceptional_rule')
+    redirect_url += f'?date={selected_date}&reservationPeriodId={res_period_id}'
+
+    if request.method == 'POST':
+        selected_timeslots = request.POST.getlist('timeslots')
         
-#         # Update availability based on selected checkboxes
-#         for timeslot_id in selected_timeslots:
-#             timeslot = ExceptionalRule.objects.get(id=timeslot_id)
-#             timeslot.delete()
+        # Update availability based on selected checkboxes
+        for timeslot_id in selected_timeslots:
+            timeslot = ExceptionalRule.objects.get(id=timeslot_id)
+            timeslot.delete()
     
-#     return redirect(redirect_url)
+    return redirect(redirect_url)
 
 
 @login_required
@@ -359,40 +374,8 @@ def calendar_month(request, reservation_period_id, school_user_id, year=None, mo
     prev_month = start_date - timedelta(days=start_date.day)
     next_month = start_date + timedelta(days=(32 - start_date.day))
 
-    # # Calculate previous and next months
-    # prev_month = start_date - relativedelta(months=1)
-    # next_month = start_date + relativedelta(months=1)
-
-    # # Set the day of the month to 1 for both previous and next months
-    # prev_month = prev_month.replace(day=1)
-    # next_month = next_month.replace(day=1)
-
-    # Calculate previous and next months
-    # prev_month = start_date.replace(day=1) - timedelta(days=1)
-    # next_month = start_date.replace(day=calendar.monthrange(year, month)[1]) + timedelta(days=1)
-
-    # Calculate previous and next months
-    # _, last_day_of_current_month = calendar.monthrange(year, month)
-    # prev_month = start_date.replace(day=1) - timedelta(days=start_date.day)
-    # next_month = start_date.replace(day=last_day_of_current_month) + timedelta(days=1)
-
-    # Calculate previous and next months
-    # prev_month = start_date.replace(day=1) - timedelta(days=1)
-    # next_month = start_date.replace(day=calendar.monthrange(year, month)[1]) + timedelta(days=1)
-
-
     # Retrieve days for the current month
     month_days = get_month_days(year, month, reservation_period_id)
-
-    # for week in month_days:
-    #     for day in week:
-    #         day.availability_percentage = calculate_availability_percentage(day.date, reservation_period_id)
-    #         #print(day.availability_percentage)
-
-    # for week in month_days:
-    #     for day in week:
-    #         day.availability_percentage = calculate_availability_percentage(day, reservation_period_id)
-            #print(day.availability_percentage)
 
     for week in month_days:
         for day in week:
@@ -762,15 +745,6 @@ def make_reservation(request, reservation_period_id, school_user_id):
 
         #     request.session['formset_data'] = formset_data
 
-        #     print(formset_data)
-        #     print(formset_data['form-0-timeslot'])
-
-        #     # Pass formset data to the context when rendering the confirmation page
-        #     #context.update({'formset_data': formset_data})
-        #     # Redirect to the preview page
-        #     #return redirect('reservations:preview_reservation', reservation_period_id=reservation_period_id, school_user_id=school_user_id)
-        #     return HttpResponseRedirect(reverse('reservations:preview_reservation', args=(reservation_period_id, school_user_id,)) + f'?date={date}')
-
         #     # Redirect to the preview page
         #     # preview_url = reverse('reservations:preview_reservation', args=(reservation_period_id, school_user_id,))
         #     # return HttpResponseRedirect(preview_url + f'?date={date}')
@@ -798,7 +772,7 @@ def make_reservation(request, reservation_period_id, school_user_id):
                 # Store formset data in the session
                 request.session['formset_data'] = formset_data
 
-                print(formset.cleaned_data)
+                #print(formset.cleaned_data)
 
                 return HttpResponseRedirect(reverse('reservations:preview_reservation', args=(reservation_period_id, school_user_id,)) + f'?date={date}')
 
@@ -1016,9 +990,9 @@ def preview_reservation(request, reservation_period_id, school_user_id):
                 selected_date_id = Day.objects.get(date=date).id
 
                 timeslot_instance = form_data.pop('timeslot')  # Remove 'timeslot' from form_data
-                print(timeslot_instance)
+                #print(timeslot_instance)
                 timeslot_id = timeslot_instance.id
-                print(timeslot_id)
+                #print(timeslot_id)
                 Reservation.objects.create(timeslot_id=timeslot_id, 
                                            reservation_period=ReservationPeriod.objects.get(id=reservation_period_id), 
                                            schoolUser=SchoolUser.objects.get(id=school_user_id),
