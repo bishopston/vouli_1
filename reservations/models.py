@@ -38,6 +38,9 @@ class SchoolYear(models.Model):
     def __str__(self):
         return self.name
 
+    def is_current_year(self):
+        return self.start_date <= dt.now(pytz.utc) <= self.end_date
+
 class ReservationPeriod(models.Model):
     schoolYear = models.ForeignKey(SchoolYear, on_delete=models.CASCADE, default=None)
     start_date = models.DateField()
