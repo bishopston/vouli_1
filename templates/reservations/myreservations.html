@@ -6,41 +6,99 @@
     <div class="row w-100">
         {% if my_school %}
             {% if reservation_allowed %}
-                <div class="card text-center mt-5">
-                    <div class="card-header">
-                        Ίδρυμα της Βουλής
-                    </div>
-                    <div class="card-body">
-                    <h5 class="card-title">Αιτήσεις Επίσκεψης Σχολείων</h5>
-                    <p class="card-text my-2">Μπορείτε να καταχωρίσετε κράτηση για επίσκεψη στη Βουλή κατά την περίοδο {{ next_available_res_period_start_date|date:'d/m/Y' }} - {{ next_available_res_period_end_date|date:'d/m/Y' }}.
-                        Έχετε το δικαίωμα να επισκεφτείτε τη Βουλή σε μία μόνο ημερομηνία κατά τη διάρκεια κάθε σχολικού έτους.
-                    </p>
-                    <a href="{% url 'reservations:calendar_month' next_available_res_period.id my_school.id %}" class="btn btn-primary mt-2">Κράτηση</a>
-                    </div>
-                </div>
-            {% else %}
-                <div class="card text-center mt-5">
-                    <div class="card-header">
-                        Ίδρυμα της Βουλής
-                    </div>
-                    <div class="card-body">
-                    <h5 class="card-title">Αιτήσεις Επίσκεψης Σχολείων</h5>
-                    <p class="card-text">Δεν έχει ξεκινήσει ακόμα η περίοδος δημιουργίας κρατήσεων για την επόμενη περίοδο επισκέψεων στη Βουλή</p>
-                    <a href="#" class="btn btn-primary">ΠΙΝΑΚΑΣ ΕΛΕΓΧΟΥ</a>
-                    </div>
-                </div>
-            {% endif %}
+				{% if my_reservations_current_year_number < 3 %}
+					<div class="card text-center mt-5">
+						<div class="card-header">
+							Ίδρυμα της Βουλής
+						</div>
+						<div class="card-body">
+						<h5 class="card-title">Αιτήσεις Επίσκεψης Σχολείων</h5>
+						<p class="card-text my-2">Μπορείτε να καταχωρίσετε κράτηση για επίσκεψη στη Βουλή κατά την περίοδο {{ next_available_res_period_start_date|date:'d/m/Y' }} - {{ next_available_res_period_end_date|date:'d/m/Y' }}.
+							Έχετε το δικαίωμα να επισκεφτείτε τη Βουλή σε μία μόνο ημερομηνία κατά τη διάρκεια κάθε σχολικού έτους.
+						</p>
+						<a href="{% url 'reservations:calendar_month' next_available_res_period.id my_school.id %}" class="btn btn-primary mt-2">Κράτηση</a>
+						</div>
+					</div>
+				{% else %}
+					<div class="card text-center mt-5">
+						<div class="card-header">
+							Ίδρυμα της Βουλής
+						</div>
+						<div class="card-body">
+						<h5 class="card-title">Αιτήσεις Επίσκεψης Σχολείων</h5>
+						<p class="card-text">Έχετε φτάσει στο ανώτατο επιτρεπτό όριο κρατήσεων για τη φετινή σχολική χρονιά</p>
+						<a href="#" class="btn btn-primary">ΠΙΝΑΚΑΣ ΕΛΕΓΧΟΥ</a>
+						</div>
+					</div>
+				{% endif %}
+			{% else %}
+				<div class="card text-center mt-5">
+					<div class="card-header">
+						Ίδρυμα της Βουλής
+					</div>
+					<div class="card-body">
+					<h5 class="card-title">Αιτήσεις Επίσκεψης Σχολείων</h5>
+					<p class="card-text">Δεν έχει ξεκινήσει ακόμα η περίοδος δημιουργίας κρατήσεων για την επόμενη περίοδο επισκέψεων στη Βουλή</p>
+					<a href="#" class="btn btn-primary">ΠΙΝΑΚΑΣ ΕΛΕΓΧΟΥ</a>
+					</div>
+				</div>
+			{% endif %}
         {% endif %}
     </div>
     <div class="row w-100">
         {% if my_school %}
             {% if my_reservations %}
-                <div class="my-5 d-flex justify-content-center">
+                <!-- <div class="my-5 d-flex justify-content-center">
                     <nav aria-label="breadcrumb">
                         <ol class="breadcrumb">
                         <li class="breadcrumb-item active" aria-current="page">Ιστορικό Κρατήσεων για το {{ my_school.school.name }}</li>
                         </ol>
                     </nav>
+                </div> -->
+                <div class="card text-center mt-5">
+                    <div class="card-header">
+                        <h5>Ιστορικό Κρατήσεων για το {{ my_school.school.name }}</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <tr>
+                                <th><small><strong>Ημερομηνία Επίσκεψης</strong></small></th>
+                                <th><small><strong>´Ωρα</strong></small></th>
+                                <th><small><strong>Αρ. Μαθητών</strong></small></th>
+                                <th><small><strong>Αρ. Εκπαιδευτικών</strong></small></th>
+                                <th><small><strong>ΑΜΕΑ</strong></small></th>
+                                <th><small><strong>Κατάσταση</strong></small></th>
+                                <th><small><strong>Δημιουργία Κράτησης</strong></small></th>
+                                <!-- <th><small><strong>Ανανέωση Κράτησης</strong></small></th> -->
+                                </tr>
+                                {% for my_reservation in my_reservations %}
+                                <tr class="{% if my_reservation.status == 'pending' %}
+                                            bg-secondary text-light
+                                            {% elif my_reservation.status == 'approved' %}
+                                            bg-success text-light
+                                            {% else%}
+                                            bg-danger text-light
+                                            {% endif %}">
+                                    <td><small>{{ my_reservation.reservation_date.date|date:'d/m/Y' }}</small></td>
+                                    <td><small>{{ my_reservation.timeslot.dayTime.slot|time:"H:i" }}</small></td>
+                                    <td><small>{{ my_reservation.student_number }}</small></td>
+                                    <td><small>{{ my_reservation.teacher_number }}</small></td>
+                                    <td><small>
+                                        {% if my_reservation.amea == True %}
+                                            ΝΑΙ
+                                        {% else %}
+                                            ΟΧΙ
+                                        {% endif %}
+                                    </small></td>
+                                    <td><small>{{ my_reservation.get_status_display }}</small></td>
+                                    <td><small>{{ my_reservation.created_at|date:'d/m/Y' }}</small></td>
+                                    <!-- <td><small>{{ my_reservation.updated_at|date:'d/m/Y' }}</small></td> -->
+                                </tr>
+                                {% endfor %}
+                            </table>
+                        </div>
+                    </div>
                 </div>
             {% else %}
                 <div class="my-5 d-flex justify-content-center">

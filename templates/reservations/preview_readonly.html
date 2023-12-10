@@ -1,0 +1,33 @@
+{% extends '../base/base_admin.html' %}
+{% load crispy_forms_tags %}
+
+
+{% block content %}
+  <h2>Preview Read-Only</h2>
+  <p>Selected Timeslots:</p>
+ 
+  <form method="post" action="{% url 'reservations:preview_reservation' reservation_period_id school_user_id%}?date={{ date }}">
+    {% csrf_token %}
+
+    {% csrf_token %}
+  
+    {{ formset.management_form }}
+    
+    {% for form in formset %}
+    {% for field in form %}
+      {% if field.name != 'csrfmiddlewaretoken' %}
+        <p>{{ field.label }}: {{ field.value }}</p>
+      {% endif %}
+    {% endfor %}
+  {% endfor %}
+
+    <button type="submit">Submit</button>
+  </form>
+
+<script>
+    function myFieldOnChange() {
+    var myField= document.getElementById("myFieldID")
+    myField.setAttribute('readonly', true)}
+</script>
+
+{% endblock %}

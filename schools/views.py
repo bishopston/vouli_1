@@ -2,6 +2,7 @@ from django.shortcuts import render, HttpResponseRedirect, get_object_or_404, re
 from django.contrib.auth.decorators import login_required
 from django.urls import reverse
 from django.contrib import messages
+from django.http import Http404
 from .models import School, SchoolUser
 from .forms import SchoolUserForm, SchoolUserUpdateForm
 
@@ -66,9 +67,12 @@ def load_schools(request):
 def SchoolUserDeleteView(request, school_id):
     school_delete = get_object_or_404(SchoolUser, id=school_id) 
 
-    if request.method == 'POST':         
-        school_delete.delete()                    
-        return redirect('schools:schooluser_list')           
+    if school_delete.creator != request.user:
+        raise Http404("Αδυναμία πρόσβασης")
+    else:
+        if request.method == 'POST':         
+            school_delete.delete()                    
+            return redirect('schools:schooluser_list')           
 
     return render(request, 'schools/school_delete.html', {'school_delete': school_delete})
 
@@ -78,11 +82,14 @@ def SchoolUserUpdateView(request, school_id):
     school_update = get_object_or_404(SchoolUser, id=school_id) 
     schoolUpdateForm = SchoolUserUpdateForm(instance=school_update)
 
-    if request.method == 'POST':
-        schoolUpdateForm = SchoolUserUpdateForm(request.POST, instance=school_update)
-        if schoolUpdateForm.is_valid():
-            schoolUpdateForm.save()
-            return redirect(reverse('schools:schooluser_list'))
+    if school_update.creator != request.user:
+        raise Http404("Αδυναμία πρόσβασης")
+    else:
+        if request.method == 'POST':
+            schoolUpdateForm = SchoolUserUpdateForm(request.POST, instance=school_update)
+            if schoolUpdateForm.is_valid():
+                schoolUpdateForm.save()
+                return redirect(reverse('schools:schooluser_list'))
 
     return render(request, 'schools/school_update.html', {'school_update':school_update, 'schoolUpdateForm': schoolUpdateForm,})
 

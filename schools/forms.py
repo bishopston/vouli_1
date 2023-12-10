@@ -36,3 +36,7 @@ class SchoolUserUpdateForm(forms.ModelForm):
     class Meta:
         model = SchoolUser
         fields = ('director_name', 'director_surname')
+        labels = {
+            'director_name': 'ΟΝΟΜΑ ΔΙΕΥΘΥΝΤΗ',
+            'director_surname': 'ΕΠΩΝΥΜΟ ΔΙΕΥΘΥΝΤΗ',
+        }
