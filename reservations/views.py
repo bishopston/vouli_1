@@ -9,7 +9,7 @@ from django.http import JsonResponse
 from django.db.models import Q
 from .models import Day, ReservationPeriod, Timeslot, DayTime, Reservation, ReservationWindow, ExceptionalRule, SchoolYear
 from schools.models import SchoolUser
-from .forms import ReservationForm, BaseReservationFormSet
+from .forms import ReservationForm, BaseReservationFormSet, ReservationUpdateForm
 from .utils import get_occupied_daytimes, get_allowed_daytimes, get_occupied_exceptional_daytimes, get_allowed_exceptional_daytimes, calculate_availability_percentage
 from datetime import timedelta
 #from calendar import monthrange
@@ -298,7 +298,7 @@ def chunk_days(days):
 @login_required
 def my_reservations(request):
     #query user's reservations
-    my_reservations = Reservation.objects.filter(schoolUser__creator=request.user)
+    my_reservations = Reservation.objects.filter(schoolUser__creator=request.user).order_by('-reservation_date__date', 'timeslot__dayTime__slot')
 
     #query current school year
     current_school_year = SchoolYear.objects.filter(start_date__lte=datetime.now(), end_date__gte=datetime.now()).first()
@@ -726,10 +726,12 @@ def calendar_timeslot(request, reservation_period_id, year=None, month=None):
     return render(request, 'reservations/calendar_exceptional_timeslot.html', context)
 
 @ login_required
-def delete_reservation(request, reservation_id):
-    delete_reservation = get_object_or_404(SchoolUser, id=reservation_id) 
+def delete_reservation(request, reservation_id, school_user_id):
+    delete_reservation = get_object_or_404(Reservation, id=reservation_id) 
+    schoolUser = SchoolUser.objects.get(pk=school_user_id)
+    error =''
 
-    if delete_reservation.creator != request.user:
+    if delete_reservation.schoolUser.creator != request.user:
         raise Http404("Αδυναμία πρόσβασης")
     else:
         if request.method == 'POST':    
@@ -739,4 +741,35 @@ def delete_reservation(request, reservation_id):
             else:
                 error = 'Μπορείτε να διαγράψετε μόνο εκκρεμείς κρατήσεις.'         
 
-    return render(request, 'reservations/delete_reservation.html', {'delete_reservation': delete_reservation, 'error': error,})
+    return render(request, 'reservations/delete_reservation.html', {'delete_reservation': delete_reservation, 
+                                                                    'schoolUser': schoolUser, 
+                                                                    'error': error,
+                                                                    'reservationDateName': delete_reservation.reservation_date.date.strftime("%A"),
+                                                                    'reservationDateDay': delete_reservation.reservation_date.date.strftime("%d"),
+                                                                    'reservationDateMonth': delete_reservation.reservation_date.date.strftime("%B"),
+                                                                    'reservationDateYear': delete_reservation.reservation_date.date.year,
+                                                                    })
+
+@ login_required
+def update_reservation(request, reservation_id, school_user_id):
+    update_reservation = get_object_or_404(Reservation, id=reservation_id) 
+    schoolUser = SchoolUser.objects.get(pk=school_user_id)
+    reservationUpdateForm = ReservationUpdateForm(instance=update_reservation)
+
+    if update_reservation.schoolUser.creator != request.user:
+        raise Http404("Αδυναμία πρόσβασης")
+    else:
+        if request.method == 'POST':
+            reservationUpdateForm = ReservationUpdateForm(request.POST, instance=update_reservation)
+            if reservationUpdateForm.is_valid():
+                reservationUpdateForm.save()
+                return redirect(reverse('reservations:my_reservations'))
+
+    return render(request, 'reservations/update_reservation.html', {'update_reservation':update_reservation, 
+                                                                    'reservationUpdateForm': reservationUpdateForm,
+                                                                    'schoolUser': schoolUser,
+                                                                    'reservationDateName': update_reservation.reservation_date.date.strftime("%A"),
+                                                                    'reservationDateDay': update_reservation.reservation_date.date.strftime("%d"),
+                                                                    'reservationDateMonth': update_reservation.reservation_date.date.strftime("%B"),
+                                                                    'reservationDateYear': update_reservation.reservation_date.date.year,                                                                    
+                                                                    })

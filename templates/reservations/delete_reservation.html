@@ -1,0 +1,73 @@
+{% extends '../base/base_admin.html' %}
+{% block content %}
+
+<div class="container mt-5">
+    <div class="my-3">
+        <div class="row">
+            <!-- <div> -->
+                <div class="card text-center">
+                    <div class="card-header">
+                        <h5>ΔΙΑΓΡΑΦΗ ΚΡΑΤΗΣΗΣ</h5>
+                    </div>
+                    <div class="card-body">
+                        <p>Έχετε επιλέξει να προβείτε σε διαγραφή της κράτησης του σχολείου "{{ schoolUser.school.name }}" για την ημερομηνία 
+                            {% if reservationDateName == 'Monday' %}
+                            Δευτέρα 
+                            {% elif reservationDateName == 'Tuesday' %}
+                            Τρίτη 
+                            {% elif reservationDateName == 'Wednesday' %}
+                            Τετάρτη 
+                            {% elif reservationDateName == 'Thursday' %}
+                            Πέμπτη 
+                            {% elif reservationDateName == 'Friday' %}
+                            Παρασκευή 
+                            {% elif reservationDateName == 'Saturday' %}
+                            Σάββατο 
+                            {% else %}
+                            Κυριακή 
+                            {% endif %}
+        
+                            {{ reservationDateDay }} 
+        
+                            {% if reservationDateMonth == 'January' %}
+                            Ιανουαρίου 
+                            {% elif reservationDateMonth == 'February' %}
+                            Φεβρουαρίου 
+                            {% elif reservationDateMonth == 'March' %}
+                            Μαρτίου 
+                            {% elif reservationDateMonth == 'April' %}
+                            Απριλίου 
+                            {% elif reservationDateMonth == 'May' %}
+                            Μαΐου 
+                            {% elif reservationDateMonth == 'June' %}
+                            Ιουνίου 
+                            {% elif reservationDateMonth == 'July' %}
+                            Ιουλίου 
+                            {% elif reservationDateMonth == 'August' %}
+                            Αυγούστου 
+                            {% elif reservationDateMonth == 'September' %}
+                            Σεπτεμβρίου 
+                            {% elif reservationDateMonth == 'October' %}
+                            Οκτωβρίου 
+                            {% elif reservationDateMonth == 'November' %}
+                            Νοεμβρίου 
+                            {% else %}
+                            Δεκεμβρίου 
+                            {% endif %}
+        
+                            {{ reservationDateYear }}
+                        </p>                        
+                        <div class="d-flex justify-content-center">
+                            <form action="{% url 'reservations:delete_reservation' delete_reservation.id schoolUser.id %}" method="post">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-danger me-2">ΔΙΑΓΡΑΦΗ</button>
+                                <a href="{% url 'reservations:my_reservations' %}" class="btn btn-primary">ΑΚΥΡΟ</a>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

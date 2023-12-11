@@ -17,4 +17,6 @@ urlpatterns = [
     path('add_exceptional_rule/', views.add_exceptional_rule, name='add_exceptional_rule'),
     path('edit_exceptional_rule/', views.edit_exceptional_rule, name='edit_exceptional_rule'),
     path('delete_exceptional_rule/', views.delete_exceptional_rule, name='delete_exceptional_rule'),
+    path('delete_reservation/<int:reservation_id>/<int:school_user_id>/', views.delete_reservation, name='delete_reservation'),
+    path('update_reservation/<int:reservation_id>/<int:school_user_id>/', views.update_reservation, name='update_reservation'),
 ]

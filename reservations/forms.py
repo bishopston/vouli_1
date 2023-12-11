@@ -247,3 +247,13 @@ class ExceptionalRuleForm(forms.ModelForm):
         widgets = {
             'date': forms.DateInput(attrs={'type': 'date'}),
         }
+
+class ReservationUpdateForm(forms.ModelForm):
+    class Meta:
+        model = Reservation
+        fields = ('student_number', 'teacher_number', 'amea')
+        labels = {
+            'student_number': 'ΑΡΙΘΜΟΣ ΜΑΘΗΤΩΝ/ΤΡΙΩΝ',
+            'teacher_number': 'ΑΡΙΘΜΟΣ ΕΚΠΑΙΔΕΥΤΙΚΩΝ',
+            'amea': 'ΑΜΕΑ',
+        }

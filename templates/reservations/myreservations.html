@@ -57,7 +57,7 @@
                 </div> -->
                 <div class="card text-center mt-5">
                     <div class="card-header">
-                        <h5>Ιστορικό Κρατήσεων για το {{ my_school.school.name }}</h5>
+                        <h5>{{ my_school.school.name }} - Ιστορικό Κρατήσεων</h5>
                     </div>
                     <div class="card-body">
                         <div class="table-responsive">
@@ -94,6 +94,16 @@
                                     <td><small>{{ my_reservation.get_status_display }}</small></td>
                                     <td><small>{{ my_reservation.created_at|date:'d/m/Y' }}</small></td>
                                     <!-- <td><small>{{ my_reservation.updated_at|date:'d/m/Y' }}</small></td> -->
+                                    <td>
+                                        {% if my_reservation.status == 'pending' %}
+                                            <a href="{% url 'reservations:update_reservation' my_reservation.id my_school.id %}"><i class="fa fa-pencil" aria-hidden="true"></i></a>
+                                        {% endif %}
+                                    </td>    
+                                    <td>
+                                        {% if my_reservation.status == 'pending' %}
+                                            <a href="{% url 'reservations:delete_reservation' my_reservation.id my_school.id %}"><i class="fa fa-trash" aria-hidden="true"></i></a>
+                                        {% endif %}
+                                    </td>                               
                                 </tr>
                                 {% endfor %}
                             </table>
