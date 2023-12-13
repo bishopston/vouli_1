@@ -4,7 +4,6 @@ from .models import Day, DayTime, SchoolYear, ReservationPeriod, Timeslot, Excep
 from .forms import TimeslotForm, ReservationPeriodForm, ExceptionalRuleAdminForm
 
 
-
 class TimeslotInline(admin.TabularInline):
     model = Timeslot
     form = TimeslotForm
@@ -16,6 +15,10 @@ class ReservationPeriodInline(admin.TabularInline):
 @admin.register(Day)
 class DayAdmin(admin.ModelAdmin):
     list_display = ['date', 'is_vacation']
+    list_filter = ['date', 'is_vacation']
+    search_fields = ['date']
+    date_hierarchy = 'date'
+    ordering = ['date']
 
 @admin.register(DayTime)
 class DayTimeAdmin(admin.ModelAdmin):

@@ -7,6 +7,8 @@ from django.forms import formset_factory
 from django.core.serializers import serialize
 from django.http import JsonResponse
 from django.db.models import Q
+from django.contrib import messages
+from django.core.mail import send_mail
 from .models import Day, ReservationPeriod, Timeslot, DayTime, Reservation, ReservationWindow, ExceptionalRule, SchoolYear
 from schools.models import SchoolUser
 from .forms import ReservationForm, BaseReservationFormSet, ReservationUpdateForm
@@ -773,3 +775,87 @@ def update_reservation(request, reservation_id, school_user_id):
                                                                     'reservationDateMonth': update_reservation.reservation_date.date.strftime("%B"),
                                                                     'reservationDateYear': update_reservation.reservation_date.date.year,                                                                    
                                                                     })
+
+
+def handle_reservations(request):
+
+    available_res_periods = ReservationPeriod.objects.filter(is_available=True)
+    context = {}
+
+    if len(available_res_periods) > 0:
+        dates = available_res_periods.values('start_date').order_by('start_date')
+        closest_available_res_period = available_res_periods.filter(start_date=dates[0]['start_date'])
+    else:
+        context['no_available_res_period'] = 'Δεν έχετε δηλώσει καμία περίοδο επισκέψεων ως διαθέσιμη για κρατήσεις.'
+
+    candidate_reservations = Reservation.objects.filter(reservation_period=closest_available_res_period[0]).order_by('-created_at', 'timeslot__dayTime__slot')
+
+    if request.method == 'POST':
+        reservation_ids = request.POST.getlist('reservation_ids')
+        action = request.POST.get('action')
+        print('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
+        print(action)
+
+        reservations = Reservation.objects.filter(id__in=reservation_ids)
+
+        if action == 'approve':
+            reservations.update(status='approved', updated_at=timezone.now())
+            messages.success(request, 'Selected reservations have been approved.')
+            # Send a consolidated email to each user
+            send_consolidated_reservation_emails(reservations)
+        elif action == 'deny':
+            reservations.update(status='denied', updated_at=timezone.now())
+            messages.success(request, 'Selected reservations have been denied.')
+            # Send a consolidated email to each user
+            send_consolidated_reservation_emails(reservations)
+        elif action == 'performed':
+            reservations.update(is_performed=True, updated_at=timezone.now())
+            messages.success(request, 'Selected reservations have been denied.')
+        elif action == 'nonperformed':
+            reservations.update(is_performed=False, updated_at=timezone.now())
+            messages.success(request, 'Selected reservations have been denied.')
+
+        # Redirect to the previous page or any desired URL
+        return redirect(reverse('reservations:handle_reservations'))
+    
+    context.update({
+        'closest_available_res_period': closest_available_res_period, 
+        'candidate_reservations': candidate_reservations, 
+    })
+
+    return render(request, 'reservations/handle_reservations.html', context)
+
+
+# Send a consolidated email to each user
+def send_consolidated_reservation_emails(reservations):
+    # Group reservations by user
+    user_reservations = {}
+    for reservation in reservations:
+        user_id = reservation.schoolUser.id
+        if user_id not in user_reservations:
+            user_reservations[user_id] = []
+        user_reservations[user_id].append(reservation)
+
+    # Send a consolidated email to each user
+    for user_id, user_reservations_list in user_reservations.items():
+        user = user_reservations_list[0].schoolUser.creator  # Assuming user is a ForeignKey in Reservation model
+        send_consolidated_email(user, user_reservations_list)
+
+# Send a consolidated email to a user
+def send_consolidated_email(user, reservations):
+    # Customize the email subject and message based on your requirements
+    subject = 'Your Reservations Status'
+    message = 'Your reservations have been processed.\n'
+
+    # Add details of each reservation to the email message
+    for reservation in reservations:
+        message += f'Reservation ID: {reservation.id}, Date: {reservation.reservation_date}, Status: {reservation.get_status_display()}\n'
+
+    # Send the email
+    send_mail(
+        subject,
+        message,
+        'admin@parliament.foundation',
+        [user.email], 
+        fail_silently=False,
+    )

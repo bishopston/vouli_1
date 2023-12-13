@@ -1,0 +1,107 @@
+{% extends '../base/base_admin.html' %}
+
+{% block content %}
+
+
+<div class="container bg-white text-dark d-flex flex-wrap overflow-auto mt-5">
+    <div class="row w-100">
+
+        <form method="post" action="{% url 'reservations:handle_reservations' %}">
+            {% csrf_token %}
+        
+            <!-- Display reservations in a table -->
+            <table id="reservations-table" class="table table-striped table-sm">
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th><small><strong>Σχολείο</strong></small></th>
+                        <th><small><strong>Ημερομηνία</strong></small></th>
+                        <th><small><strong>Ώρα</strong></small></th>
+                        <th><small><strong>Αρ. Μαθητών</strong></small></th>
+                        <th><small><strong>Αρ. Εκπαιδευτικών</strong></small></th>
+                        <th><small><strong>ΑΜΕΑ</strong></small></th>
+                        <th><small><strong>Κατάσταση</strong></small></th>
+                        <th><small><strong>Πραγματοποιημένη</strong></small></th>
+                        <th><small><strong>Δημιουργία</strong></small></th>
+                        <th><small><strong>Ανανέωση</strong></small></th>
+                        <!-- <th><small><strong></strong></small></th> -->
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for reservation in candidate_reservations %}
+                        <tr>
+                            <td>
+                                <input type="checkbox" name="reservation_ids" value="{{ reservation.id }}">
+                            </td>
+                            <td><small>{{ reservation.schoolUser.school.name }}</small></td>
+                            <td><small>{{ reservation.reservation_date.date|date:'d/m/Y' }}</small></td>
+                            <td><small>{{ reservation.timeslot.dayTime.slot|time:"H:i" }}</small></td>
+                            <td><small>{{ reservation.student_number }}</small></td>
+                            <td><small>{{ reservation.teacher_number }}</small></td>
+                            <td><small>
+                                {% if reservation.amea %}
+                                    ΝΑΙ
+                                {% else%}
+                                    ΟΧΙ
+                                {% endif %}
+                            </small></td>
+                            <td><small>{{ reservation.get_status_display }}</small></td>
+                            <td><small>
+                                {% if reservation.is_performed %}
+                                    ΝΑΙ
+                                {% else%}
+                                    ΟΧΙ
+                                {% endif %}
+                            </small></td>
+                            <td><small>{{ reservation.created_at|date:'d/m/Y' }}</small></td>
+                            <td><small>{{ reservation.updated_at|date:'d/m/Y H:i' }}</small></td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        
+            <button type="submit" class="btn btn-success" name="action" value="approve">Επιβεβαίωση</button>
+            <button type="submit" class="btn btn-danger" name="action" value="deny">Ακύρωση</button>
+            <button type="submit" class="btn btn-outline-success" name="action" value="performed">Πραγματοποιημένη</button>
+            <button type="submit" class="btn btn-outline-danger" name="action" value="nonperformed">Μη Πραγματοποιημένη</button>
+        </form>
+               
+
+    </div>
+</div>
+
+<script>
+
+$(document).ready(function () {
+    $('#reservations-table').DataTable({
+      "language": {
+        "sEmptyTable": "Δεν υπάρχουν δεδομένα",
+        "sInfo": "Εμφανίζονται _START_ έως _END_ από _TOTAL_ συνολικά",
+        "sInfoEmpty": "Εμφανίζονται 0 έως 0 από 0 συνολικά",
+        "sInfoFiltered": "(Φιλτράρισμα από _MAX_ συνολικά)",
+        "sInfoPostFix": "",
+        "sInfoThousands": ".",
+        "sLengthMenu": "Δείξε _MENU_ εγγραφές",
+        "sLoadingRecords": "Φόρτωση...",
+        "sProcessing": "Επεξεργασία...",
+        "sSearch": "Αναζήτηση:",
+        "sZeroRecords": "Δεν βρέθηκαν αποτελέσματα",
+        "oPaginate": {
+          "sFirst": "Πρώτη",
+          "sPrevious": "Προηγούμενο",
+          "sNext": "Επόμενο",
+          "sLast": "Τελευταία"
+        },
+        "oAria": {
+          "sSortAscending": ": activate to sort column ascending",
+          "sSortDescending": ": activate to sort column descending"
+        }
+      },
+      "bFilter": false,  // Disable search
+      "bInfo": false     // Disable information display
+    });
+  });
+
+</script>
+
+{% endblock %}
