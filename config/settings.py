@@ -44,11 +44,13 @@ INSTALLED_APPS = [
     'allauth.account',
     "crispy_forms",
     "crispy_bootstrap5",
+    "simple_history",
 
     "accounts",
     "base",
     "schools",
     "reservations",
+
 ]
 
 MIDDLEWARE = [

@@ -10,6 +10,7 @@ django-allauth = "==0.57.0"
 crispy-bootstrap5 = "*"
 pytz = "*"
 python-dateutil = "*"
+django-simple-history = "*"
 
 [dev-packages]
 

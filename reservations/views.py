@@ -487,7 +487,8 @@ def make_reservation(request, reservation_period_id, school_user_id):
                                 student_number=form.cleaned_data["student_number"],
                                 amea=form.cleaned_data["amea"],
                                 terms_accepted=form.cleaned_data["terms_accepted"],
-                                reservation_period=res_period
+                                reservation_period=res_period,
+                                updated_by = request.user
                             )
                             my_reservation.save()
                     return HttpResponseRedirect(reverse('reservations:my_reservations'))
@@ -659,6 +660,7 @@ def preview_reservation(request, reservation_period_id, school_user_id):
                                                 reservation_period=ReservationPeriod.objects.get(id=reservation_period_id), 
                                                 schoolUser=SchoolUser.objects.get(id=school_user_id),
                                                 reservation_date=Day.objects.get(id=selected_date_id),
+                                                updated_by=request.user,
                                                 **form_data)
 
                     # Clear the session data
@@ -776,7 +778,8 @@ def update_reservation(request, reservation_id, school_user_id):
                                                                     'reservationDateYear': update_reservation.reservation_date.date.year,                                                                    
                                                                     })
 
-
+@login_required
+@user_passes_test(lambda u: u.is_superuser)
 def handle_reservations(request):
 
     available_res_periods = ReservationPeriod.objects.filter(is_available=True)
@@ -785,43 +788,48 @@ def handle_reservations(request):
     if len(available_res_periods) > 0:
         dates = available_res_periods.values('start_date').order_by('start_date')
         closest_available_res_period = available_res_periods.filter(start_date=dates[0]['start_date'])
+        candidate_reservations = Reservation.objects.filter(reservation_period=closest_available_res_period[0]).order_by('-created_at', 'timeslot__dayTime__slot')
+        context['closest_available_res_period'] = closest_available_res_period[0]
+        context['candidate_reservations'] = candidate_reservations
     else:
         context['no_available_res_period'] = 'Δεν έχετε δηλώσει καμία περίοδο επισκέψεων ως διαθέσιμη για κρατήσεις.'
-
-    candidate_reservations = Reservation.objects.filter(reservation_period=closest_available_res_period[0]).order_by('-created_at', 'timeslot__dayTime__slot')
 
     if request.method == 'POST':
         reservation_ids = request.POST.getlist('reservation_ids')
         action = request.POST.get('action')
-        print('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
-        print(action)
+        #print('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
+        #print(action)
 
         reservations = Reservation.objects.filter(id__in=reservation_ids)
 
         if action == 'approve':
             reservations.update(status='approved', updated_at=timezone.now())
-            messages.success(request, 'Selected reservations have been approved.')
+            #context['approve_message'] = 'Εγκρίνατε με επιτυχία τις επιλεγμένες κρατήσεις.'
+            messages.success(request, 'Εγκρίνατε με επιτυχία τις επιλεγμένες κρατήσεις.')
             # Send a consolidated email to each user
             send_consolidated_reservation_emails(reservations)
         elif action == 'deny':
             reservations.update(status='denied', updated_at=timezone.now())
-            messages.success(request, 'Selected reservations have been denied.')
+            #context['deny_message'] = 'Απορρίψατε με επιτυχία τις επιλεγμένες κρατήσεις.'
+            messages.success(request, 'Απορρίψατε με επιτυχία τις επιλεγμένες κρατήσεις.')
             # Send a consolidated email to each user
             send_consolidated_reservation_emails(reservations)
         elif action == 'performed':
             reservations.update(is_performed=True, updated_at=timezone.now())
-            messages.success(request, 'Selected reservations have been denied.')
+            #context['performed_message'] = 'Αλλάξατε με επιτυχία την κατάσταση των επιλεγμένων κρατήσεων σε πραγματοποιημένες.'
+            messages.success(request, 'Αλλάξατε με επιτυχία την κατάσταση των επιλεγμένων κρατήσεων σε πραγματοποιημένες.')
         elif action == 'nonperformed':
             reservations.update(is_performed=False, updated_at=timezone.now())
-            messages.success(request, 'Selected reservations have been denied.')
+            #context['nonperformed_message'] = 'Αλλάξατε με επιτυχία την κατάσταση των επιλεγμένων κρατήσεων σε μη πραγματοποιημένες.'
+            messages.success(request, 'Αλλάξατε με επιτυχία την κατάσταση των επιλεγμένων κρατήσεων σε μη πραγματοποιημένες.')
 
         # Redirect to the previous page or any desired URL
         return redirect(reverse('reservations:handle_reservations'))
     
-    context.update({
-        'closest_available_res_period': closest_available_res_period, 
-        'candidate_reservations': candidate_reservations, 
-    })
+    # context.update({
+    #     'closest_available_res_period': closest_available_res_period, 
+    #     'candidate_reservations': candidate_reservations, 
+    # })
 
     return render(request, 'reservations/handle_reservations.html', context)
 
@@ -859,3 +867,27 @@ def send_consolidated_email(user, reservations):
         [user.email], 
         fail_silently=False,
     )
+
+# @ login_required
+# @user_passes_test(lambda u: u.is_superuser)
+# def update_reservation_admin(request, reservation_id):
+#     update_reservation = get_object_or_404(Reservation, id=reservation_id) 
+#     reservationUpdateForm = ReservationUpdateForm(instance=update_reservation)
+
+#     if update_reservation.schoolUser.creator != request.user:
+#         raise Http404("Αδυναμία πρόσβασης")
+#     else:
+#         if request.method == 'POST':
+#             reservationUpdateForm = ReservationUpdateForm(request.POST, instance=update_reservation)
+#             if reservationUpdateForm.is_valid():
+#                 reservationUpdateForm.save()
+#                 return redirect(reverse('reservations:my_reservations'))
+
+#     return render(request, 'reservations/update_reservation.html', {'update_reservation':update_reservation, 
+#                                                                     'reservationUpdateForm': reservationUpdateForm,
+#                                                                     'schoolUser': schoolUser,
+#                                                                     'reservationDateName': update_reservation.reservation_date.date.strftime("%A"),
+#                                                                     'reservationDateDay': update_reservation.reservation_date.date.strftime("%d"),
+#                                                                     'reservationDateMonth': update_reservation.reservation_date.date.strftime("%B"),
+#                                                                     'reservationDateYear': update_reservation.reservation_date.date.year,                                                                    
+#                                                                     })

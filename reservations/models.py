@@ -1,8 +1,10 @@
 from django.db import models
 from django.core.exceptions import ValidationError
+from django.conf import settings
 from schools.models import SchoolUser
 from datetime import datetime as dt
 import pytz
+from simple_history.models import HistoricalRecords
 
 # Model for defining days
 class Day(models.Model):
@@ -149,11 +151,19 @@ class Reservation(models.Model):
     is_performed = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    updated_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL)
+    history = HistoricalRecords()
 
     def __str__(self):
         return f"{self.reservation_date} {self.timeslot}"
 
     def save(self, *args, **kwargs):
+
+        # Set the user who is updating the reservation
+        user = kwargs.pop('user', None)
+        if user:
+            self.updated_by = user
+
         # Check if reservation_date is not set (it might be None)
         if self.reservation_date_id is None:
             # If reservation_date is None, raise a ValidationError
