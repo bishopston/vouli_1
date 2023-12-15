@@ -867,40 +867,44 @@ def send_consolidated_email(user, reservations):
         [user.email], 
         fail_silently=False,
     )
-
-# @ login_required
-# @user_passes_test(lambda u: u.is_superuser)
-# def update_reservation_admin(request, reservation_id):
-#     update_reservation = get_object_or_404(Reservation, id=reservation_id) 
-#     reservationUpdateForm = ReservationUpdateForm(instance=update_reservation)
-
-#     if update_reservation.schoolUser.creator != request.user:
-#         raise Http404("Αδυναμία πρόσβασης")
-#     else:
-#         if request.method == 'POST':
-#             reservationUpdateForm = ReservationUpdateForm(request.POST, instance=update_reservation)
-#             if reservationUpdateForm.is_valid():
-#                 reservationUpdateForm.save()
-#                 return redirect(reverse('reservations:my_reservations'))
-
-#     return render(request, 'reservations/update_reservation.html', {'update_reservation':update_reservation, 
-#                                                                     'reservationUpdateForm': reservationUpdateForm,
-#                                                                     'schoolUser': schoolUser,
-#                                                                     'reservationDateName': update_reservation.reservation_date.date.strftime("%A"),
-#                                                                     'reservationDateDay': update_reservation.reservation_date.date.strftime("%d"),
-#                                                                     'reservationDateMonth': update_reservation.reservation_date.date.strftime("%B"),
-#                                                                     'reservationDateYear': update_reservation.reservation_date.date.year,                                                                    
-#                                                                     })
+                                                            
+              
+@ login_required
+@user_passes_test(lambda u: u.is_superuser)                                                       
 def update_reservation_admin(request, reservation_id):
-    update_reservation = get_object_or_404(Reservation, id=reservation_id)
+    #update_reservation = get_object_or_404(Reservation, id=reservation_id)
+    update_reservation = Reservation.objects.get(id=reservation_id)
     schoolUser = update_reservation.schoolUser
 
     if request.method == 'POST':
-        form = ReservationUpdateAdminForm(request.POST, instance=update_reservation)
-        if form.is_valid():
-            form.save(updated_by=request.user)
-            messages.success(request, 'Reservation updated successfully.')
-            return redirect(reverse('reservations:handle_reservations'))
+        # form = ReservationUpdateAdminForm(request.POST, instance=update_reservation)
+        reservation_date = request.POST.get('reservation_date')
+        timeslot = request.POST.get('timeslot')
+        student_number = request.POST.get('student_number')
+        teacher_number = request.POST.get('teacher_number')
+        amea = request.POST.get('amea')        
+
+        reservation_date_instance = Day.objects.get(date=datetime.strptime(reservation_date, "%Y-%m-%d"))
+        timeslot_instance = Timeslot.objects.get(id=timeslot)
+
+        # print(datetime.strptime(reservation_date, "%Y-%m-%d"))
+        # print(timeslot)
+        # print(amea)
+
+        update_reservation.reservation_date = reservation_date_instance
+        update_reservation.timeslot = timeslot_instance
+        update_reservation.student_number = student_number
+        update_reservation.teacher_number = teacher_number
+        if amea is None:
+            update_reservation.amea = False
+        else:
+            update_reservation.amea = True
+        update_reservation.updated_at = timezone.now()
+        update_reservation.updated_by = request.user
+        update_reservation.save()
+
+        #     messages.success(request, 'Reservation updated successfully.')
+        return redirect(reverse('reservations:handle_reservations'))
     else:
         form = ReservationUpdateAdminForm(instance=update_reservation)
 

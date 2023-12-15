@@ -272,15 +272,29 @@ class ReservationUpdateAdminForm(forms.ModelForm):
             'teacher_number': 'ΑΡΙΘΜΟΣ ΕΚΠΑΙΔΕΥΤΙΚΩΝ',
             'amea': 'ΑΜΕΑ',
         }
-        widgets = {
-            'reservation_date': forms.DateInput(attrs={'type': 'date'}),
-            # 'timeslot': forms.Select(),  
-        }
+        # widgets = {
+        #     'reservation_date': forms.DateInput(attrs={'type': 'date'}),
+        #     # 'timeslot': forms.Select(),  
+        # }
+
+    reservation_date = forms.DateField(
+        widget=forms.DateInput(attrs={'type': 'date'})
+    )
 
     timeslot = forms.ModelChoiceField(
         queryset=Timeslot.objects.all(),  # Adjust the queryset as needed
         widget=forms.Select(),  # You can customize the widget if needed
     )
+    # reservation_date = forms.DateField(
+    #     widget=forms.DateInput(format='%d/%m/%Y', attrs={'class': 'datepicker'}),
+    #     input_formats=('%d/%m/%Y', )
+    #     )
+
+        # widgets = {
+        #     'reservation_date': forms.DateField(widget=forms.widgets.DateInput(attrs={'type': 'date', 'placeholder': 'dd-mm-yyyy (DOB)', 'class': 'form-control'}),
+        #     # 'reservation_date': Calendar(format='%d/%m/%Y'),
+        #     'timeslot': forms.Select(attrs={'class': 'form-control'}),
+        # }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -325,3 +339,25 @@ class ReservationUpdateAdminForm(forms.ModelForm):
         #         }
         #     )
 
+    # def __init__(self, *args, **kwargs):
+    #     super().__init__(*args, **kwargs)
+    #     instance = getattr(self, 'instance', None)
+    #     if instance and instance.reservation_date:
+    #         # Set the initial value for reservation_date
+    #         self.initial['reservation_date'] = instance.reservation_date.date
+
+    # reservation_date = forms.ModelChoiceField(
+    #     queryset=Day.objects.all(),
+    #     widget=SelectDateWidget(attrs={'class': 'form-control'}),
+    #     empty_label=None  # Remove the empty label from the dropdown
+    # )
+
+    # def __init__(self, *args, **kwargs):
+    #     super().__init__(*args, **kwargs)
+    #     instance = getattr(self, 'instance', None)
+    #     if instance and instance.reservation_date:
+    #         # Preselect the date associated with the reservation
+    #         self.initial['reservation_date'] = instance.reservation_date
+    
+    timeslot.label = 'ΏΡΑ'
+    reservation_date.label = 'ΗΜΕΡΟΜΗΝΙΑ'
