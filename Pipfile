@@ -11,6 +11,7 @@ crispy-bootstrap5 = "*"
 pytz = "*"
 python-dateutil = "*"
 django-simple-history = "*"
+django-bootstrap-datepicker-plus = "*"
 
 [dev-packages]
 

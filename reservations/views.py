@@ -11,7 +11,7 @@ from django.contrib import messages
 from django.core.mail import send_mail
 from .models import Day, ReservationPeriod, Timeslot, DayTime, Reservation, ReservationWindow, ExceptionalRule, SchoolYear
 from schools.models import SchoolUser
-from .forms import ReservationForm, BaseReservationFormSet, ReservationUpdateForm
+from .forms import ReservationForm, BaseReservationFormSet, ReservationUpdateForm, ReservationUpdateAdminForm
 from .utils import get_occupied_daytimes, get_allowed_daytimes, get_occupied_exceptional_daytimes, get_allowed_exceptional_daytimes, calculate_availability_percentage
 from datetime import timedelta
 #from calendar import monthrange
@@ -891,3 +891,28 @@ def send_consolidated_email(user, reservations):
 #                                                                     'reservationDateMonth': update_reservation.reservation_date.date.strftime("%B"),
 #                                                                     'reservationDateYear': update_reservation.reservation_date.date.year,                                                                    
 #                                                                     })
+def update_reservation_admin(request, reservation_id):
+    update_reservation = get_object_or_404(Reservation, id=reservation_id)
+    schoolUser = update_reservation.schoolUser
+
+    if request.method == 'POST':
+        form = ReservationUpdateAdminForm(request.POST, instance=update_reservation)
+        if form.is_valid():
+            form.save(updated_by=request.user)
+            messages.success(request, 'Reservation updated successfully.')
+            return redirect(reverse('reservations:handle_reservations'))
+    else:
+        form = ReservationUpdateAdminForm(instance=update_reservation)
+
+    return render(request, 'reservations/update_reservations_admin.html', {'form': form, 
+                                                            'update_reservation': update_reservation,
+                                                            'schoolUser': schoolUser,
+                                                            'reservationDateName': update_reservation.reservation_date.date.strftime("%A"),
+                                                            'reservationDateDay': update_reservation.reservation_date.date.strftime("%d"),
+                                                            'reservationDateMonth': update_reservation.reservation_date.date.strftime("%B"),
+                                                            'reservationDateYear': update_reservation.reservation_date.date.year,     
+                                                             })
+
+
+                                                               
+                                                                    

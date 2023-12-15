@@ -58,15 +58,15 @@
                         {{ reservationDateYear }}
                     </p>       
                     
-                        <form action="{% url 'reservations:update_reservation' update_reservation.id schoolUser.id %}" method="post">
+                        <form action="{% url 'reservations:update_reservation_admin' update_reservation.id %}" method="post">
                             {% csrf_token %}
-                            {% for error in reservationUpdateForm.errors %}
+                            {% for error in form.errors %}
                             <center><p><strong class="text-danger">Please select a valid {{ error }} value</strong></p></center>
                             {% endfor %} 
-                            {{ reservationUpdateForm|crispy }}
+                            {{ form|crispy }}
                             <div class="d-flex justify-content-between">
                                 <button type="submit" class="btn btn-success">ΤΡΟΠΟΠΟΙΗΣΗ</button>
-                                <a href="{% url 'reservations:my_reservations' %}" class="btn btn-primary">ΑΚΥΡΟ</a>
+                                <a href="{% url 'reservations:handle_reservations' %}" class="btn btn-primary">ΑΚΥΡΟ</a>
                             </div>
                         </form>
                     
@@ -75,5 +75,7 @@
         </div>
 
 </div>
+
+
 
 {% endblock %}

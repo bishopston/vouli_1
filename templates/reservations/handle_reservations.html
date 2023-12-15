@@ -79,6 +79,11 @@
                                     </small></td>
                                     <td><small>{{ reservation.created_at|date:'d/m/Y' }}</small></td>
                                     <td><small>{{ reservation.updated_at|date:'d/m/Y H:i' }}</small></td>
+                                    <td>
+                                        {% if reservation.status == 'pending' %}
+                                            <a href="{% url 'reservations:update_reservation_admin' reservation.id %}"><i class="fa fa-pencil" aria-hidden="true"></i></a>
+                                        {% endif %}
+                                    </td>   
                                 </tr>
                             {% endfor %}
                         </tbody>

@@ -1,8 +1,10 @@
 from django import forms
-from django.forms import BaseFormSet
+from django.forms import BaseFormSet, DateField
 from django.core.exceptions import ValidationError
 from django.contrib.admin.widgets import AdminDateWidget
 from django.db.models import Q
+from django.forms.widgets import SelectDateWidget
+from django.conf import settings
 from .models import ReservationPeriod, Timeslot, Reservation, ExceptionalRule, Day
 from .utils import get_occupied_daytimes, get_allowed_daytimes, get_occupied_exceptional_daytimes, get_allowed_exceptional_daytimes
 from datetime import datetime
@@ -258,12 +260,68 @@ class ReservationUpdateForm(forms.ModelForm):
             'amea': 'ΑΜΕΑ',
         }
 
-# class ReservationUpdateAdminForm(forms.ModelForm):
-#     class Meta:
-#         model = Reservation
-#         fields = ('student_number', 'teacher_number', 'amea')
-#         labels = {
-#             'student_number': 'ΑΡΙΘΜΟΣ ΜΑΘΗΤΩΝ/ΤΡΙΩΝ',
-#             'teacher_number': 'ΑΡΙΘΜΟΣ ΕΚΠΑΙΔΕΥΤΙΚΩΝ',
-#             'amea': 'ΑΜΕΑ',
-#         }
+class ReservationUpdateAdminForm(forms.ModelForm):
+    # reservation_date = DateField(input_formats=settings.DATE_INPUT_FORMATS)
+    class Meta:
+        model = Reservation
+        fields = ('reservation_date', 'timeslot', 'student_number', 'teacher_number', 'amea')
+        labels = {
+            'reservation_date': 'ΗΜΕΡΟΜΗΝΙΑ',
+            'timeslot': 'ΏΡΑ',
+            'student_number': 'ΑΡΙΘΜΟΣ ΜΑΘΗΤΩΝ/ΤΡΙΩΝ',
+            'teacher_number': 'ΑΡΙΘΜΟΣ ΕΚΠΑΙΔΕΥΤΙΚΩΝ',
+            'amea': 'ΑΜΕΑ',
+        }
+        widgets = {
+            'reservation_date': forms.DateInput(attrs={'type': 'date'}),
+            # 'timeslot': forms.Select(),  
+        }
+
+    timeslot = forms.ModelChoiceField(
+        queryset=Timeslot.objects.all(),  # Adjust the queryset as needed
+        widget=forms.Select(),  # You can customize the widget if needed
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        instance = getattr(self, 'instance', None)
+        if instance and instance.reservation_date:
+            # Preselect the date associated with the reservation
+            self.initial['reservation_date'] = instance.reservation_date.date
+
+
+        # Update the queryset for timeslot based on the selected reservation_date
+        reservation_date = self['reservation_date'].value()
+        print(reservation_date)
+
+
+        day_of_week_mapping = {
+            'Monday': 'a',
+            'Tuesday': 'b',
+            'Wednesday': 'c',
+            'Thursday': 'd',
+            'Friday': 'e',
+            'Saturday': 'f',
+            'Sunday': 'g',
+        }
+
+        # selected_date_format = datetime.strptime(selected_date, "%Y-%m-%d")
+
+        day_of_week = day_of_week_mapping[reservation_date.strftime('%A')]
+
+        # query timeslots of specific res period
+        if reservation_date:
+            self.fields['timeslot'].queryset = Timeslot.objects.filter(dayTime__day=day_of_week).filter(reservation_period=Reservation.objects.filter(reservation_date__date=reservation_date)[0].reservation_period.id)
+
+
+        # if instance and instance.timeslot:
+        #     # Update the queryset to include only the preselected timeslot
+        #     self.fields['timeslot'].queryset = Timeslot.objects.filter(pk=instance.timeslot.pk)
+
+        # self.fields['reservation_date'].widget = forms.widgets.DateInput(
+        #     attrs={
+        #         'type': 'date', 'placeholder': 'dd-mm-yyyy (DOB)',
+        #         'class': 'form-control'
+        #         }
+        #     )
+
