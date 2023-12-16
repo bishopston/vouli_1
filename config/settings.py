@@ -55,8 +55,9 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
-    "django.contrib.sessions.middleware.SessionMiddleware",
+
     "django.middleware.common.CommonMiddleware",
+    "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
@@ -64,6 +65,7 @@ MIDDLEWARE = [
 
     # Add the account middleware:
     "allauth.account.middleware.AccountMiddleware",
+    "simple_history.middleware.HistoryRequestMiddleware",
 
 ]
 
@@ -127,7 +129,8 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = "en-us"
 
-TIME_ZONE = "UTC"
+#TIME_ZONE = "UTC"
+TIME_ZONE = 'Europe/Athens'
 
 USE_I18N = True
 
@@ -182,3 +185,6 @@ CRISPY_TEMPLATE_PACK = "bootstrap5"
 CSRF_TRUSTED_ORIGINS = ['http://*.127.0.0.1']
 
 ACCOUNT_ADAPTER = 'config.adapter.RestrictEmailAdapter'
+
+SIMPLE_HISTORY_ENFORCE_HISTORY_MODEL_PERMISSIONS = True
+SIMPLE_HISTORY_USE_DATETIME_OFFSET = True

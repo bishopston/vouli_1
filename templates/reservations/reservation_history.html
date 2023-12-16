@@ -1,0 +1,39 @@
+{% extends '../base/base_admin.html' %}
+
+{% block content %}
+
+  <h1>Reservation History</h1>
+  <p>Current Reservation:</p>
+  <p>Date: {{ reservation.reservation_date.date|date:'d/m/Y' }}</p>
+  <p>Timeslot: {{ reservation.timeslot.dayTime.slot|time:"H:i" }}</p>
+  <!-- Add other fields as needed -->
+
+  <hr>
+
+  <h2>History:</h2>
+
+
+  <ul>
+    {% for record in history %}
+      <li>
+        <p><strong>Changed by:</strong> {{ record.history_user }}</p>
+        <p><strong>Change time:</strong> {{ record.history_date }}</p>
+        <p><strong>Changes:</strong></p>
+        <ul>
+          {% for change in record.diff_against(record.next_record).changes %}
+            <li>{{ change.field }} changed from {{ change.old }} to {{ change.new }}</li>
+          {% endfor %}
+        </ul>
+      </li>
+    {% endfor %}
+  </ul>
+
+
+  <!-- {% for h in reservation.history.all %}
+  {{ h }}  
+  {{ h.changed_by }}
+  {{ h.comment }}
+    {% endfor %} -->
+
+
+{% endblock %}

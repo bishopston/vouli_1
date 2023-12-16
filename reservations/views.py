@@ -312,8 +312,17 @@ def my_reservations(request):
     else:
         my_reservations_current_year_number = 0
 
+    # Get current UTC time
+    utc_now = datetime.now(pytz.utc)
+
+    # Define the Athens time zone
+    athens_tz = pytz.timezone('Europe/Athens')
+
+    # Convert UTC time to Athens time
+    athens_now = utc_now.astimezone(athens_tz)
+
     #query closest available reservation period whose start date hasn't come yet and res window has not finished yet - closest_available_res_period[0]
-    q = ReservationPeriod.objects.filter(is_available=True).filter(start_date__gte=dt.now()).filter(reservationwindow__end_date__gte=dt.now(pytz.utc))
+    q = ReservationPeriod.objects.filter(is_available=True).filter(start_date__gte=athens_now).filter(reservationwindow__end_date__gte=athens_now)
     
     #ensure that admin has made a ReservationPeriod available
     if len(q) > 0:
@@ -917,6 +926,62 @@ def update_reservation_admin(request, reservation_id):
                                                             'reservationDateYear': update_reservation.reservation_date.date.year,     
                                                              })
 
+# @ login_required
+# @user_passes_test(lambda u: u.is_superuser)   
+# def reservation_history(request, reservation_id):
+#     reservation = get_object_or_404(Reservation, id=reservation_id)
+#     history = reservation.history.all()  # Fetch all historical records
 
-                                                               
+#     return render(request, 'reservations/reservation_history.html', {'reservation': reservation, 'history': history})                                                               
                                                                     
+@ login_required
+@user_passes_test(lambda u: u.is_superuser)   
+def reservation_history(request, reservation_id):
+    reservation = get_object_or_404(Reservation, id=reservation_id)
+    schoolUser = reservation.schoolUser
+    #history = reservation.history.all()  # Fetch all historical records
+
+
+    field_mapping = {'reservation_date': 'ημερομηνία', 
+                    'timeslot': 'ώρα', 
+                    'amea': 'ΑΜΕΑ', 
+                    'student_number': 'αριθμός μαθητών/τριων',
+                    'teacher_number': 'αριθμός εκπαιδευτικών',
+                    'status': 'κατάσταση',
+                    'is_performed': 'πραγματοποίηση επίσκεψης',
+                    'updated_by': 'χρήστης ενημέρωσης'}
+    
+    amea_mapping = {True: 'ΝΑΙ', 
+                    False: 'ΟΧΙ', 
+                    }
+
+    history_changes = []
+
+    # Define the Athens time zone
+    athens_tz = pytz.timezone('Europe/Athens')
+
+    for i in range(1,len(reservation.history.all())):
+        new_record, old_record = reservation.history.all()[i-1], reservation.history.all()[i]
+        delta = new_record.diff_against(old_record)
+        for change in delta.changes:
+            if change.field == 'timeslot':
+                history_changes.append("Την {} το πεδίο {} άλλαξε από {} σε {} από τον χρήστη {}".format(reservation.history.all()[i].history_date.astimezone(athens_tz).strftime("%d/%m/%Y, %H:%M:%S"), field_mapping[change.field], Timeslot.objects.get(id=change.old).dayTime.slot.strftime("%H:%M"), Timeslot.objects.get(id=change.new).dayTime.slot.strftime("%H:%M"), reservation.history.all()[i].history_user))
+            if change.field == 'reservation_date':
+                history_changes.append("Την {} το πεδίο {} άλλαξε από {} σε {} από τον χρήστη {}".format(reservation.history.all()[i].history_date.astimezone(athens_tz).strftime("%d/%m/%Y, %H:%M:%S"), field_mapping[change.field], Day.objects.get(id=change.old).date.strftime("%d/%m/%Y"), Day.objects.get(id=change.new).date.strftime("%d/%m/%Y"), reservation.history.all()[i].history_user))
+            if change.field == 'amea':
+                history_changes.append("Την {} το πεδίο {} άλλαξε από {} σε {} από τον χρήστη {}".format(reservation.history.all()[i].history_date.astimezone(athens_tz).strftime("%d/%m/%Y, %H:%M:%S"), field_mapping[change.field], amea_mapping[change.old], amea_mapping[change.new], reservation.history.all()[i].history_user))
+            if change.field == 'student_number':
+                history_changes.append("Την {} το πεδίο {} άλλαξε από {} σε {} από τον χρήστη {}".format(reservation.history.all()[i].history_date.astimezone(athens_tz).strftime("%d/%m/%Y, %H:%M:%S"), field_mapping[change.field], change.old, change.new, reservation.history.all()[i].history_user))
+            if change.field == 'teacher_number':
+                history_changes.append("Την {} το πεδίο {} άλλαξε από {} σε {} από τον χρήστη {}".format(reservation.history.all()[i].history_date.astimezone(athens_tz).strftime("%d/%m/%Y, %H:%M:%S"), field_mapping[change.field], change.old, change.new, reservation.history.all()[i].history_user))                 
+            if change.field == 'status':
+                history_changes.append("Την {} το πεδίο {} άλλαξε από{} σε {} από τον χρήστη {}".format(reservation.history.all()[i].history_date.astimezone(athens_tz).strftime("%d/%m/%Y, %H:%M:%S"), field_mapping[change.field], change.old, change.new, reservation.history.all()[i].history_user))                 
+            if change.field == 'is_performed':
+                history_changes.append("Την {} το πεδίο {} άλλαξε από {} σε {} από τον χρήστη {}".format(reservation.history.all()[i].history_date.astimezone(athens_tz).strftime("%d/%m/%Y, %H:%M:%S"), field_mapping[change.field], change.old, change.new, reservation.history.all()[i].history_user))                 
+            if change.field == 'updated_by':
+                history_changes.append("Την {} το πεδίο {} άλλαξε από {} σε {} από τον χρήστη {}".format(reservation.history.all()[i].history_date.astimezone(athens_tz).strftime("%d/%m/%Y, %H:%M:%S"), field_mapping[change.field], change.old, change.new, reservation.history.all()[i].history_user))                 
+
+    return render(request, 'reservations/reservation_history2.html', {'reservation': reservation, 
+                                                                      'history_changes': history_changes, 
+                                                                      'schoolUser': schoolUser,
+                                                                      })   

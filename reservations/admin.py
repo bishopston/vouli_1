@@ -1,5 +1,6 @@
 from django.contrib import admin
 from django import forms
+from simple_history.admin import SimpleHistoryAdmin
 from .models import Day, DayTime, SchoolYear, ReservationPeriod, Timeslot, ExceptionalRule, Reservation, ReservationWindow
 from .forms import TimeslotForm, ReservationPeriodForm, ExceptionalRuleAdminForm
 
@@ -75,7 +76,7 @@ class ExceptionalRule(admin.ModelAdmin):
 # admin.site.register(ExceptionalRule, ExceptionalRuleAdmin)
 
 @admin.register(Reservation)
-class ReservationAdmin(admin.ModelAdmin):
+class ReservationAdmin(SimpleHistoryAdmin):
     list_display = ['reservation_date', 'timeslot']
     list_filter = ['reservation_period__name','reservation_date__date']
     ordering = ['reservation_period__name','reservation_date__date', 'timeslot__dayTime__slot']

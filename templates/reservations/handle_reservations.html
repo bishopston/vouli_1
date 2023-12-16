@@ -47,8 +47,9 @@
                                 <th><small><strong>Κατάσταση</strong></small></th>
                                 <th><small><strong>Πραγματοποιημένη</strong></small></th>
                                 <th><small><strong>Δημιουργία</strong></small></th>
-                                <th><small><strong>Ανανέωση</strong></small></th>
-                                <!-- <th><small><strong></strong></small></th> -->
+                                <!-- <th><small><strong>Ανανέωση</strong></small></th> -->
+                                <th><small><strong></strong></small></th>
+                                <th><small><strong></strong></small></th>
                             </tr>
                         </thead>
                         <tbody>
@@ -78,7 +79,10 @@
                                         {% endif %}
                                     </small></td>
                                     <td><small>{{ reservation.created_at|date:'d/m/Y' }}</small></td>
-                                    <td><small>{{ reservation.updated_at|date:'d/m/Y H:i' }}</small></td>
+                                    <!-- <td><small>{{ reservation.updated_at|date:'d/m/Y H:i' }}</small></td> -->
+                                    <td>
+                                        <a class="btn btn-sm btn-primary h-25 d-inline-block" href="{% url 'reservations:reservation_history' reservation.id %}" role="button"><small>Ιστορικό</small></a>
+                                    </td>   
                                     <td>
                                         {% if reservation.status == 'pending' %}
                                             <a href="{% url 'reservations:update_reservation_admin' reservation.id %}"><i class="fa fa-pencil" aria-hidden="true"></i></a>
@@ -136,7 +140,7 @@ $(document).ready(function () {
           "sSortDescending": ": activate to sort column descending"
         }
       },
-      "bFilter": false,  // Disable search
+      "bFilter": true,  
       "bInfo": false,    // Disable information display
       "searching": true
     });
