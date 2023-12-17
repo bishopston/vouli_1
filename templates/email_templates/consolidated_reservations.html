@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>Ίδρυμα της Βουλής των Ελλήνων</title>
+</head>
+<body>
+    <h2>Επίσκεψη στη Βουλή των Ελλήνων - Ενημέρωση Κράτησης</h2>
+    
+    <p>Η κράτησή σας ενημερώθηκε. Τα νέα χαρακτηριστικά της κράτησής σας είναι:</p>
+    
+    <ul>
+        {% for reservation in reservations %}
+            <li>
+                Ημερομηνία Επίσκεψης: {{ reservation.reservation_date.date|date:'d/m/Y' }}<br>
+                Ώρα Επίσκεψης: {{ reservation.timeslot.dayTime.slot|time:"H:i" }}<br>
+                Κατάσταση: {{ reservation.get_status_display }}
+            </li>
+        {% endfor %}
+    </ul>
+</body>
+</html>

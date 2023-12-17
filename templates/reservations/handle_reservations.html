@@ -10,6 +10,11 @@
             <h3 class="my-4">Διαχείριση Κρατήσεων για την Περίοδο {{ closest_available_res_period.start_date|date:'d/m/Y' }} - {{ closest_available_res_period.end_date|date:'d/m/Y' }}</h3>
         </div>
     </div>
+    <div class="row w-100">
+        <div class="mt-3 d-flex justify-content-center">
+            <h5>Συνολικός Αριθμός Κρατήσεων: {{ candidate_reservations_num }}</h5>
+        </div>
+    </div>
     {% endif %}
     <div class="row w-100">
         {% if no_available_res_period %}

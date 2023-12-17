@@ -9,8 +9,9 @@ from django.http import JsonResponse
 from django.db.models import Q
 from django.contrib import messages
 from django.core.mail import send_mail
+from django.template.loader import render_to_string
 from .models import Day, ReservationPeriod, Timeslot, DayTime, Reservation, ReservationWindow, ExceptionalRule, SchoolYear
-from schools.models import SchoolUser
+from schools.models import SchoolUser, Department
 from .forms import ReservationForm, BaseReservationFormSet, ReservationUpdateForm, ReservationUpdateAdminForm
 from .utils import get_occupied_daytimes, get_allowed_daytimes, get_occupied_exceptional_daytimes, get_allowed_exceptional_daytimes, calculate_availability_percentage
 from datetime import timedelta
@@ -800,6 +801,7 @@ def handle_reservations(request):
         candidate_reservations = Reservation.objects.filter(reservation_period=closest_available_res_period[0]).order_by('-created_at', 'timeslot__dayTime__slot')
         context['closest_available_res_period'] = closest_available_res_period[0]
         context['candidate_reservations'] = candidate_reservations
+        context['candidate_reservations_num'] = len(candidate_reservations)
     else:
         context['no_available_res_period'] = 'Δεν έχετε δηλώσει καμία περίοδο επισκέψεων ως διαθέσιμη για κρατήσεις.'
 
@@ -858,26 +860,46 @@ def send_consolidated_reservation_emails(reservations):
         user = user_reservations_list[0].schoolUser.creator  # Assuming user is a ForeignKey in Reservation model
         send_consolidated_email(user, user_reservations_list)
 
+#Send a consolidated email to a user
+# def send_consolidated_email(user, reservations):
+#     # Customize the email subject and message based on your requirements
+#     subject = 'Your Reservations Status'
+#     message = 'Your reservations have been processed.\n'
+
+#     # Add details of each reservation to the email message
+#     for reservation in reservations:
+#         message += f'Reservation ID: {reservation.id}, Date: {reservation.reservation_date}, Status: {reservation.get_status_display()}\n'
+
+#     # Send the email
+#     send_mail(
+#         subject,
+#         message,
+#         'admin@parliament.foundation',
+#         [user.email], 
+#         fail_silently=False,
+#     )
+
 # Send a consolidated email to a user
 def send_consolidated_email(user, reservations):
     # Customize the email subject and message based on your requirements
-    subject = 'Your Reservations Status'
-    message = 'Your reservations have been processed.\n'
+    subject = 'Επίσκεψη στη Βουλή των Ελλήνων'
 
-    # Add details of each reservation to the email message
-    for reservation in reservations:
-        message += f'Reservation ID: {reservation.id}, Date: {reservation.reservation_date}, Status: {reservation.get_status_display()}\n'
+    # Create an HTML version of your email content
+    html_message = render_to_string('email_templates/consolidated_reservations.html', {
+        'reservations': reservations,
+    })
 
     # Send the email
     send_mail(
         subject,
-        message,
+        'This is a plain text version of your email content.',
         'admin@parliament.foundation',
         [user.email], 
         fail_silently=False,
+        html_message=html_message,
     )
-                                                            
-              
+
+             
 @ login_required
 @user_passes_test(lambda u: u.is_superuser)                                                       
 def update_reservation_admin(request, reservation_id):
@@ -912,6 +934,10 @@ def update_reservation_admin(request, reservation_id):
         update_reservation.updated_by = request.user
         update_reservation.save()
 
+        user = schoolUser.creator
+
+        send_reservation_update_email(user, update_reservation)
+
         #     messages.success(request, 'Reservation updated successfully.')
         return redirect(reverse('reservations:handle_reservations'))
     else:
@@ -926,13 +952,30 @@ def update_reservation_admin(request, reservation_id):
                                                             'reservationDateYear': update_reservation.reservation_date.date.year,     
                                                              })
 
-# @ login_required
-# @user_passes_test(lambda u: u.is_superuser)   
-# def reservation_history(request, reservation_id):
-#     reservation = get_object_or_404(Reservation, id=reservation_id)
-#     history = reservation.history.all()  # Fetch all historical records
+def send_reservation_update_email(user, reservation):
+    amea_mapping = {True: 'ΝΑΙ', False: 'ΟΧΙ'}
 
-#     return render(request, 'reservations/reservation_history.html', {'reservation': reservation, 'history': history})                                                               
+    subject = 'Επίσκεψη στη Βουλή των Ελλήνων'
+    
+    # Create an HTML version of your email content
+    html_message = render_to_string('email_templates/reservation_update.html', {
+        'reservation_date': reservation.reservation_date.date,
+        'reservation_time': reservation.timeslot.dayTime.slot,
+        'student_number': reservation.student_number,
+        'teacher_number': reservation.teacher_number,
+        'amea': amea_mapping[reservation.amea],
+    })
+
+    # Send the email
+    send_mail(
+        subject,
+        'This is a plain text version of your email content.',
+        'admin@parliament.foundation',
+        [user.email], 
+        fail_silently=False,
+        html_message=html_message,
+    )
+
                                                                     
 @ login_required
 @user_passes_test(lambda u: u.is_superuser)   
@@ -985,3 +1028,60 @@ def reservation_history(request, reservation_id):
                                                                       'history_changes': history_changes, 
                                                                       'schoolUser': schoolUser,
                                                                       })   
+
+def reservation_dashboard(request):
+    # Retrieve all school years
+    school_years = SchoolYear.objects.all()
+
+    # Initialize empty variables for reservation periods, departments, school users
+    reservation_periods = []
+    departments = []
+    school_users = []
+
+    # Check if a school year is selected in the request
+    selected_school_year_id = request.GET.get('school_year')
+    if selected_school_year_id:
+        # Retrieve reservation periods for the selected school year
+        reservation_periods = ReservationPeriod.objects.filter(schoolYear_id=selected_school_year_id)
+
+        # Check if a reservation period is selected in the request
+        selected_reservation_period_id = request.GET.get('reservation_period')
+        if selected_reservation_period_id:
+            # Retrieve departments for the selected reservation period
+            departments = Department.objects.filter(schooluser__reservation__reservation_period_id=selected_reservation_period_id).distinct()
+
+            # Check if a department is selected in the request
+            selected_department_id = request.GET.get('department')
+            if selected_department_id:
+                # Retrieve school users for the selected department
+                school_users = SchoolUser.objects.filter(department_id=selected_department_id)
+
+    # Check if a school user is selected in the request
+    selected_school_user_id = request.GET.get('school_user')
+    if selected_school_user_id:
+        # Retrieve historical reservations for the selected school user
+        historical_reservations = Reservation.objects.filter(
+            schoolUser_id=selected_school_user_id,
+            is_performed=True  # Filter only performed reservations
+        )
+
+        # Render the template with the selected options and historical reservations
+        return render(request, 'reservation_dashboard.html', {
+            'school_years': school_years,
+            'selected_school_year': int(selected_school_year_id) if selected_school_year_id else None,
+            'reservation_periods': reservation_periods,
+            'selected_reservation_period': int(selected_reservation_period_id) if selected_reservation_period_id else None,
+            'departments': departments,
+            'selected_department': int(selected_department_id) if selected_department_id else None,
+            'school_users': school_users,
+            'selected_school_user': int(selected_school_user_id) if selected_school_user_id else None,
+            'historical_reservations': historical_reservations,
+        })
+
+    # Render the template with the initial options (no selection yet)
+    return render(request, 'reservations/reservation_dashboard.html', {
+        'school_years': school_years,
+        'reservation_periods': reservation_periods,
+        'departments': departments,
+        'school_users': school_users,
+    })

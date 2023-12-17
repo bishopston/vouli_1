@@ -5,7 +5,7 @@
 
 <div class="container bg-white text-dark d-flex flex-wrap overflow-auto mt-4">
     <div class="row w-100 mt-4">
-        {% if my_reservations %}
+        {% if history_changes %}
             <div class="card text-center">
                 <div class="card-body">
                 <h5 class="card-title">Ιστορικό Αλλαγών για την Κράτηση του Σχολείου {{ schoolUser.school.name }} με Ημερομηνία {{reservation.reservation_date.date|date:'d/m/Y'}} και Ώρα {{reservation.timeslot.dayTime.slot|time:"H:i"}}</h5>

@@ -22,4 +22,5 @@ urlpatterns = [
     path('handle_reservations/', views.handle_reservations, name='handle_reservations'),
     path('update_reservation_admin/<int:reservation_id>/', views.update_reservation_admin, name='update_reservation_admin'),
     path('reservation_history/<int:reservation_id>/', views.reservation_history, name='reservation_history'),
+    path('reservation_dashboard/', views.reservation_dashboard, name='reservation_dashboard'),
 ]
