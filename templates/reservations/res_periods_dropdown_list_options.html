@@ -1,0 +1,4 @@
+<option value="">---------</option>
+{% for reservation_period in reservation_periods %}
+<option value="{{ reservation_period.pk }}">{{ reservation_period.name }}</option>
+{% endfor %}

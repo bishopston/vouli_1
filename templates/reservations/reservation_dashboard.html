@@ -56,4 +56,31 @@
         <p>No historical reservations found.</p>
     {% endif %}
 
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            $('#school_year').change(function() {
+                var selectedSchoolYearId = $(this).val();
+    
+                $.ajax({
+                    url: '{% url "reservations:get_reservation_periods" %}',
+                    data: {
+                        'school_year_id': selectedSchoolYearId
+                    },
+                    dataType: 'json',  // Expect JSON response
+                    success: function(data) {
+                        if (data.options) {
+                            $('#reservation_period').html(data.options);
+                        } else {
+                            console.error('No options returned in the response.');
+                        }
+                    },
+                    error: function(jqXHR, textStatus, errorThrown) {
+                        console.error('AJAX request failed:', textStatus, errorThrown);
+                    }
+                });
+            });
+        });
+    </script>
 {% endblock %}

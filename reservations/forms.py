@@ -357,3 +357,4 @@ class ReservationUpdateAdminForm(forms.ModelForm):
     
     #timeslot.label = 'ΏΡΑ'
     reservation_date.label = 'ΗΜΕΡΟΜΗΝΙΑ'
+

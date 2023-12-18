@@ -1062,7 +1062,7 @@ def reservation_dashboard(request):
         # Retrieve historical reservations for the selected school user
         historical_reservations = Reservation.objects.filter(
             schoolUser_id=selected_school_user_id,
-            is_performed=True  # Filter only performed reservations
+            #is_performed=True  # Filter only performed reservations
         )
 
         # Render the template with the selected options and historical reservations
@@ -1085,3 +1085,31 @@ def reservation_dashboard(request):
         'departments': departments,
         'school_users': school_users,
     })
+
+def get_reservation_periods(request):
+    # Get the school year ID from the AJAX request
+    school_year_id = request.GET.get('school_year_id')
+
+    # Retrieve reservation periods for the selected school year
+    reservation_periods = ReservationPeriod.objects.filter(schoolYear_id=school_year_id)
+
+    # Prepare the HTML options for the reservation period dropdown
+    options = '<option value="">-- All --</option>'
+    for period in reservation_periods:
+        options += f'<option value="{period.id}">{period.name}</option>'
+
+    # Return the HTML options as JSON response
+    return JsonResponse({'options': options})
+
+# def reservation_dashboard2(request):
+
+#     form = ReservationDashboardForm()
+
+#     context = {'form': form}
+
+#     return render(request, 'reservations/reservation_dashboard2.html', context)
+
+# def load_res_periods(request):
+#     schoolYear_id = request.GET.get('school_year')
+#     reservation_periods = ReservationPeriod.objects.filter(schoolYear_id=schoolYear_id).order_by('start_date')
+#     return render(request, 'reservations/res_periods_dropdown_list_options.html', {'reservation_periods': reservation_periods})
