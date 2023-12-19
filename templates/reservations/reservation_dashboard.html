@@ -37,7 +37,7 @@
         <select name="school_user" id="school_user">
             <option value="" {% if not selected_school_user %}selected{% endif %}>-- All --</option>
             {% for user in school_users %}
-                <option value="{{ user.id }}" {% if user.id == selected_school_user %}selected{% endif %}>{{ user.school.name }} - {{ user.director_name }} {{ user.director_surname }}</option>
+                <option value="{{ user.id }}" {% if user.id == selected_school_user %}selected{% endif %}>{{ user.school.name }}</option>
             {% endfor %}
         </select>
 
@@ -83,4 +83,67 @@
             });
         });
     </script>
+
+
+    <script>
+        $(document).ready(function () {
+            // Existing code...
+
+            // Add an event listener for the department dropdown
+            $('#reservation_period').change(function () {
+                var selectedReservationPeriodId = $(this).val();
+
+                $.ajax({
+                    url: '{% url "reservations:get_departments" %}',
+                    data: {
+                        'reservation_period_id': selectedReservationPeriodId
+                    },
+                    dataType: 'json',
+                    success: function (data) {
+                        if (data.options) {
+                            $('#department').html(data.options);
+                        } else {
+                            console.error('No options returned in the response.');
+                        }
+                    },
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        console.error('AJAX request failed:', textStatus, errorThrown);
+                    }
+                });
+            });
+        });
+    </script>
+
+<script>
+    $(document).ready(function () {
+        // Existing code...
+
+        // Add an event listener for the department dropdown
+        $('#department').change(function () {
+            var selectedDepartmentId = $(this).val();
+            var selectedReservationPeriodId = $('#reservation_period').val();
+
+            $.ajax({
+                url: '{% url "reservations:get_schoolusers" %}',
+                data: {
+                    'department_id': selectedDepartmentId,
+                    'reservation_period_id': selectedReservationPeriodId
+                },
+                dataType: 'json',
+                success: function (data) {
+                    if (data.options) {
+                        $('#school_user').html(data.options);
+                    } else {
+                        console.error('No options returned in the response.');
+                    }
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    console.error('AJAX request failed:', textStatus, errorThrown);
+                }
+            });
+        });
+    });
+</script>
+
+
 {% endblock %}
