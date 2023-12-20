@@ -12,7 +12,7 @@ from django.core.mail import send_mail
 from django.template.loader import render_to_string
 from .models import Day, ReservationPeriod, Timeslot, DayTime, Reservation, ReservationWindow, ExceptionalRule, SchoolYear
 from schools.models import SchoolUser, Department
-from .forms import ReservationForm, BaseReservationFormSet, ReservationUpdateForm, ReservationUpdateAdminForm
+from .forms import ReservationForm, BaseReservationFormSet, ReservationUpdateForm, ReservationUpdateAdminForm, ReservationDashboardForm
 from .utils import get_occupied_daytimes, get_allowed_daytimes, get_occupied_exceptional_daytimes, get_allowed_exceptional_daytimes, calculate_availability_percentage
 from datetime import timedelta
 #from calendar import monthrange
@@ -1033,113 +1033,136 @@ def reservation_history(request, reservation_id):
 #     # Retrieve all school years
 #     school_years = SchoolYear.objects.all()
 
-#     # Initialize empty variables for reservation periods, departments, school users
-#     reservation_periods = []
-#     departments = []
-#     school_users = []
-
-#     # Check if a school year is selected in the request
+#     # Initialize variables for selected options
 #     selected_school_year_id = request.GET.get('school_year')
-#     if selected_school_year_id:
-#         # Retrieve reservation periods for the selected school year
-#         reservation_periods = ReservationPeriod.objects.filter(schoolYear_id=selected_school_year_id)
-
-#         # Check if a reservation period is selected in the request
-#         selected_reservation_period_id = request.GET.get('reservation_period')
-#         if selected_reservation_period_id:
-#             # Retrieve departments for the selected reservation period
-#             departments = Department.objects.filter(schooluser__reservation__reservation_period_id=selected_reservation_period_id).distinct()
-
-#             # Check if a department is selected in the request
-#             selected_department_id = request.GET.get('department')
-#             if selected_department_id:
-#                 # Retrieve school users for the selected department
-#                 school_users = SchoolUser.objects.filter(department_id=selected_department_id)
-
-#     # Check if a school user is selected in the request
+#     print(selected_school_year_id)
+#     selected_reservation_period_id = request.GET.get('reservation_period')
+#     print(selected_reservation_period_id)
+#     selected_department_id = request.GET.get('department')
+#     print(selected_department_id)
 #     selected_school_user_id = request.GET.get('school_user')
+#     print(selected_school_user_id)
+
+#     # Retrieve reservation periods based on the selected school year
+#     reservation_periods = ReservationPeriod.objects.filter(schoolYear_id=selected_school_year_id)
+
+#     # Initialize an empty list for department choices
+#     departments = []
+
+#     # Check if a reservation period is selected
+#     if selected_reservation_period_id:
+#         # Retrieve departments based on the selected reservation period
+#         departments = Department.objects.filter(schooluser__reservation__reservation_period_id=selected_reservation_period_id).distinct()
+
+#     # Initialize an empty queryset for school users
+#     school_users = SchoolUser.objects.none()
+
+#     # Check if a department is selected
+#     if selected_department_id:
+#         # Retrieve school users based on the selected department
+#         school_users = SchoolUser.objects.filter(department_id=selected_department_id)
+
+#     # Initialize an empty queryset for historical reservations
+#     historical_reservations = Reservation.objects.none()
+
+#     # Check if a school user is selected
 #     if selected_school_user_id:
-#         # Retrieve historical reservations for the selected school user
+#         # Retrieve historical reservations based on the selected school user
 #         historical_reservations = Reservation.objects.filter(
 #             schoolUser_id=selected_school_user_id,
-#             #is_performed=True  # Filter only performed reservations
+#             # is_performed=True  # Filter only performed reservations
 #         )
 
-#         # Render the template with the selected options and historical reservations
-#         return render(request, 'reservations/reservation_dashboard.html', {
-#             'school_years': school_years,
-#             'selected_school_year': int(selected_school_year_id) if selected_school_year_id else None,
-#             'reservation_periods': reservation_periods,
-#             'selected_reservation_period': int(selected_reservation_period_id) if selected_reservation_period_id else None,
-#             'departments': departments,
-#             'selected_department': int(selected_department_id) if selected_department_id else None,
-#             'school_users': school_users,
-#             'selected_school_user': int(selected_school_user_id) if selected_school_user_id else None,
-#             'historical_reservations': historical_reservations,
-#         })
+#     # Check if the Filter button is clicked
+#     if request.GET.get('filter'):
+#         # Reset selected values
+#         selected_reservation_period_id = None
+#         selected_department_id = None
+#         selected_school_user_id = None
 
-#     # Render the template with the initial options (no selection yet)
+#     # Render the template with the selected options and historical reservations
 #     return render(request, 'reservations/reservation_dashboard.html', {
 #         'school_years': school_years,
+#         'selected_school_year': int(selected_school_year_id) if selected_school_year_id else None,
 #         'reservation_periods': reservation_periods,
+#         'selected_reservation_period': int(selected_reservation_period_id) if selected_reservation_period_id else None,
 #         'departments': departments,
+#         'selected_department': int(selected_department_id) if selected_department_id else None,
 #         'school_users': school_users,
+#         'selected_school_user': int(selected_school_user_id) if selected_school_user_id else None,
+#         'historical_reservations': historical_reservations,
 #     })
 
-
 def reservation_dashboard(request):
-    # Retrieve all school years
+
+    form = ReservationDashboardForm(request.GET)
+    context = {}
+
     school_years = SchoolYear.objects.all()
+    historical_reservations = Reservation.objects.all()
+    reservation_periods = ReservationPeriod.objects.all()
+    departments = Department.objects.all()
+    school_users = SchoolUser.objects.all()
 
     # Initialize variables for selected options
     selected_school_year_id = request.GET.get('school_year')
-    print(selected_school_year_id)
+    #print(selected_school_year_id)
     selected_reservation_period_id = request.GET.get('reservation_period')
-    print(selected_reservation_period_id)
+    #print(selected_reservation_period_id)
     selected_department_id = request.GET.get('department')
-    print(selected_department_id)
+    #print(selected_department_id)
     selected_school_user_id = request.GET.get('school_user')
-    print(selected_school_user_id)
+    #print(selected_school_user_id)
 
-    # Retrieve reservation periods based on the selected school year
-    reservation_periods = ReservationPeriod.objects.filter(schoolYear_id=selected_school_year_id)
+    # Update the form's initial choices based on the selected school year
+    if selected_school_year_id:
+        form.fields['reservation_period'].choices = [("", "Επιλογή...")] + [(period.id, period.name) for period in ReservationPeriod.objects.filter(schoolYear_id=selected_school_year_id)]
 
-    # Initialize an empty list for department choices
-    departments = []
+    # Update the form's initial choices based on the selected school year and reservation period
+    if selected_school_year_id and selected_reservation_period_id:
+        form.fields['department'].choices = [("", "Επιλογή...")] + [(department.id, department.name) for department in Department.objects.filter(schooluser__reservation__reservation_period_id=selected_reservation_period_id).distinct()]
 
-    # Check if a reservation period is selected
-    if selected_reservation_period_id:
-        # Retrieve departments based on the selected reservation period
-        departments = Department.objects.filter(schooluser__reservation__reservation_period_id=selected_reservation_period_id).distinct()
+    # Update the form's initial choices based on the selected school year, reservation period, and department
+    if selected_school_year_id and selected_reservation_period_id and selected_department_id:
+        form.fields['school_user'].choices = [("", "Επιλογή...")] + [(user.id, user.school.name) for user in SchoolUser.objects.filter(department_id=selected_department_id).filter(reservation__reservation_period_id=selected_reservation_period_id).distinct()]
 
-    # Initialize an empty queryset for school users
-    school_users = SchoolUser.objects.none()
+    if form.is_valid():
+        selected_school_year_id = form.cleaned_data.get('school_year')
+        print(selected_school_year_id)
+        selected_reservation_period_id = form.cleaned_data.get('reservation_period')
+        print(selected_reservation_period_id)
+        selected_department_id = form.cleaned_data.get('department')
+        print(selected_department_id)
+        selected_school_user_id = form.cleaned_data.get('school_user')
+        print(selected_school_user_id)
+    else:
+        print(form.errors)  # Print form errors for debugging
 
-    # Check if a department is selected
-    if selected_department_id:
-        # Retrieve school users based on the selected department
-        school_users = SchoolUser.objects.filter(department_id=selected_department_id)
+    if selected_school_year_id != '' and selected_school_year_id is not None:
+        historical_reservations = historical_reservations.filter(reservation_period__schoolYear=selected_school_year_id)
+        # reservation_periods = ReservationPeriod.objects.filter(schoolYear_id=selected_school_year_id)
 
-    # Initialize an empty queryset for historical reservations
-    historical_reservations = Reservation.objects.none()
+    if selected_reservation_period_id != '' and selected_reservation_period_id is not None:
+        historical_reservations = historical_reservations.filter(reservation_period=selected_reservation_period_id)
+        # departments = Department.objects.filter(schooluser__reservation__reservation_period_id=selected_reservation_period_id).distinct()
 
-    # Check if a school user is selected
-    if selected_school_user_id:
-        # Retrieve historical reservations based on the selected school user
-        historical_reservations = Reservation.objects.filter(
-            schoolUser_id=selected_school_user_id,
-            # is_performed=True  # Filter only performed reservations
-        )
+    if selected_department_id != '' and selected_department_id is not None:
+        historical_reservations = historical_reservations.filter(schoolUser__department=selected_department_id)
+        # school_users = SchoolUser.objects.filter(department_id=selected_department_id).filter(reservation__reservation_period_id=selected_reservation_period_id)
+
+    if selected_school_user_id != '' and selected_school_user_id is not None:
+        historical_reservations = historical_reservations.filter(schoolUser=selected_school_user_id).filter(reservation_period_id=selected_reservation_period_id)
+
+    historical_reservations_num = historical_reservations.count()
 
     # Check if the Filter button is clicked
-    if request.GET.get('filter'):
+    if request.GET.get('filter') == '1':
         # Reset selected values
-        selected_reservation_period_id = None
-        selected_department_id = None
-        selected_school_user_id = None
+        form = ReservationDashboardForm()
+        context['filter'] = 'filter'
 
-    # Render the template with the selected options and historical reservations
-    return render(request, 'reservations/reservation_dashboard.html', {
+    context.update({
+        'form': form,
         'school_years': school_years,
         'selected_school_year': int(selected_school_year_id) if selected_school_year_id else None,
         'reservation_periods': reservation_periods,
@@ -1149,87 +1172,10 @@ def reservation_dashboard(request):
         'school_users': school_users,
         'selected_school_user': int(selected_school_user_id) if selected_school_user_id else None,
         'historical_reservations': historical_reservations,
-    })
-
-
-def reservation_dashboard(request):
-
-    school_years = SchoolYear.objects.all()
-    historical_reservations = Reservation.objects.all()
-
-    # Initialize variables for selected options
-    selected_school_year_id = request.GET.get('school_year')
-    print(selected_school_year_id)
-    selected_reservation_period_id = request.GET.get('reservation_period')
-    print(selected_reservation_period_id)
-    selected_department_id = request.GET.get('department')
-    print(selected_department_id)
-    selected_school_user_id = request.GET.get('school_user')
-    print(selected_school_user_id)
-
-    if selected_school_year_id != '' and selected_school_year_id is not None:
-        historical_reservations = historical_reservations.filter(reservation_period__schoolYear=selected_school_year_id)
-
-    if selected_reservation_period_id != '' and selected_reservation_period_id is not None:
-        historical_reservations = historical_reservations.filter(reservation_period=selected_reservation_period_id)
-
-    if selected_department_id != '' and selected_department_id is not None:
-        historical_reservations = historical_reservations.filter(schoolUser__department=selected_department_id)
-
-    if selected_school_user_id != '' and selected_school_user_id is not None:
-        historical_reservations = historical_reservations.filter(schoolUser=selected_school_user_id)
-
-    historical_reservations_num = historical_reservations.count()
-
-    # # Initialize an empty list for department choices
-    # departments = []
-
-    # # Check if a reservation period is selected
-    # if selected_reservation_period_id:
-    #     # Retrieve departments based on the selected reservation period
-    #     departments = Department.objects.filter(schooluser__reservation__reservation_period_id=selected_reservation_period_id).distinct()
-
-    # # Initialize an empty queryset for school users
-    # school_users = SchoolUser.objects.none()
-
-    # # Check if a department is selected
-    # if selected_department_id:
-    #     # Retrieve school users based on the selected department
-    #     school_users = SchoolUser.objects.filter(department_id=selected_department_id)
-
-    # # Initialize an empty queryset for historical reservations
-    # historical_reservations = Reservation.objects.none()
-
-    # # Check if a school user is selected
-    # if selected_school_user_id:
-    #     # Retrieve historical reservations based on the selected school user
-    #     historical_reservations = Reservation.objects.filter(
-    #         schoolUser_id=selected_school_user_id,
-    #         # is_performed=True  # Filter only performed reservations
-    #     )
-
-    # # Check if the Filter button is clicked
-    # if request.GET.get('filter'):
-    #     # Reset selected values
-    #     selected_reservation_period_id = None
-    #     selected_department_id = None
-    #     selected_school_user_id = None
-
-    # Render the template with the selected options and historical reservations
-    return render(request, 'reservations/reservation_dashboard.html', {
-        'school_years': school_years,
-        'selected_school_year': int(selected_school_year_id) if selected_school_year_id else None,
-        # 'reservation_periods': reservation_periods,
-        'selected_reservation_period': int(selected_reservation_period_id) if selected_reservation_period_id else None,
-        # 'departments': departments,
-        'selected_department': int(selected_department_id) if selected_department_id else None,
-        # 'school_users': school_users,
-        'selected_school_user': int(selected_school_user_id) if selected_school_user_id else None,
-        'historical_reservations': historical_reservations,
         'historical_reservations_num': historical_reservations_num,
     })
 
-
+    return render(request, 'reservations/reservation_dashboard2.html', context)
 
 def get_reservation_periods(request):
     # Get the school year ID from the AJAX request
@@ -1239,25 +1185,12 @@ def get_reservation_periods(request):
     reservation_periods = ReservationPeriod.objects.filter(schoolYear_id=school_year_id)
 
     # Prepare the HTML options for the reservation period dropdown
-    options = '<option value="">-- All --</option>'
+    options = '<option value="">Επιλογή...</option>'
     for period in reservation_periods:
         options += f'<option value="{period.id}">{period.name}</option>'
 
     # Return the HTML options as JSON response
     return JsonResponse({'options': options})
-
-# def reservation_dashboard2(request):
-
-#     form = ReservationDashboardForm()
-
-#     context = {'form': form}
-
-#     return render(request, 'reservations/reservation_dashboard2.html', context)
-
-# def load_res_periods(request):
-#     schoolYear_id = request.GET.get('school_year')
-#     reservation_periods = ReservationPeriod.objects.filter(schoolYear_id=schoolYear_id).order_by('start_date')
-#     return render(request, 'reservations/res_periods_dropdown_list_options.html', {'reservation_periods': reservation_periods})
 
 def get_departments(request):
     reservation_period_id = request.GET.get('reservation_period_id')
@@ -1267,15 +1200,11 @@ def get_departments(request):
         schooluser__reservation__reservation_period_id=reservation_period_id
     ).distinct()
 
-    # Create options for the dropdown
-    # options = [{'id': dept.id, 'name': dept.name} for dept in departments]
-
-    options = '<option value="">-- All --</option>'
+    options = '<option value="">Επιλογή...</option>'
     for dept in departments:
         options += f'<option value="{dept.id}">{dept.name}</option>'
 
     return JsonResponse({'options': options})
-
 
 def get_schoolusers(request):
     reservation_period_id = request.GET.get('reservation_period_id')
@@ -1287,10 +1216,7 @@ def get_schoolusers(request):
         reservation__reservation_period_id=reservation_period_id
     ).distinct()
 
-    # Create options for the dropdown
-    # options = [{'id': dept.id, 'name': dept.name} for dept in departments]
-
-    options = '<option value="">-- All --</option>'
+    options = '<option value="">Επιλογή...</option>'
     for user in school_users:
         options += f'<option value="{user.id}">{user.school.name}</option>'
 

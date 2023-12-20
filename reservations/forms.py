@@ -5,7 +5,9 @@ from django.contrib.admin.widgets import AdminDateWidget
 from django.db.models import Q
 from django.forms.widgets import SelectDateWidget
 from django.conf import settings
-from .models import ReservationPeriod, Timeslot, Reservation, ExceptionalRule, Day
+from django.urls import reverse
+from .models import ReservationPeriod, Timeslot, Reservation, ExceptionalRule, Day, SchoolYear
+from schools.models import Department, SchoolUser
 from .utils import get_occupied_daytimes, get_allowed_daytimes, get_occupied_exceptional_daytimes, get_allowed_exceptional_daytimes
 from datetime import datetime
 
@@ -358,3 +360,41 @@ class ReservationUpdateAdminForm(forms.ModelForm):
     #timeslot.label = 'ΏΡΑ'
     reservation_date.label = 'ΗΜΕΡΟΜΗΝΙΑ'
 
+
+class ReservationDashboardForm(forms.Form):
+
+    school_year = forms.ChoiceField(
+        choices=[("", "Επιλογή...")],
+        required=False,
+        # label="Σχολικό Έτος",
+        widget=forms.Select(attrs={'id': 'school_year'}),
+    )
+    reservation_period = forms.ChoiceField(
+        choices=[("", "Επιλογή...")],
+        required=False,
+        # label="Περίοδος Επισκέψεων",
+        widget=forms.Select(attrs={'id': 'reservation_period'})
+    )
+    department = forms.ChoiceField(
+        choices=[("", "Επιλογή...")],
+        required=False,
+        # label="Διεύθυνση",
+        widget=forms.Select(attrs={'id': 'department'})
+    )
+    school_user = forms.ChoiceField(
+        choices=[("", "Επιλογή...")],
+        required=False,
+        # label="Σχολείο",
+        widget=forms.Select(attrs={'id': 'school_user'})
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        # Set initial choices for school_year
+        self.fields['school_year'].choices = [("", "Επιλογή...")] + [(year.id, year.name) for year in SchoolYear.objects.all()]
+        # self.helper.form_show_labels = False
+        self.fields['school_year'].label = ""
+        self.fields['reservation_period'].label = ""
+        self.fields['department'].label = ""
+        self.fields['school_user'].label = ""

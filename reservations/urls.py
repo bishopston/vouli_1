@@ -26,4 +26,5 @@ urlpatterns = [
     path('get_reservation_periods/', views.get_reservation_periods, name='get_reservation_periods'),
     path('get_departments/', views.get_departments, name='get_departments'),
     path('get_schoolusers/', views.get_schoolusers, name='get_schoolusers'),
+    # path('get_dependent_choices/<str:field_name>/', views.get_dependent_choices, name='get_dependent_choices'),
 ]
