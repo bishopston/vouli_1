@@ -7,116 +7,180 @@
   .bold-label {
       font-weight: bold;
   }
+
+  .vline {
+	border-left: 6px solid rgb(66,139,202);
+	height: 100px;
+	/* margin-top: 50px; */
+	margin-left: 50px;
+  }
+
 </style>
 
 <div class="container bg-white text-dark d-flex flex-wrap overflow-auto mt-4">
   <div class="row w-100">
     <div class="my-3 d-flex justify-content-center">
-      <h2>Ιστορικό Κρατήσεων</h2>
+      <h2>Συνολικό Ιστορικό Κρατήσεων</h2>
     </div>
   </div>
 
   <div class="row w-100">
+    <div class="col-md-8">
     <!-- School Year Dropdown -->
-    <form method="get" action="">
-        {% csrf_token %}
-        <div>
-          <!-- <label for="{{ form.school_year.id_for_label }}" class="bold-label">Σχολικό Έτος:</label> -->
-          <label for="{{ form.school_year.id_for_label }}" class="bold-label">Σχολικό Έτος:</label>
-          {{ form.school_year|as_crispy_field }}
-        </div>
-        <div>
-          <!-- <label for="{{ form.school_year.id_for_label }}" class="bold-label">Περίοδος Επισκέψεων:</label> -->
-          <label for="{{ form.school_year.id_for_label }}" class="bold-label">Περίοδος Επισκέψεων:</label>
-          {{ form.reservation_period|as_crispy_field }}
-        </div>
-        <div>
-          <!-- <label for="{{ form.school_year.id_for_label }}" class="bold-label">Διεύθυνση:</label> -->
-          <label for="{{ form.school_year.id_for_label }}" class="bold-label">Διεύθυνση:</label>
-          {{ form.department|as_crispy_field }}
-        </div>
-        <div>
-          <!-- <label for="{{ form.school_year.id_for_label }}" class="bold-label">Σχολείο:</label> -->
-          <label for="{{ form.school_year.id_for_label }}" class="bold-label">Σχολείο:</label>
-          {{ form.school_user|as_crispy_field }}
-        </div>
-        <!-- {{ form|crispy }} -->
-        <button type="submit" class="btn btn-primary" name="filter" value="1">Filter</button>
-    </form>
+      <form method="get" action="">
+          {% csrf_token %}
+          <div>
+            <!-- <label for="{{ form.school_year.id_for_label }}" class="bold-label">Σχολικό Έτος:</label> -->
+            <label for="{{ form.school_year.id_for_label }}" class="bold-label">Σχολικό Έτος:</label>
+            {{ form.school_year|as_crispy_field }}
+          </div>
+          <div>
+            <!-- <label for="{{ form.school_year.id_for_label }}" class="bold-label">Περίοδος Επισκέψεων:</label> -->
+            <label for="{{ form.school_year.id_for_label }}" class="bold-label">Περίοδος Επισκέψεων:</label>
+            {{ form.reservation_period|as_crispy_field }}
+          </div>
+          <div>
+            <!-- <label for="{{ form.school_year.id_for_label }}" class="bold-label">Διεύθυνση:</label> -->
+            <label for="{{ form.school_year.id_for_label }}" class="bold-label">Διεύθυνση:</label>
+            {{ form.department|as_crispy_field }}
+          </div>
+          <div>
+            <!-- <label for="{{ form.school_year.id_for_label }}" class="bold-label">Σχολείο:</label> -->
+            <label for="{{ form.school_year.id_for_label }}" class="bold-label">Σχολείο:</label>
+            {{ form.school_user|as_crispy_field }}
+          </div>
+          <!-- {{ form|crispy }} -->
+          <button type="submit" class="btn btn-primary" name="filter" value="1">Αναζήτηση</button>
+      </form>
+    </div>
+    
+    <div class="vline col-md-3">
+      <div class="row">
+        <p class="num-results">Αριθμός Αποτελεσμάτων</p>
+      </div>
+      <div id="results" class="row">
+        {% if filter and historical_reservations %}
+          <h1 class="results">{{ historical_reservations_num }}</h1>
+        {% else %}
+          <h1 class="results">0</h1>
+        {% endif %}
+      </div>
+    </div>
+    
   </div>
 
-    <!-- Display Historical Reservations -->
-    
-    <div class="row w-100">
+  <div class="my-5">
     {% if filter and historical_reservations %}
-      <h2>Historical Reservations</h2>
-          <ul>
+      <table id="reservations-table" class="table table-striped table-sm">
+          <thead>
+              <tr>
+                  <th><small><strong>Σχολικό Έτος</strong></small></th>
+                  <th><small><strong>Περίοδος Επισκέψεων</strong></small></th>
+                  <th><small><strong>Διεύθυνση</strong></small></th>
+                  <th><small><strong>Σχολείο</strong></small></th>
+                  <th><small><strong>Ημερομηνία</strong></small></th>
+                  <th><small><strong>Ώρα</strong></small></th>
+                  <th><small><strong>Αρ. Μαθητών</strong></small></th>
+                  <th><small><strong>Αρ. Εκπαιδευτικών</strong></small></th>
+                  <th><small><strong>ΑΜΕΑ</strong></small></th>
+                  <th><small><strong>Κατάσταση</strong></small></th>
+                  <th><small><strong>Πραγματοποιημένη</strong></small></th>
+                  <th><small><strong></strong></small></th>
+              </tr>
+          </thead>
+          <tbody>
               {% for reservation in historical_reservations %}
-                  <li>{{ reservation.reservation_date }} - {{ reservation.schoolUser }} - {{ reservation.status }}</li>
+                  <tr>
+                      <td><small>{{ reservation.reservation_period.schoolYear.name }}</small></td>
+                      <td><small>{{ reservation.reservation_period.name }}</small></td>
+                      <td><small>{{ reservation.schoolUser.department.name }}</small></td>
+                      <td><small>{{ reservation.schoolUser.school.name }}</small></td>
+                      <td><small>{{ reservation.reservation_date.date|date:'d/m/Y' }}</small></td>
+                      <td><small>{{ reservation.timeslot.dayTime.slot|time:"H:i" }}</small></td>
+                      <td><small>{{ reservation.student_number }}</small></td>
+                      <td><small>{{ reservation.teacher_number }}</small></td>
+                      <td><small>
+                          {% if reservation.amea %}
+                              ΝΑΙ
+                          {% else%}
+                              ΟΧΙ
+                          {% endif %}
+                      </small></td>
+                      <td><small>{{ reservation.get_status_display }}</small></td>
+                      <td><small>
+                          {% if reservation.is_performed %}
+                              ΝΑΙ
+                          {% else%}
+                              ΟΧΙ
+                          {% endif %}
+                      </small></td>
+                      <td>
+                          <a class="btn btn-sm btn-primary h-25 d-inline-block" href="{% url 'reservations:reservation_history' reservation.id %}" role="button"><small>Ιστορικό</small></a>
+                      </td>   
+                  </tr>
               {% endfor %}
-          </ul>
+          </tbody>
+      </table>
     {% endif %}
-    </div>
+  </div>
 
 </div>
 
-    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+<script>
+    $(document).ready(function() {
+        $('#school_year').change(function() {
+            var selectedSchoolYearId = $(this).val();
 
-    <script>
-        $(document).ready(function() {
-            $('#school_year').change(function() {
-                var selectedSchoolYearId = $(this).val();
-    
-                $.ajax({
-                    url: '{% url "reservations:get_reservation_periods" %}',
-                    data: {
-                        'school_year_id': selectedSchoolYearId
-                    },
-                    dataType: 'json',  // Expect JSON response
-                    success: function(data) {
-                        if (data.options) {
-                            $('#reservation_period').html(data.options);
-                        } else {
-                            console.error('No options returned in the response.');
-                        }
-                    },
-                    error: function(jqXHR, textStatus, errorThrown) {
-                        console.error('AJAX request failed:', textStatus, errorThrown);
+            $.ajax({
+                url: '{% url "reservations:get_reservation_periods" %}',
+                data: {
+                    'school_year_id': selectedSchoolYearId
+                },
+                dataType: 'json',  // Expect JSON response
+                success: function(data) {
+                    if (data.options) {
+                        $('#reservation_period').html(data.options);
+                    } else {
+                        console.error('No options returned in the response.');
                     }
-                });
+                },
+                error: function(jqXHR, textStatus, errorThrown) {
+                    console.error('AJAX request failed:', textStatus, errorThrown);
+                }
             });
         });
-    </script>
+    });
+</script>
 
 
-    <script>
-        $(document).ready(function () {
-            // Existing code...
+<script>
+    $(document).ready(function () {
+        // Existing code...
 
-            // Add an event listener for the department dropdown
-            $('#reservation_period').change(function () {
-                var selectedReservationPeriodId = $(this).val();
+        // Add an event listener for the department dropdown
+        $('#reservation_period').change(function () {
+            var selectedReservationPeriodId = $(this).val();
 
-                $.ajax({
-                    url: '{% url "reservations:get_departments" %}',
-                    data: {
-                        'reservation_period_id': selectedReservationPeriodId
-                    },
-                    dataType: 'json',
-                    success: function (data) {
-                        if (data.options) {
-                            $('#department').html(data.options);
-                        } else {
-                            console.error('No options returned in the response.');
-                        }
-                    },
-                    error: function (jqXHR, textStatus, errorThrown) {
-                        console.error('AJAX request failed:', textStatus, errorThrown);
+            $.ajax({
+                url: '{% url "reservations:get_departments" %}',
+                data: {
+                    'reservation_period_id': selectedReservationPeriodId
+                },
+                dataType: 'json',
+                success: function (data) {
+                    if (data.options) {
+                        $('#department').html(data.options);
+                    } else {
+                        console.error('No options returned in the response.');
                     }
-                });
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    console.error('AJAX request failed:', textStatus, errorThrown);
+                }
             });
         });
-    </script>
+    });
+</script>
 
 <script>
     $(document).ready(function () {
@@ -149,5 +213,39 @@
     });
 </script>
 
+<script>
+
+  $(document).ready(function () {
+      $('#reservations-table').DataTable({
+        "language": {
+          "sEmptyTable": "Δεν υπάρχουν δεδομένα",
+          "sInfo": "Εμφανίζονται _START_ έως _END_ από _TOTAL_ συνολικά",
+          "sInfoEmpty": "Εμφανίζονται 0 έως 0 από 0 συνολικά",
+          "sInfoFiltered": "(Φιλτράρισμα από _MAX_ συνολικά)",
+          "sInfoPostFix": "",
+          "sInfoThousands": ".",
+          "sLengthMenu": "Δείξε _MENU_ εγγραφές",
+          "sLoadingRecords": "Φόρτωση...",
+          "sProcessing": "Επεξεργασία...",
+          "sSearch": "Αναζήτηση:",
+          "sZeroRecords": "Δεν βρέθηκαν αποτελέσματα",
+          "oPaginate": {
+            "sFirst": "Πρώτη",
+            "sPrevious": "Προηγούμενο",
+            "sNext": "Επόμενο",
+            "sLast": "Τελευταία"
+          },
+          "oAria": {
+            "sSortAscending": ": activate to sort column ascending",
+            "sSortDescending": ": activate to sort column descending"
+          }
+        },
+        "bFilter": true,  
+        "bInfo": false,    // Disable information display
+        "searching": true
+      });
+    });
+  
+</script>
 
 {% endblock %}

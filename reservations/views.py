@@ -364,7 +364,8 @@ def my_reservations(request):
     else:
 
         try:
-            my_school = SchoolUser.objects.filter(creator=request.user)[0].school.name
+            my_school = SchoolUser.objects.filter(creator=request.user)[0]#.school.name
+            print(my_school)
 
             context = {'my_reservations': my_reservations,
                     'my_reservations_current_year_number': my_reservations_current_year_number,

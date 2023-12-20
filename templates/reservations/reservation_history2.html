@@ -14,7 +14,7 @@
                     {% for change in history_changes %}
                         <p>{{change}}</p>
                     {% endfor %}
-                    <a href="{% url 'reservations:handle_reservations' %}" class="btn btn-primary">Διαχείριση Κρατήσεων</a>
+                    <a href="{{request.META.HTTP_REFERER}}" class="btn btn-primary">Πίσω</a>
                 </div>
             </div>
         {% else %}
@@ -24,7 +24,7 @@
                 </div>
                 <div class="card-footer text-muted">
                         <p>Δεν υπάρχει ιστορικό αλλαγών για τη συγκεκριμένη κράτηση.</p>
-                    <a href="{% url 'reservations:handle_reservations' %}" class="btn btn-primary">Διαχείριση Κρατήσεων</a>
+                    <a href="{{request.META.HTTP_REFERER}}" class="btn btn-primary">Πίσω</a>
                 </div>
             </div>
         {% endif %}
