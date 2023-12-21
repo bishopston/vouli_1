@@ -26,5 +26,7 @@ urlpatterns = [
     path('get_reservation_periods/', views.get_reservation_periods, name='get_reservation_periods'),
     path('get_departments/', views.get_departments, name='get_departments'),
     path('get_schoolusers/', views.get_schoolusers, name='get_schoolusers'),
-    # path('get_dependent_choices/<str:field_name>/', views.get_dependent_choices, name='get_dependent_choices'),
+    path('calendar_reservations/<int:reservation_period_id>/', views.calendar_reservations, name='calendar_reservations'),
+    path('calendar_reservations/<int:reservation_period_id>/<int:year>/<int:month>/', views.calendar_reservations, name='calendar_reservations_month_year'),
+    path('reservation_details_by_date/', views.reservation_details_by_date, name='reservation_details_by_date'),
 ]

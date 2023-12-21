@@ -365,7 +365,6 @@ def my_reservations(request):
 
         try:
             my_school = SchoolUser.objects.filter(creator=request.user)[0]#.school.name
-            print(my_school)
 
             context = {'my_reservations': my_reservations,
                     'my_reservations_current_year_number': my_reservations_current_year_number,
@@ -1094,6 +1093,8 @@ def reservation_history(request, reservation_id):
 #         'historical_reservations': historical_reservations,
 #     })
 
+@ login_required
+@user_passes_test(lambda u: u.is_superuser)   
 def reservation_dashboard(request):
 
     form = ReservationDashboardForm(request.GET)
@@ -1222,3 +1223,64 @@ def get_schoolusers(request):
         options += f'<option value="{user.id}">{user.school.name}</option>'
 
     return JsonResponse({'options': options})
+
+@login_required
+@user_passes_test(lambda u: u.is_superuser)
+def calendar_reservations(request, reservation_period_id, year=None, month=None):
+    # If reservation_period_id is provided, get the start date of the reservation period
+    if reservation_period_id:
+        #reservation_period = ReservationPeriod.objects.get(pk=reservation_period_id)
+        reservation_period = get_object_or_404(ReservationPeriod, pk=reservation_period_id)
+        if not year and not month:
+            start_date = reservation_period.start_date
+        else: 
+            start_date = date(year, month, 1)
+    else:
+        # If no reservation_period_id is provided, use the current date
+        start_date = timezone.now()
+
+    # If year and month are not provided, use the start date
+    if not year:
+        year = start_date.year
+    if not month:
+        month = start_date.month
+
+    # Calculate previous and next months
+    prev_month = start_date - timedelta(days=start_date.day)
+    next_month = start_date + timedelta(days=(32 - start_date.day))
+
+
+    # Retrieve days for the current month
+    month_days = get_month_days(year, month, reservation_period_id)
+
+    context = {
+        #'current_month': f'{month}/{year}',
+        'current_month': month,
+        'current_year': year,
+        'prev_year': prev_month.year,
+        'prev_month': prev_month.month,
+        'next_year': next_month.year,
+        'next_month': next_month.month,
+        'month_days': month_days,
+        'reservation_period_id': reservation_period.id,
+        'reservation_period': reservation_period,
+    }
+
+    return render(request, 'reservations/calendar_reservations.html', context)
+
+
+@login_required
+@user_passes_test(lambda u: u.is_superuser)
+def reservation_details_by_date(request):
+
+    date = str(request.GET.get('date'))
+    print(date)
+    # Parse the date string into a datetime object
+    # date_obj = datetime.strptime(date, '%Y-%m-%d')
+
+    # Query reservations for the given date
+    reservations = Reservation.objects.filter(reservation_date__date=date).exclude(status='denied')
+
+    context = {'date': date, 'reservations': reservations}
+    return render(request, 'reservations/reservation_details_table.html', context)
+

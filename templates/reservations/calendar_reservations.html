@@ -1,0 +1,167 @@
+{% extends '../base/base_admin.html' %}
+
+{% block content %}
+
+<style>
+
+    th, td {
+        text-align: center !important;
+    }
+
+    .current-month {
+        font-weight: bold;
+    }
+
+</style>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<div class="container mt-4">
+    <div class="mt-5 d-flex justify-content-center">
+        <h2 class="mb-4">Ημερολόγιο Κρατήσεων για την Περίοδο {{ reservation_period.start_date|date:'d/m/Y' }} - {{ reservation_period.end_date|date:'d/m/Y' }}</h2>
+    </div>
+
+    <div class="d-flex justify-content-between my-5">
+        <a href="{% url 'reservations:calendar_reservations_month_year' reservation_period_id prev_year prev_month %}" class="btn btn-primary">&lt; Προηγούμενο</a>
+        <h3 class="current-month">
+            {% if current_month == 1 %}
+                Ιανουάριος {{ current_year }}
+            {% elif current_month == 2 %}
+                Φεβρουάριος {{ current_year }}
+            {% elif current_month == 3 %}
+                Μάρτιος {{ current_year }}
+            {% elif current_month == 4 %}
+                Απρίλιος {{ current_year }}
+            {% elif current_month == 5 %}
+                Μάιος {{ current_year }}
+            {% elif current_month == 6 %}
+                Ιούνιος {{ current_year }}
+            {% elif current_month == 7 %}
+                Ιούλιος {{ current_year }}
+            {% elif current_month == 8 %}
+                Αύγουστος {{ current_year }}
+            {% elif current_month == 9 %}
+                Σεπτέμβριος {{ current_year }}
+            {% elif current_month == 10 %}
+                Οκτώβριος {{ current_year }}
+            {% elif current_month == 11 %}
+                Νοέμβριος {{ current_year }}
+            {% else %}
+                Δεκέμβριος {{ current_year }}
+            {% endif %}
+        </h2>
+        <a href="{% url 'reservations:calendar_reservations_month_year' reservation_period_id next_year next_month %}" class="btn btn-primary">Επόμενο &gt;</a>
+    </div>
+
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Δευτέρα</th>
+                <th>Τρίτη</th>
+                <th>Τετάρτη</th>
+                <th>Πέμπτη</th>
+                <th>Παρασκευή</th>
+                <th>Σάββατο</th>
+                <th>Κυριακή</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for week in month_days %}
+                <tr>
+                    {% for day in week %}
+                        <td {% if day.is_vacation %}class="text-muted"{% endif %}>
+                            <span class="date" data-bs-toggle="modal" data-bs-target="#reservationModal" data-date="{{ day.date|date:'Y-m-d' }}">{{ day.date.day }}</span>
+                        </td>
+                    {% endfor %}
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="reservationModal" tabindex="-1" aria-labelledby="reservationModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl d-flex justify-content-center">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="reservationModalLabel">Κρατήσεις για την Ημερομηνία <span id="modalDate"></span></h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <!-- Add content here based on your reservation information -->
+          <table class="table" id="reservationDetailsTable">
+            <thead>
+
+            </thead>
+            <tbody>
+                <!-- Reservation details will be displayed here dynamically -->
+            </tbody>
+        </table>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Πίσω</button>
+          <!-- Add additional buttons if needed -->
+        </div>
+      </div>
+    </div>
+</div>
+
+<!-- <script>
+    $(document).ready(function() {
+        // Handle date click to update modal date and open the modal
+        $('.date').on('click', function() {
+            var date = $(this).data('date');
+            $('#modalDate').text(date);
+            fetchReservationDetails(date);
+            $('#reservationModal').modal('show');
+        });
+
+        // Function to fetch reservation details
+        function fetchReservationDetails(date) {
+            // Update the modal body with the fetched content
+            var url = "{% url 'reservations:reservation_details_by_date' %}?date=" + date;
+            $('#reservationModalBody').load(url);
+
+        }
+    });
+</script> -->
+
+<script>
+    $(document).ready(function() {
+        // Handle date click to update modal date and open the modal
+        $('.date').on('click', function() {
+            var date = $(this).data('date');
+
+            var formattedDate = new Date(date).toLocaleDateString('en-GB');
+
+            $('#modalDate').text(formattedDate);
+
+            fetchReservationDetails(date);
+            $('#reservationModal').modal('show');
+        });
+
+        // Function to fetch reservation details using AJAX
+        function fetchReservationDetails(date) {
+            // Update the modal body with the fetched content
+            var url = "{% url 'reservations:reservation_details_by_date' %}?date=" + date;
+            $.ajax({
+                url: url,
+                type: 'GET',
+                dataType: 'html',
+                success: function(data) {
+                    // Update the reservation details table with fetched content
+                    $('#reservationDetailsTable tbody').html(data);
+                },
+                error: function(xhr, status, error) {
+                    console.error("Error fetching reservation details:", error);
+                    // Handle error by displaying a meaningful message
+                    $('#reservationDetailsTable tbody').html("<tr><td colspan='2'>Error fetching reservation details. Please try again.</td></tr>");
+                }
+            });
+        }
+    });
+</script>
+
+
+
+{% endblock %}
