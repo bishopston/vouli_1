@@ -1,0 +1,76 @@
+{% extends '../base/base_admin.html' %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+
+<style>
+
+    .bold-label {
+        font-weight: bold;
+    }
+
+</style>
+
+<div class="my-5 d-flex justify-content-center">
+    <div class="col-md-2"></div>
+    <div class="col-md-8">
+        <div class="card text-center">
+            <div class="card-header">
+            <h5>Ημερολόγιο Κρατήσεων</h5>
+            </div>
+            <div class="card-body">
+            <p class="card-title">Επιλογή Περιόδου</p>
+                <div class="container bg-white text-dark d-flex flex-wrap overflow-auto mt-4">
+                    <div class="row w-100">
+                        <form method="get" action="{% url 'reservations:calendar_reservations_res_period_selection' %}" id="combinedSelectionForm">
+                            {% csrf_token %}
+                            {% if error_message %}
+                                <center><p><strong class="text-danger">{{ error_message }}</strong></p></center>
+                            {% endif %}
+                            <div>
+                                <!-- <label for="{{ form.school_year.id_for_label }}" class="bold-label">Σχολικό Έτος:</label> -->
+                                <label for="{{ form.school_year.id_for_label }}" class="bold-label">Σχολικό Έτος:</label>
+                                {{ form.school_year|as_crispy_field }}
+                            </div>
+                            <div>
+                                <!-- <label for="{{ form.school_year.id_for_label }}" class="bold-label">Περίοδος Επισκέψεων:</label> -->
+                                <label for="{{ form.school_year.id_for_label }}" class="bold-label">Περίοδος Επισκέψεων:</label>
+                                {{ form.reservation_period|as_crispy_field }}
+                            </div>
+                            <button type="submit" class="btn btn-primary" name="filter" value="1">Ημερολόγιο</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2"></div>
+</div>
+
+<script>
+    $(document).ready(function() {
+        $('#school_year').change(function() {
+            var selectedSchoolYearId = $(this).val();
+
+            $.ajax({
+                url: '{% url "reservations:get_reservation_periods" %}',
+                data: {
+                    'school_year_id': selectedSchoolYearId
+                },
+                dataType: 'json',  // Expect JSON response
+                success: function(data) {
+                    if (data.options) {
+                        $('#reservation_period').html(data.options);
+                    } else {
+                        console.error('No options returned in the response.');
+                    }
+                },
+                error: function(jqXHR, textStatus, errorThrown) {
+                    console.error('AJAX request failed:', textStatus, errorThrown);
+                }
+            });
+        });
+    });
+</script>
+
+{% endblock %}

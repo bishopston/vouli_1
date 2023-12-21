@@ -1,38 +1,42 @@
-<table class="table table-bordered table-striped table-sm">
-    <thead>
-        <tr>
-            <th><small><strong>Σχολείο</strong></small></th>
-            <th><small><strong>Ώρα</strong></small></th>
-            <th><small><strong>Αρ. Μαθητών</strong></small></th>
-            <th><small><strong>Αρ. Εκπαιδευτικών</strong></small></th>
-            <th><small><strong>ΑΜΕΑ</strong></small></th>
-            <th><small><strong>Κατάσταση</strong></small></th>
-            <th><small><strong>Πραγματοποιημένη</strong></small></th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for reservation in reservations %}
+{% if reservations %}
+    <table class="table table-bordered table-striped table-sm">
+        <thead>
             <tr>
-                <td><small>{{ reservation.schoolUser.school.name }}</small></td>
-                <td><small>{{ reservation.timeslot.dayTime.slot|time:"H:i" }}</small></td>
-                <td><small>{{ reservation.student_number }}</small></td>
-                <td><small>{{ reservation.teacher_number }}</small></td>
-                <td><small>
-                    {% if reservation.amea %}
-                        ΝΑΙ
-                    {% else%}
-                        ΟΧΙ
-                    {% endif %}
-                </small></td>
-                <td><small>{{ reservation.get_status_display }}</small></td>
-                <td><small>
-                    {% if reservation.is_performed %}
-                        ΝΑΙ
-                    {% else%}
-                        ΟΧΙ
-                    {% endif %}
-                </small></td>
+                <th><small><strong>Σχολείο</strong></small></th>
+                <th><small><strong>Ώρα</strong></small></th>
+                <th><small><strong>Αρ. Μαθητών</strong></small></th>
+                <th><small><strong>Αρ. Εκπαιδευτικών</strong></small></th>
+                <th><small><strong>ΑΜΕΑ</strong></small></th>
+                <th><small><strong>Κατάσταση</strong></small></th>
+                <th><small><strong>Πραγματοποιημένη</strong></small></th>
             </tr>
-        {% endfor %}
-    </tbody>
-</table>
+        </thead>
+        <tbody>
+            {% for reservation in reservations %}
+                <tr>
+                    <td><small>{{ reservation.schoolUser.school.name }}</small></td>
+                    <td><small>{{ reservation.timeslot.dayTime.slot|time:"H:i" }}</small></td>
+                    <td><small>{{ reservation.student_number }}</small></td>
+                    <td><small>{{ reservation.teacher_number }}</small></td>
+                    <td><small>
+                        {% if reservation.amea %}
+                            ΝΑΙ
+                        {% else%}
+                            ΟΧΙ
+                        {% endif %}
+                    </small></td>
+                    <td><small>{{ reservation.get_status_display }}</small></td>
+                    <td><small>
+                        {% if reservation.is_performed %}
+                            ΝΑΙ
+                        {% else%}
+                            ΟΧΙ
+                        {% endif %}
+                    </small></td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% else %}
+    <p class="text-center">Δεν υπάρχουν κρατήσεις</p>
+{% endif %}

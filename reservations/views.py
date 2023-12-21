@@ -6,13 +6,13 @@ from django.utils import timezone
 from django.forms import formset_factory
 from django.core.serializers import serialize
 from django.http import JsonResponse
-from django.db.models import Q
+from django.db.models import Q, Max, Min, Avg, Sum, F
 from django.contrib import messages
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
 from .models import Day, ReservationPeriod, Timeslot, DayTime, Reservation, ReservationWindow, ExceptionalRule, SchoolYear
 from schools.models import SchoolUser, Department
-from .forms import ReservationForm, BaseReservationFormSet, ReservationUpdateForm, ReservationUpdateAdminForm, ReservationDashboardForm
+from .forms import ReservationForm, BaseReservationFormSet, ReservationUpdateForm, ReservationUpdateAdminForm, ReservationDashboardForm, ReservationCalendarByDateForm
 from .utils import get_occupied_daytimes, get_allowed_daytimes, get_occupied_exceptional_daytimes, get_allowed_exceptional_daytimes, calculate_availability_percentage
 from datetime import timedelta
 #from calendar import monthrange
@@ -984,7 +984,6 @@ def reservation_history(request, reservation_id):
     schoolUser = reservation.schoolUser
     #history = reservation.history.all()  # Fetch all historical records
 
-
     field_mapping = {'reservation_date': 'ημερομηνία', 
                     'timeslot': 'ώρα', 
                     'amea': 'ΑΜΕΑ', 
@@ -1029,69 +1028,29 @@ def reservation_history(request, reservation_id):
                                                                       'schoolUser': schoolUser,
                                                                       })   
 
-# def reservation_dashboard(request):
-#     # Retrieve all school years
-#     school_years = SchoolYear.objects.all()
 
-#     # Initialize variables for selected options
-#     selected_school_year_id = request.GET.get('school_year')
-#     print(selected_school_year_id)
-#     selected_reservation_period_id = request.GET.get('reservation_period')
-#     print(selected_reservation_period_id)
-#     selected_department_id = request.GET.get('department')
-#     print(selected_department_id)
-#     selected_school_user_id = request.GET.get('school_user')
-#     print(selected_school_user_id)
+@ login_required
+@user_passes_test(lambda u: u.is_superuser)   
+def calendar_reservations_res_period_selection(request):
 
-#     # Retrieve reservation periods based on the selected school year
-#     reservation_periods = ReservationPeriod.objects.filter(schoolYear_id=selected_school_year_id)
+    form = ReservationCalendarByDateForm()
+    context = {}
 
-#     # Initialize an empty list for department choices
-#     departments = []
+    selected_reservation_period_id = request.GET.get('reservation_period')
 
-#     # Check if a reservation period is selected
-#     if selected_reservation_period_id:
-#         # Retrieve departments based on the selected reservation period
-#         departments = Department.objects.filter(schooluser__reservation__reservation_period_id=selected_reservation_period_id).distinct()
+    # Check if the Filter button is clicked
+    if request.GET.get('filter') == '1' and selected_reservation_period_id:
+        # Reset selected values
+        form = ReservationCalendarByDateForm()
+        return redirect('reservations:calendar_reservations', reservation_period_id=selected_reservation_period_id)
+    if request.GET.get('filter') == '1' and selected_reservation_period_id == '':
+        context['error_message'] = 'Πρέπει να διαλέξετε μία περίοδο επισκέψεων'
 
-#     # Initialize an empty queryset for school users
-#     school_users = SchoolUser.objects.none()
+    context.update({
+        'form': form
+    })
 
-#     # Check if a department is selected
-#     if selected_department_id:
-#         # Retrieve school users based on the selected department
-#         school_users = SchoolUser.objects.filter(department_id=selected_department_id)
-
-#     # Initialize an empty queryset for historical reservations
-#     historical_reservations = Reservation.objects.none()
-
-#     # Check if a school user is selected
-#     if selected_school_user_id:
-#         # Retrieve historical reservations based on the selected school user
-#         historical_reservations = Reservation.objects.filter(
-#             schoolUser_id=selected_school_user_id,
-#             # is_performed=True  # Filter only performed reservations
-#         )
-
-#     # Check if the Filter button is clicked
-#     if request.GET.get('filter'):
-#         # Reset selected values
-#         selected_reservation_period_id = None
-#         selected_department_id = None
-#         selected_school_user_id = None
-
-#     # Render the template with the selected options and historical reservations
-#     return render(request, 'reservations/reservation_dashboard.html', {
-#         'school_years': school_years,
-#         'selected_school_year': int(selected_school_year_id) if selected_school_year_id else None,
-#         'reservation_periods': reservation_periods,
-#         'selected_reservation_period': int(selected_reservation_period_id) if selected_reservation_period_id else None,
-#         'departments': departments,
-#         'selected_department': int(selected_department_id) if selected_department_id else None,
-#         'school_users': school_users,
-#         'selected_school_user': int(selected_school_user_id) if selected_school_user_id else None,
-#         'historical_reservations': historical_reservations,
-#     })
+    return render(request, 'reservations/calendar_reservations_res_period_selection.html', context)
 
 @ login_required
 @user_passes_test(lambda u: u.is_superuser)   
@@ -1184,7 +1143,7 @@ def get_reservation_periods(request):
     school_year_id = request.GET.get('school_year_id')
 
     # Retrieve reservation periods for the selected school year
-    reservation_periods = ReservationPeriod.objects.filter(schoolYear_id=school_year_id)
+    reservation_periods = ReservationPeriod.objects.filter(schoolYear_id=school_year_id).order_by('start_date')
 
     # Prepare the HTML options for the reservation period dropdown
     options = '<option value="">Επιλογή...</option>'
@@ -1253,6 +1212,11 @@ def calendar_reservations(request, reservation_period_id, year=None, month=None)
     # Retrieve days for the current month
     month_days = get_month_days(year, month, reservation_period_id)
 
+    for week in month_days:
+        for day in week:
+            if isinstance(day, Day):
+                day.availability_percentage = calculate_availability_percentage(day.date, reservation_period_id)
+
     context = {
         #'current_month': f'{month}/{year}',
         'current_month': month,
@@ -1274,7 +1238,7 @@ def calendar_reservations(request, reservation_period_id, year=None, month=None)
 def reservation_details_by_date(request):
 
     date = str(request.GET.get('date'))
-    print(date)
+
     # Parse the date string into a datetime object
     # date_obj = datetime.strptime(date, '%Y-%m-%d')
 
@@ -1284,3 +1248,27 @@ def reservation_details_by_date(request):
     context = {'date': date, 'reservations': reservations}
     return render(request, 'reservations/reservation_details_table.html', context)
 
+
+
+
+def ReservationsPerDayResPeriod(request, reservation_period_id):
+
+    reservation_period = get_object_or_404(ReservationPeriod, pk=reservation_period_id)
+    days = Day.objects.filter(date__gte=reservation_period.start_date, date__lte=reservation_period.end_date).order_by('date')
+
+    chart_days = []
+
+    for i in range(len(days)):
+        chart_days.append(datetime.strftime(days[i].date, "%d/%m/%Y"))
+
+    res_num=[]
+
+    for i in range(len(days)):
+        res_num.append(Reservation.objects.filter(reservation_date=days[i]).exclude(status='denied').count())
+
+    #json dict
+    reservations_per_day=[]
+    for i in range(len(chart_days)):
+        reservations_per_day.append({chart_days[i]:res_num[i]})
+
+    return JsonResponse(reservations_per_day, safe=False)

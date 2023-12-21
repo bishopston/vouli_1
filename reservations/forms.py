@@ -398,3 +398,45 @@ class ReservationDashboardForm(forms.Form):
         self.fields['reservation_period'].label = ""
         self.fields['department'].label = ""
         self.fields['school_user'].label = ""
+
+# class ReservationCalendarByDateForm(forms.Form):
+
+#     # school_year = forms.ModelChoiceField(queryset=SchoolYear.objects.all(), empty_label=None)
+#     # reservation_period = forms.ModelChoiceField(queryset=ReservationPeriod.objects.none(), empty_label=None)
+
+#     school_year = forms.ModelChoiceField(queryset=SchoolYear.objects.all(), empty_label=None)
+#     reservation_period = forms.ModelChoiceField(queryset=ReservationPeriod.objects.none(), empty_label=None, required=False, widget=forms.Select(attrs={'data-dependent-on': 'school_year'}))
+
+
+#     def __init__(self, *args, **kwargs):
+#         super().__init__(*args, **kwargs)
+#         if 'school_year' in self.data:
+#             try:
+#                 school_year_id = int(self.data.get('school_year'))
+#                 self.fields['reservation_period'].queryset = ReservationPeriod.objects.filter(school_year_id=school_year_id).order_by('start_date')
+#             except (ValueError, TypeError):
+#                 pass
+
+class ReservationCalendarByDateForm(forms.Form):
+
+    school_year = forms.ChoiceField(
+        choices=[("", "Επιλογή...")],
+        required=False,
+        # label="Σχολικό Έτος",
+        widget=forms.Select(attrs={'id': 'school_year'}),
+    )
+    reservation_period = forms.ChoiceField(
+        choices=[("", "Επιλογή...")],
+        required=False,
+        # label="Περίοδος Επισκέψεων",
+        widget=forms.Select(attrs={'id': 'reservation_period'})
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        # Set initial choices for school_year
+        self.fields['school_year'].choices = [("", "Επιλογή...")] + [(year.id, year.name) for year in SchoolYear.objects.all().order_by('start_date')]
+        # self.helper.form_show_labels = False
+        self.fields['school_year'].label = ""
+        self.fields['reservation_period'].label = ""
