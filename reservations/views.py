@@ -6,7 +6,7 @@ from django.utils import timezone
 from django.forms import formset_factory
 from django.core.serializers import serialize
 from django.http import JsonResponse
-from django.db.models import Q, Sum, IntegerField, F, Value
+from django.db.models import Q, Sum, IntegerField, F, Value, Count
 from django.db.models.functions import Cast
 from django.contrib import messages
 from django.core.mail import send_mail
@@ -16,11 +16,11 @@ from schools.models import SchoolUser, Department
 from .forms import ReservationForm, BaseReservationFormSet, ReservationUpdateForm, ReservationUpdateAdminForm, ReservationDashboardForm, ReservationCalendarByDateForm
 from .utils import get_occupied_daytimes, get_allowed_daytimes, get_occupied_exceptional_daytimes, get_allowed_exceptional_daytimes, calculate_availability_percentage
 from datetime import timedelta
-#from calendar import monthrange
 import datetime
 from datetime import datetime as dt
 import pytz
 from datetime import datetime, date
+from itertools import groupby
 
 
 @login_required
@@ -1269,12 +1269,11 @@ def statistics_per_period(request, reservation_id):
         'res_num': res_num, 
         'school_num': school_num, 
         'dept_num': dept_num,
-        'total_students': total_students,
+        'total_students': total_students['total_students'],
         'reservation_period': reservation_period,
     })
 
     return render(request, 'reservations/statistics_per_period.html', context)
-    
 
 def reservationsPerDayResPeriod(request, reservation_id):
 
@@ -1299,3 +1298,83 @@ def reservationsPerDayResPeriod(request, reservation_id):
         reservations_per_day.append({chart_days[i]:res_num[i]})
 
     return JsonResponse(reservations_per_day, safe=False)
+
+def reservationsPerDeptResPeriod(request, reservation_id):
+
+    reservation_period = get_object_or_404(ReservationPeriod, pk=reservation_id)
+
+    departments = Department.objects.filter(
+        schooluser__reservation__reservation_period_id=reservation_id
+    ).distinct()
+    
+    #fill in chart departments
+    chart_depts = []
+
+    for i in range(len(departments)):
+        chart_depts.append(departments[i].name)
+
+    #fill in reservation number
+    res_num_dept=[]
+
+    for i in range(len(departments)):
+        res_num_dept.append(Reservation.objects.filter(reservation_period=reservation_period).filter(schoolUser__department__id=departments[i].id).exclude(status='denied').count())
+
+    #json dict
+    reservations_per_dept=[]
+    for i in range(len(chart_depts)):
+        reservations_per_dept.append({chart_depts[i]:res_num_dept[i]})
+
+    return JsonResponse(reservations_per_dept, safe=False)
+
+def reservationsPerStatusResPeriod(request, reservation_id):
+
+    reservation_period = get_object_or_404(ReservationPeriod, pk=reservation_id)
+
+    volumes = []
+    status_names = ['Εκκρεμείς', 'Επιβεβαιωμένες', 'Ακυρωμένες',]
+
+    volumes.append(Reservation.objects.filter(reservation_period=reservation_period).filter(status='pending').count())
+    volumes.append(Reservation.objects.filter(reservation_period=reservation_period).filter(status='approved').count())
+    volumes.append(Reservation.objects.filter(reservation_period=reservation_period).filter(status='denied').count())
+
+    volumes_per_status = []
+    for i in range(len(volumes)):
+        volumes_per_status.append({status_names[i]:volumes[i]})
+
+    return JsonResponse(volumes_per_status, safe=False)
+
+def reservationsPerPerformedResPeriod(request, reservation_id):
+
+    reservation_period = get_object_or_404(ReservationPeriod, pk=reservation_id)
+
+    volumes = []
+    performed_names = ['Πραγματοποιημένες', 'Μη Πραγματοποιημένες',]
+
+    volumes.append(Reservation.objects.filter(reservation_period=reservation_period).filter(is_performed=True).count())
+    volumes.append(Reservation.objects.filter(reservation_period=reservation_period).filter(is_performed=False).count())
+
+    volumes_per_performed = []
+    for i in range(len(volumes)):
+        volumes_per_performed.append({performed_names[i]:volumes[i]})
+
+    return JsonResponse(volumes_per_performed, safe=False)
+
+def reservationsPerTimeslotResPeriod(request, reservation_id):
+
+    reservation_period = get_object_or_404(ReservationPeriod, pk=reservation_id)
+    reservations_per_hour = Reservation.objects.filter(reservation_period=reservation_period).exclude(status='denied').values('timeslot__dayTime__slot').annotate(count=Count('id')).order_by('timeslot__dayTime__slot')
+
+    timeslots = []
+    res_per_timeslot = []
+
+    for key, group in groupby(reservations_per_hour, key=lambda x: x['timeslot__dayTime__slot']):
+        timeslots.append(key.strftime('%H:%M'))
+        res_per_timeslot.append(sum(item['count'] for item in group))
+
+    volumes_per_timeslot = []
+    for i in range(len(timeslots)):
+        volumes_per_timeslot.append({timeslots[i]:res_per_timeslot[i]})
+
+    return JsonResponse(volumes_per_timeslot, safe=False)
+    
+

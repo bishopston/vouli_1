@@ -3,10 +3,44 @@
 {% block content %}
 
 <div class="my-3 tab-content justify-content-center">
-    <!-- <div class="row">
-            <canvas id="reservationsPerDayChart" width="400" height="150"></canvas>
-    </div> -->
     <div class="container-fluid px-4">
+        <div class="d-flex justify-content-center">
+            <h3 class="my-3">Στατιστικά Στοιχεία Περιόδου {{ reservation_period.start_date|date:'d/m/Y' }} - {{ reservation_period.end_date|date:'d/m/Y' }}</h3>
+        </div>
+        <div class="row">
+            <div class="col-xl-3 col-md-6">
+                <div class="card bg-primary text-white mb-4">
+                    <div class="card-body">Αριθμός Κρατήσεων</div>
+                    <div class="card-footer d-flex align-items-center justify-content-between">
+                        <h5 class="text-white">{{ res_num }}</h5>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-3 col-md-6">
+                <div class="card bg-warning text-white mb-4">
+                    <div class="card-body">Αριθμός Περιφερειακών Διευθύνσεων</div>
+                    <div class="card-footer d-flex align-items-center justify-content-between">
+                        <h5 class="text-white">{{ dept_num }}</h5>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-3 col-md-6">
+                <div class="card bg-success text-white mb-4">
+                    <div class="card-body">Αριθμός Σχολείων</div>
+                    <div class="card-footer d-flex align-items-center justify-content-between">
+                        <h5 class="text-white">{{ school_num }}</h5>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-3 col-md-6">
+                <div class="card bg-danger text-white mb-4">
+                    <div class="card-body">Αριθμός Μαθητών</div>
+                    <div class="card-footer d-flex align-items-center justify-content-between">
+                        <h5 class="text-white">{{ total_students }}</h5>
+                    </div>
+                </div>
+            </div>
+        </div>
         <div class="row">
             <div class="col-xl-6">
                 <div class="card mb-4">
@@ -17,9 +51,37 @@
                     <div class="card-body"><canvas id="reservationsPerDayChart" width="100%" height="40"></canvas></div>
                 </div>
             </div>
+            <div class="col-xl-6">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <i class="fas fa-chart-bar me-1"></i>
+                        Κρατήσεις ανα περιφερειακή διεύθυνση
+                    </div>
+                    <div class="card-body"><canvas id="reservationsPerDeptChart" width="100%" height="40"></canvas></div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-xl-4">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <i class="fas fa-chart-pie me-1"></i>
+                        Αριθμός κρατήσεων ανα κατάσταση
+                    </div>
+                    <div class="card-body"><canvas id="reservationsPerStatusResPeriod" width="100%" height="40"></canvas></div>
+                </div>
+            </div>
+            <div class="col-xl-4">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <i class="fas fa-chart-pie me-1"></i>
+                        Πραγματοποιημένες / Μη πραγματοποιημένες κρατήσεις
+                    </div>
+                    <div class="card-body"><canvas id="reservationsPerPerformedResPeriod" width="100%" height="40"></canvas></div>
+                </div>
+            </div>
         </div>
     </div>
-
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -27,10 +89,19 @@
 <script> 
 
     var dataURLreservationsPerDay = '{% url "reservations:reservationsPerDayResPeriod" reservation_period.id %}'
+    var dataURLreservationsPerDept = '{% url "reservations:reservationsPerDeptResPeriod" reservation_period.id %}'
+    var dataURLreservationsPerStatus = '{% url "reservations:reservationsPerStatusResPeriod" reservation_period.id %}'
+    var dataURLreservationsPerPerformed = '{% url "reservations:reservationsPerPerformedResPeriod" reservation_period.id %}'
 
     var state ={	
         'itemsreservations':[],
         'valuesreservations':[],
+        'itemsreservationsperdept':[],
+        'valuesreservationsperdept':[],
+        'itemsreservationsperstatus':[],
+        'valuesreservationsperstatus':[],
+        'itemsreservationsperperformed':[],
+        'valuesreservationsperperformed':[],
         }
 
         $.ajax({
@@ -47,6 +118,69 @@
                 console.log(state.itemsreservations)
                 console.log(state.valuesreservations)
                 setreservationsPerDayChart()
+            },
+            error: function(error_data){
+                console.log("error")
+                console.log(error_data)
+            }
+        })
+
+        $.ajax({
+            method: "GET",
+            url: dataURLreservationsPerDept,
+            success: function(response){
+                for (var i in response){
+                    var key = Object.keys(response[i])[0]
+                    var value = Object.values(response[i])[0]
+                
+                state.itemsreservationsperdept.push(key)
+                state.valuesreservationsperdept.push(value)
+                }
+                console.log(state.itemsreservationsperdept)
+                console.log(state.valuesreservationsperdept)
+                setreservationsPerDeptChart()
+            },
+            error: function(error_data){
+                console.log("error")
+                console.log(error_data)
+            }
+        })
+
+        $.ajax({
+            method: "GET",
+            url: dataURLreservationsPerStatus,
+            success: function(response){
+                for (var i in response){
+                    var key = Object.keys(response[i])[0]
+                    var value = Object.values(response[i])[0]
+                
+                state.itemsreservationsperstatus.push(key)
+                state.valuesreservationsperstatus.push(value)
+                }
+                console.log(state.itemsreservationsperstatus)
+                console.log(state.valuesreservationsperstatus)
+                setreservationsPerStatusChart()
+            },
+            error: function(error_data){
+                console.log("error")
+                console.log(error_data)
+            }
+        })
+
+        $.ajax({
+            method: "GET",
+            url: dataURLreservationsPerPerformed,
+            success: function(response){
+                for (var i in response){
+                    var key = Object.keys(response[i])[0]
+                    var value = Object.values(response[i])[0]
+                
+                state.itemsreservationsperperformed.push(key)
+                state.valuesreservationsperperformed.push(value)
+                }
+                console.log(state.itemsreservationsperperformed)
+                console.log(state.valuesreservationsperperformed)
+                setreservationsPerPerformedChart()
             },
             error: function(error_data){
                 console.log("error")
@@ -98,6 +232,111 @@
             }
             })
         }
+
+    function setreservationsPerDeptChart(){
+        //Chart.defaults.global.defaultFontStyle = 'Bold'
+        var ctx = document.getElementById("reservationsPerDeptChart").getContext('2d');
+        
+        var reservationsPerDeptChart = new Chart(ctx, {
+        responsive: true,
+        type: 'bar',
+        data: {
+            labels: state.itemsreservationsperdept,
+            datasets: [{
+                label: "Κρατήσεις ανα περιφερειακή διεύθυνση",
+                data: state.valuesreservationsperdept,
+                borderWidth: 1,
+                borderColor: 'rgba(109, 121, 124, 0.8)',
+                backgroundColor: 'rgba(109, 121, 124, 0.8)',
+                order: 1
+            },
+            ]
+        },
+        options: {
+                scales: {
+                    yAxes: [{
+                        id: 'A',
+                        position: 'left',
+                        type: 'linear',
+                        ticks: {
+                            beginAtZero:true,
+                            precision: 0
+                        }
+                    },
+                    ],
+                    xAxes: [{
+                        ticks: {
+                            autoSkip: false,
+                        }
+                    }]
+                },
+                legend: {
+                    display: true,
+                }
+            }
+            })
+        }
+
+    function setreservationsPerStatusChart(){
+        var ctx = document.getElementById("reservationsPerStatusResPeriod").getContext('2d');
+        
+        var reservationsPerStatusChart = new Chart(ctx, {
+        responsive: true,
+        type: 'doughnut',
+        data: {
+            labels: state.itemsreservationsperstatus,
+            datasets: [{
+                label: 'Αριθμός κρατήσεων ανα κατάσταση',
+                data: state.valuesreservationsperstatus,
+                yAxisID: 'A',
+                borderWidth: 1,
+                backgroundColor: [
+                'rgba(255, 99, 132, 0.5)',
+                'rgba(54, 162, 235, 0.5)',
+                'rgba(255, 206, 86, 0.5)',
+                ],
+                borderColor: [
+                'rgba(255, 99, 132, 0.5)',
+                'rgba(54, 162, 235, 0.5)',
+                'rgba(255, 206, 86, 0.5)',
+                ],
+                fill: true,
+                order: 1
+            },
+            ]
+        },
+        })
+    }
+
+    function setreservationsPerPerformedChart(){
+        var ctx = document.getElementById("reservationsPerPerformedResPeriod").getContext('2d');
+        
+        var reservationsPerPerformedChart = new Chart(ctx, {
+        responsive: true,
+        type: 'pie',
+        data: {
+            labels: state.itemsreservationsperperformed,
+            datasets: [{
+                label: 'Πραγματοποιημένες / Μη πραγματοποιημένες κρατήσεις',
+                data: state.valuesreservationsperperformed,
+                yAxisID: 'A',
+                borderWidth: 1,
+                backgroundColor: [
+                'rgba(73, 202, 45, 0.8)',
+                'rgba(194, 53, 19, 0.8)',
+                ],
+                borderColor: [
+                'rgba(73, 202, 45, 0.8)',
+                'rgba(194, 53, 19, 0.8)',
+                ],
+                fill: true,
+                order: 1
+            },
+            ]
+        },
+
+        })
+    }
 
 </script>
 

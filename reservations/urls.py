@@ -30,6 +30,10 @@ urlpatterns = [
     path('calendar_reservations/<int:reservation_period_id>/<int:year>/<int:month>/', views.calendar_reservations, name='calendar_reservations_month_year'),
     path('reservation_details_by_date/', views.reservation_details_by_date, name='reservation_details_by_date'),
     path('calendar_reservations_res_period_selection/', views.calendar_reservations_res_period_selection, name='calendar_reservations_res_period_selection'),
+    #statistics per reservation period
     path('statistics_per_period/<int:reservation_id>/', views.statistics_per_period, name='statistics_per_period'),
     path('reservationsPerDayResPeriod/<int:reservation_id>/', views.reservationsPerDayResPeriod, name='reservationsPerDayResPeriod'),
+    path('reservationsPerDeptResPeriod/<int:reservation_id>/', views.reservationsPerDeptResPeriod, name='reservationsPerDeptResPeriod'),
+    path('reservationsPerStatusResPeriod/<int:reservation_id>/', views.reservationsPerStatusResPeriod, name='reservationsPerStatusResPeriod'),
+    path('reservationsPerPerformedResPeriod/<int:reservation_id>/', views.reservationsPerPerformedResPeriod, name='reservationsPerPerformedResPeriod'),
 ]
