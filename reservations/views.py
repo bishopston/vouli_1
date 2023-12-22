@@ -6,7 +6,8 @@ from django.utils import timezone
 from django.forms import formset_factory
 from django.core.serializers import serialize
 from django.http import JsonResponse
-from django.db.models import Q, Max, Min, Avg, Sum, F
+from django.db.models import Q, Sum, IntegerField, F, Value
+from django.db.models.functions import Cast
 from django.contrib import messages
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
@@ -1249,18 +1250,44 @@ def reservation_details_by_date(request):
     return render(request, 'reservations/reservation_details_table.html', context)
 
 
+@login_required
+@user_passes_test(lambda u: u.is_superuser)
+def statistics_per_period(request, reservation_id):
 
+    reservation_period = get_object_or_404(ReservationPeriod, pk=reservation_id)
+    context = {}
 
-def ReservationsPerDayResPeriod(request, reservation_period_id):
+    if reservation_period:
+        res_num = Reservation.objects.filter(reservation_period=reservation_period).count()
+        school_num = SchoolUser.objects.filter(reservation__reservation_period_id=reservation_period).distinct().count()
+        dept_num = Department.objects.filter(schooluser__reservation__reservation_period_id=reservation_period).distinct().count()
+        total_students = Reservation.objects.filter(reservation_period=reservation_period).exclude(status='denied').aggregate(total_students=Sum(Cast('student_number', IntegerField())))
+    else:
+        context['error'] = 'Δεν έχετε επιλέξει έγκυρη περίοδο επισκέψεων'
 
-    reservation_period = get_object_or_404(ReservationPeriod, pk=reservation_period_id)
+    context.update({
+        'res_num': res_num, 
+        'school_num': school_num, 
+        'dept_num': dept_num,
+        'total_students': total_students,
+        'reservation_period': reservation_period,
+    })
+
+    return render(request, 'reservations/statistics_per_period.html', context)
+    
+
+def reservationsPerDayResPeriod(request, reservation_id):
+
+    reservation_period = get_object_or_404(ReservationPeriod, pk=reservation_id)
     days = Day.objects.filter(date__gte=reservation_period.start_date, date__lte=reservation_period.end_date).order_by('date')
-
+    
+    #fill in chart dates
     chart_days = []
 
     for i in range(len(days)):
         chart_days.append(datetime.strftime(days[i].date, "%d/%m/%Y"))
 
+    #fill in reservation number
     res_num=[]
 
     for i in range(len(days)):
