@@ -6,7 +6,7 @@ from django.utils import timezone
 from django.forms import formset_factory
 from django.core.serializers import serialize
 from django.http import JsonResponse
-from django.db.models import Q, Sum, IntegerField, F, Value, Count
+from django.db.models import Q, Sum, IntegerField, F, Value, Count, Case, When
 from django.db.models.functions import Cast
 from django.contrib import messages
 from django.core.mail import send_mail
@@ -1562,3 +1562,32 @@ def studentsPerResPeriodSchoolYear(request, schoolYear_id):
         students_per_res_period.append({res_periods[i]:stud_num[i]})
 
     return JsonResponse(students_per_res_period, safe=False)
+
+@login_required
+@user_passes_test(lambda u: u.is_superuser)
+def statistics_all_years(request):
+
+    context = {}
+
+    res_num = Reservation.objects.exclude(status='denied').count()
+    school_users_with_reservations = SchoolUser.objects.annotate(
+        reservation_count=Count('reservation', distinct=True)
+    ).filter(reservation_count__gt=0).count()
+    departments_with_reservations = Department.objects.filter(
+        schooluser__reservation__isnull=False
+    ).annotate(reservation_count=Count('schooluser__reservation', distinct=True)).count()
+    total_students = Reservation.objects.exclude(status='denied').aggregate(
+        total_students=Sum(Case(
+            When(student_number__isnull=False, then=Cast('student_number', IntegerField())),
+            default=Value(0),
+            output_field=IntegerField()
+        ))
+    )
+    context.update({
+        'res_num': res_num, 
+        'school_users_with_reservations': school_users_with_reservations, 
+        'departments_with_reservations': departments_with_reservations,
+        'total_students': total_students['total_students'],
+    })
+
+    return render(request, 'reservations/statistics_all_years.html', context)

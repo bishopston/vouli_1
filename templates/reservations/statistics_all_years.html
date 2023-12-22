@@ -1,0 +1,47 @@
+{% extends '../base/base_admin.html' %}
+
+{% block content %}
+
+<div class="my-3 tab-content justify-content-center">
+    <div class="container-fluid px-4">
+        <div class="d-flex justify-content-center">
+            <h3 class="my-3">Συνολικά Στατιστικά Στοιχεία για όλα τα Σχολικά Έτη</h3>
+        </div>
+        <div class="row">
+            <div class="col-xl-3 col-md-6">
+                <div class="card bg-primary text-white mb-4">
+                    <div class="card-body">Αριθμός Κρατήσεων</div>
+                    <div class="card-footer d-flex align-items-center justify-content-between">
+                        <h5 class="text-white">{{ res_num }}</h5>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-3 col-md-6">
+                <div class="card bg-warning text-white mb-4">
+                    <div class="card-body">Αριθμός Περιφερειακών Διευθύνσεων</div>
+                    <div class="card-footer d-flex align-items-center justify-content-between">
+                        <h5 class="text-white">{{ departments_with_reservations }}</h5>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-3 col-md-6">
+                <div class="card bg-success text-white mb-4">
+                    <div class="card-body">Αριθμός Σχολείων</div>
+                    <div class="card-footer d-flex align-items-center justify-content-between">
+                        <h5 class="text-white">{{ school_users_with_reservations }}</h5>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-3 col-md-6">
+                <div class="card bg-danger text-white mb-4">
+                    <div class="card-body">Αριθμός Μαθητών</div>
+                    <div class="card-footer d-flex align-items-center justify-content-between">
+                        <h5 class="text-white">{{ total_students }}</h5>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
