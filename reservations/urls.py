@@ -37,4 +37,7 @@ urlpatterns = [
     path('reservationsPerStatusResPeriod/<int:reservation_id>/', views.reservationsPerStatusResPeriod, name='reservationsPerStatusResPeriod'),
     path('reservationsPerPerformedResPeriod/<int:reservation_id>/', views.reservationsPerPerformedResPeriod, name='reservationsPerPerformedResPeriod'),
     path('reservationsPerTimeslotResPeriod/<int:reservation_id>/', views.reservationsPerTimeslotResPeriod, name='reservationsPerTimeslotResPeriod'),
+    #statistics per school year
+    path('statistics_per_year/<int:schoolYear_id>/', views.statistics_per_year, name='statistics_per_year'),
+    path('reservationsPerDaySchoolYear/<int:schoolYear_id>/', views.reservationsPerDaySchoolYear, name='reservationsPerDaySchoolYear'),
 ]

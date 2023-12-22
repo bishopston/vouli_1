@@ -1258,7 +1258,7 @@ def statistics_per_period(request, reservation_id):
     context = {}
 
     if reservation_period:
-        res_num = Reservation.objects.filter(reservation_period=reservation_period).count()
+        res_num = Reservation.objects.filter(reservation_period=reservation_period).exclude(status='denied').count()
         school_num = SchoolUser.objects.filter(reservation__reservation_period_id=reservation_period).distinct().count()
         dept_num = Department.objects.filter(schooluser__reservation__reservation_period_id=reservation_period).distinct().count()
         total_students = Reservation.objects.filter(reservation_period=reservation_period).exclude(status='denied').aggregate(total_students=Sum(Cast('student_number', IntegerField())))
@@ -1378,3 +1378,51 @@ def reservationsPerTimeslotResPeriod(request, reservation_id):
     return JsonResponse(volumes_per_timeslot, safe=False)
     
 
+@login_required
+@user_passes_test(lambda u: u.is_superuser)
+def statistics_per_year(request, schoolYear_id):
+
+    school_year = get_object_or_404(SchoolYear, pk=schoolYear_id)
+    context = {}
+
+    if school_year:
+        res_num = Reservation.objects.filter(reservation_period__schoolYear=school_year).exclude(status='denied').count()
+        school_num = SchoolUser.objects.filter(reservation__reservation_period__schoolYear=school_year).distinct().count()
+        dept_num = Department.objects.filter(schooluser__reservation__reservation_period__schoolYear=school_year).distinct().count()
+        total_students = Reservation.objects.filter(reservation_period__schoolYear=school_year).exclude(status='denied').aggregate(total_students=Sum(Cast('student_number', IntegerField())))
+    else:
+        context['error'] = 'Δεν έχετε επιλέξει έγκυρο σχολικό έτος'
+
+    context.update({
+        'res_num': res_num, 
+        'school_num': school_num, 
+        'dept_num': dept_num,
+        'total_students': total_students['total_students'],
+        'school_year': school_year,
+    })
+
+    return render(request, 'reservations/statistics_per_year.html', context)
+
+def reservationsPerDaySchoolYear(request, schoolYear_id):
+
+    school_year = get_object_or_404(SchoolYear, pk=schoolYear_id)
+    days = Day.objects.filter(date__gte=school_year.start_date, date__lte=school_year.end_date).order_by('date')
+    
+    #fill in chart dates
+    chart_days = []
+
+    for i in range(len(days)):
+        chart_days.append(datetime.strftime(days[i].date, "%d/%m/%Y"))
+
+    #fill in reservation number
+    res_num=[]
+
+    for i in range(len(days)):
+        res_num.append(Reservation.objects.filter(reservation_date=days[i]).exclude(status='denied').count())
+
+    #json dict
+    reservations_per_day=[]
+    for i in range(len(chart_days)):
+        reservations_per_day.append({chart_days[i]:res_num[i]})
+
+    return JsonResponse(reservations_per_day, safe=False)

@@ -1,0 +1,149 @@
+{% extends '../base/base_admin.html' %}
+
+{% block content %}
+
+<div class="my-3 tab-content justify-content-center">
+    <div class="container-fluid px-4">
+        <div class="d-flex justify-content-center">
+            <h3 class="my-3">Στατιστικά Στοιχεία Σχολικού Έτους {{ school_year.start_date|date:'d/m/Y' }} - {{ school_year.end_date|date:'d/m/Y' }}</h3>
+        </div>
+        <div class="row">
+            <div class="col-xl-3 col-md-6">
+                <div class="card bg-primary text-white mb-4">
+                    <div class="card-body">Αριθμός Κρατήσεων</div>
+                    <div class="card-footer d-flex align-items-center justify-content-between">
+                        <h5 class="text-white">{{ res_num }}</h5>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-3 col-md-6">
+                <div class="card bg-warning text-white mb-4">
+                    <div class="card-body">Αριθμός Περιφερειακών Διευθύνσεων</div>
+                    <div class="card-footer d-flex align-items-center justify-content-between">
+                        <h5 class="text-white">{{ dept_num }}</h5>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-3 col-md-6">
+                <div class="card bg-success text-white mb-4">
+                    <div class="card-body">Αριθμός Σχολείων</div>
+                    <div class="card-footer d-flex align-items-center justify-content-between">
+                        <h5 class="text-white">{{ school_num }}</h5>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-3 col-md-6">
+                <div class="card bg-danger text-white mb-4">
+                    <div class="card-body">Αριθμός Μαθητών</div>
+                    <div class="card-footer d-flex align-items-center justify-content-between">
+                        <h5 class="text-white">{{ total_students }}</h5>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-xl-9">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <i class="fas fa-chart-bar me-1"></i>
+                        Κρατήσεις ανα ημέρα
+                    </div>
+                    <div class="card-body"><canvas id="reservationsPerDayChart" width="100%" height="20"></canvas></div>
+                </div>
+            </div>
+            <div class="col-xl-3">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <i class="fas fa-chart-bar me-1"></i>
+                        Κρατήσεις ανα περίοδο επισκέψεων
+                    </div>
+                    <div class="card-body"><canvas id="reservationsPerDeptChart" width="100%" height="40"></canvas></div>
+                </div>
+            </div>
+        </div>
+
+
+
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script> 
+
+    var dataURLreservationsPerDay = '{% url "reservations:reservationsPerDaySchoolYear" school_year.id %}'
+
+    var state ={	
+        'itemsreservations':[],
+        'valuesreservations':[],
+        }
+
+    $.ajax({
+        method: "GET",
+        url: dataURLreservationsPerDay,
+        success: function(response){
+            for (var i in response){
+                var key = Object.keys(response[i])[0]
+                var value = Object.values(response[i])[0]
+            
+            state.itemsreservations.push(key)
+            state.valuesreservations.push(value)
+            }
+            console.log(state.itemsreservations)
+            console.log(state.valuesreservations)
+            setreservationsPerDayChart()
+        },
+        error: function(error_data){
+            console.log("error")
+            console.log(error_data)
+        }
+    })
+
+    function setreservationsPerDayChart(){
+        //Chart.defaults.global.defaultFontStyle = 'Bold'
+        var ctx = document.getElementById("reservationsPerDayChart").getContext('2d');
+        
+        var reservationsPerDayChart = new Chart(ctx, {
+        responsive: true,
+        type: 'bar',
+        data: {
+            labels: state.itemsreservations,
+            datasets: [{
+                label: "Κρατήσεις",
+                data: state.valuesreservations,
+                borderWidth: 1,
+                borderColor: 'rgba(33, 165, 206, 0.8)',
+                backgroundColor: 'rgba(33, 165, 206, 0.8)',
+                order: 1
+            },
+            ]
+        },
+        options: {
+                scales: {
+                    yAxes: [{
+                        id: 'A',
+                        position: 'left',
+                        type: 'linear',
+                        ticks: {
+                            beginAtZero:true,
+                            precision: 0
+                        }
+                    },
+                    ],
+                    xAxes: [{
+                        ticks: {
+                            autoSkip: true,
+                            sampleSize: 7
+                        }
+                    }]
+                },
+                legend: {
+                    display: true,
+                }
+            }
+            })
+        }
+
+</script>
+
+{% endblock %}

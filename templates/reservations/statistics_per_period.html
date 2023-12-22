@@ -116,110 +116,110 @@
         'valuesreservationspertimeslot':[],
         }
 
-        $.ajax({
-            method: "GET",
-            url: dataURLreservationsPerDay,
-            success: function(response){
-                for (var i in response){
-                    var key = Object.keys(response[i])[0]
-                    var value = Object.values(response[i])[0]
-                
-                state.itemsreservations.push(key)
-                state.valuesreservations.push(value)
-                }
-                console.log(state.itemsreservations)
-                console.log(state.valuesreservations)
-                setreservationsPerDayChart()
-            },
-            error: function(error_data){
-                console.log("error")
-                console.log(error_data)
+    $.ajax({
+        method: "GET",
+        url: dataURLreservationsPerDay,
+        success: function(response){
+            for (var i in response){
+                var key = Object.keys(response[i])[0]
+                var value = Object.values(response[i])[0]
+            
+            state.itemsreservations.push(key)
+            state.valuesreservations.push(value)
             }
-        })
+            console.log(state.itemsreservations)
+            console.log(state.valuesreservations)
+            setreservationsPerDayChart()
+        },
+        error: function(error_data){
+            console.log("error")
+            console.log(error_data)
+        }
+    })
 
-        $.ajax({
-            method: "GET",
-            url: dataURLreservationsPerDept,
-            success: function(response){
-                for (var i in response){
-                    var key = Object.keys(response[i])[0]
-                    var value = Object.values(response[i])[0]
-                
-                state.itemsreservationsperdept.push(key)
-                state.valuesreservationsperdept.push(value)
-                }
-                console.log(state.itemsreservationsperdept)
-                console.log(state.valuesreservationsperdept)
-                setreservationsPerDeptChart()
-            },
-            error: function(error_data){
-                console.log("error")
-                console.log(error_data)
+    $.ajax({
+        method: "GET",
+        url: dataURLreservationsPerDept,
+        success: function(response){
+            for (var i in response){
+                var key = Object.keys(response[i])[0]
+                var value = Object.values(response[i])[0]
+            
+            state.itemsreservationsperdept.push(key)
+            state.valuesreservationsperdept.push(value)
             }
-        })
+            console.log(state.itemsreservationsperdept)
+            console.log(state.valuesreservationsperdept)
+            setreservationsPerDeptChart()
+        },
+        error: function(error_data){
+            console.log("error")
+            console.log(error_data)
+        }
+    })
 
-        $.ajax({
-            method: "GET",
-            url: dataURLreservationsPerStatus,
-            success: function(response){
-                for (var i in response){
-                    var key = Object.keys(response[i])[0]
-                    var value = Object.values(response[i])[0]
-                
-                state.itemsreservationsperstatus.push(key)
-                state.valuesreservationsperstatus.push(value)
-                }
-                console.log(state.itemsreservationsperstatus)
-                console.log(state.valuesreservationsperstatus)
-                setreservationsPerStatusChart()
-            },
-            error: function(error_data){
-                console.log("error")
-                console.log(error_data)
+    $.ajax({
+        method: "GET",
+        url: dataURLreservationsPerStatus,
+        success: function(response){
+            for (var i in response){
+                var key = Object.keys(response[i])[0]
+                var value = Object.values(response[i])[0]
+            
+            state.itemsreservationsperstatus.push(key)
+            state.valuesreservationsperstatus.push(value)
             }
-        })
+            console.log(state.itemsreservationsperstatus)
+            console.log(state.valuesreservationsperstatus)
+            setreservationsPerStatusChart()
+        },
+        error: function(error_data){
+            console.log("error")
+            console.log(error_data)
+        }
+    })
 
-        $.ajax({
-            method: "GET",
-            url: dataURLreservationsPerPerformed,
-            success: function(response){
-                for (var i in response){
-                    var key = Object.keys(response[i])[0]
-                    var value = Object.values(response[i])[0]
-                
-                state.itemsreservationsperperformed.push(key)
-                state.valuesreservationsperperformed.push(value)
-                }
-                console.log(state.itemsreservationsperperformed)
-                console.log(state.valuesreservationsperperformed)
-                setreservationsPerPerformedChart()
-            },
-            error: function(error_data){
-                console.log("error")
-                console.log(error_data)
+    $.ajax({
+        method: "GET",
+        url: dataURLreservationsPerPerformed,
+        success: function(response){
+            for (var i in response){
+                var key = Object.keys(response[i])[0]
+                var value = Object.values(response[i])[0]
+            
+            state.itemsreservationsperperformed.push(key)
+            state.valuesreservationsperperformed.push(value)
             }
-        })
+            console.log(state.itemsreservationsperperformed)
+            console.log(state.valuesreservationsperperformed)
+            setreservationsPerPerformedChart()
+        },
+        error: function(error_data){
+            console.log("error")
+            console.log(error_data)
+        }
+    })
 
-        $.ajax({
-            method: "GET",
-            url: dataURLreservationsPerTimeslot,
-            success: function(response){
-                for (var i in response){
-                    var key = Object.keys(response[i])[0]
-                    var value = Object.values(response[i])[0]
-                
-                state.itemsreservationspertimeslot.push(key)
-                state.valuesreservationspertimeslot.push(value)
-                }
-                console.log(state.itemsreservationspertimeslot)
-                console.log(state.valuesreservationspertimeslot)
-                setreservationsPerTimeslotChart()
-            },
-            error: function(error_data){
-                console.log("error")
-                console.log(error_data)
+    $.ajax({
+        method: "GET",
+        url: dataURLreservationsPerTimeslot,
+        success: function(response){
+            for (var i in response){
+                var key = Object.keys(response[i])[0]
+                var value = Object.values(response[i])[0]
+            
+            state.itemsreservationspertimeslot.push(key)
+            state.valuesreservationspertimeslot.push(value)
             }
-        })
+            console.log(state.itemsreservationspertimeslot)
+            console.log(state.valuesreservationspertimeslot)
+            setreservationsPerTimeslotChart()
+        },
+        error: function(error_data){
+            console.log("error")
+            console.log(error_data)
+        }
+    })
 
     function setreservationsPerDayChart(){
         //Chart.defaults.global.defaultFontStyle = 'Bold'
@@ -231,7 +231,7 @@
         data: {
             labels: state.itemsreservations,
             datasets: [{
-                label: "Κρατήσεις ανα ημέρα",
+                label: "Κρατήσεις",
                 data: state.valuesreservations,
                 borderWidth: 1,
                 borderColor: 'rgba(33, 165, 206, 0.8)',
@@ -276,7 +276,7 @@
         data: {
             labels: state.itemsreservationsperdept,
             datasets: [{
-                label: "Κρατήσεις ανα περιφερειακή διεύθυνση",
+                label: "Κρατήσεις",
                 data: state.valuesreservationsperdept,
                 borderWidth: 1,
                 borderColor: 'rgba(109, 121, 124, 0.8)',
