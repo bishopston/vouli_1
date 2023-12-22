@@ -42,26 +42,47 @@
             </div>
         </div>
         <div class="row">
-            <div class="col-xl-9">
-                <div class="card mb-4">
-                    <div class="card-header">
-                        <i class="fas fa-chart-bar me-1"></i>
-                        Κρατήσεις ανα ημέρα
-                    </div>
-                    <div class="card-body"><canvas id="reservationsPerDayChart" width="100%" height="20"></canvas></div>
-                </div>
-            </div>
-            <div class="col-xl-3">
+            <div class="col-xl-6">
                 <div class="card mb-4">
                     <div class="card-header">
                         <i class="fas fa-chart-bar me-1"></i>
                         Κρατήσεις ανα περίοδο επισκέψεων
                     </div>
-                    <div class="card-body"><canvas id="reservationsPerDeptChart" width="100%" height="40"></canvas></div>
+                    <div class="card-body"><canvas id="reservationsPerResPeriodChart" width="100%" height="30"></canvas></div>
+                </div>
+            </div>
+            <div class="col-xl-6">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <i class="fas fa-chart-bar me-1"></i>
+                        Μαθητές ανα περίοδο επισκέψεων
+                    </div>
+                    <div class="card-body"><canvas id="studentsPerResPeriodChart" width="100%" height="30"></canvas></div>
                 </div>
             </div>
         </div>
-
+        <div class="row">
+            <div class="col-xl-12">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <i class="fas fa-chart-bar me-1"></i>
+                        Κρατήσεις ανα ημέρα
+                    </div>
+                    <div class="card-body"><canvas id="reservationsPerDayChart" width="100%" height="30"></canvas></div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-xl-12">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <i class="fas fa-chart-bar me-1"></i>
+                        Κρατήσεις ανα περιφερειακή διεύθυνση
+                    </div>
+                    <div class="card-body"><canvas id="reservationsPerDeptChart" width="100%" height="30"></canvas></div>
+                </div>
+            </div>
+        </div>
 
 
     </div>
@@ -72,10 +93,19 @@
 <script> 
 
     var dataURLreservationsPerDay = '{% url "reservations:reservationsPerDaySchoolYear" school_year.id %}'
+    var dataURLreservationsPerResPeriod = '{% url "reservations:reservationsPerResPeriodSchoolYear" school_year.id %}'
+    var dataURLreservationsPerDept = '{% url "reservations:reservationsPerDeptSchoolYear" school_year.id %}'
+    var dataURLstudentsPerResPeriod = '{% url "reservations:studentsPerResPeriodSchoolYear" school_year.id %}'
 
     var state ={	
         'itemsreservations':[],
         'valuesreservations':[],
+        'itemsreservationsperresperiod':[],
+        'valuesreservationsperresperiod':[],
+        'itemsreservationsperdept':[],
+        'valuesreservationsperdept':[],
+        'itemsstudentsperresperiod':[],
+        'valuesstudentsperresperiod':[],
         }
 
     $.ajax({
@@ -92,6 +122,69 @@
             console.log(state.itemsreservations)
             console.log(state.valuesreservations)
             setreservationsPerDayChart()
+        },
+        error: function(error_data){
+            console.log("error")
+            console.log(error_data)
+        }
+    })
+
+    $.ajax({
+        method: "GET",
+        url: dataURLreservationsPerResPeriod,
+        success: function(response){
+            for (var i in response){
+                var key = Object.keys(response[i])[0]
+                var value = Object.values(response[i])[0]
+            
+            state.itemsreservationsperresperiod.push(key)
+            state.valuesreservationsperresperiod.push(value)
+            }
+            console.log(state.itemsreservationsperresperiod)
+            console.log(state.valuesreservationsperresperiod)
+            setreservationsPerResPeriodChart()
+        },
+        error: function(error_data){
+            console.log("error")
+            console.log(error_data)
+        }
+    })
+
+    $.ajax({
+        method: "GET",
+        url: dataURLreservationsPerDept,
+        success: function(response){
+            for (var i in response){
+                var key = Object.keys(response[i])[0]
+                var value = Object.values(response[i])[0]
+            
+            state.itemsreservationsperdept.push(key)
+            state.valuesreservationsperdept.push(value)
+            }
+            console.log(state.itemsreservationsperdept)
+            console.log(state.valuesreservationsperdept)
+            setreservationsPerDeptChart()
+        },
+        error: function(error_data){
+            console.log("error")
+            console.log(error_data)
+        }
+    })
+
+    $.ajax({
+        method: "GET",
+        url: dataURLstudentsPerResPeriod,
+        success: function(response){
+            for (var i in response){
+                var key = Object.keys(response[i])[0]
+                var value = Object.values(response[i])[0]
+            
+            state.itemsstudentsperresperiod.push(key)
+            state.valuesstudentsperresperiod.push(value)
+            }
+            console.log(state.itemsstudentsperresperiod)
+            console.log(state.valuesstudentsperresperiod)
+            setstudentsPerResPeriodChart()
         },
         error: function(error_data){
             console.log("error")
@@ -143,6 +236,96 @@
             }
             })
         }
+
+    function setreservationsPerResPeriodChart(){
+        var ctx = document.getElementById("reservationsPerResPeriodChart").getContext('2d');
+        
+        var reservationsPerResPeriodChart = new Chart(ctx, {
+        responsive: true,
+        type: 'pie',
+        data: {
+            labels: state.itemsreservationsperresperiod,
+            datasets: [{
+                label: 'Κρατήσεις ανα Περίοδο Επισκέψεων',
+                data: state.valuesreservationsperresperiod,
+                yAxisID: 'A',
+                borderWidth: 1,
+                backgroundColor: ["#FFDC00", "#001f3f", "#39CCCC", "#01FF70", "#85144b", "#F012BE"],
+                borderColor: ["#FFDC00", "#001f3f", "#39CCCC", "#01FF70", "#85144b", "#F012BE"],
+                fill: true,
+                order: 1
+            },
+            ]
+        },
+        })
+    }
+
+    function setreservationsPerDeptChart(){
+        //Chart.defaults.global.defaultFontStyle = 'Bold'
+        var ctx = document.getElementById("reservationsPerDeptChart").getContext('2d');
+        
+        var reservationsPerDeptChart = new Chart(ctx, {
+        responsive: true,
+        type: 'bar',
+        data: {
+            labels: state.itemsreservationsperdept,
+            datasets: [{
+                label: "Κρατήσεις",
+                data: state.valuesreservationsperdept,
+                borderWidth: 1,
+                borderColor: 'rgba(109, 121, 124, 0.8)',
+                backgroundColor: 'rgba(109, 121, 124, 0.8)',
+                order: 1
+            },
+            ]
+        },
+        options: {
+                scales: {
+                    yAxes: [{
+                        id: 'A',
+                        position: 'left',
+                        type: 'linear',
+                        ticks: {
+                            beginAtZero:true,
+                            precision: 0
+                        }
+                    },
+                    ],
+                    xAxes: [{
+                        ticks: {
+                            autoSkip: false,
+                        }
+                    }]
+                },
+                legend: {
+                    display: true,
+                }
+            }
+            })
+        }
+
+        function setstudentsPerResPeriodChart(){
+        var ctx = document.getElementById("studentsPerResPeriodChart").getContext('2d');
+        
+        var studentsPerResPeriodChart = new Chart(ctx, {
+        responsive: true,
+        type: 'pie',
+        data: {
+            labels: state.itemsstudentsperresperiod,
+            datasets: [{
+                label: 'Κρατήσεις ανα Περίοδο Επισκέψεων',
+                data: state.valuesstudentsperresperiod,
+                yAxisID: 'A',
+                borderWidth: 1,
+                backgroundColor: ["#0074D9", "#FF4136", "#2ECC40", "#FF851B", "#7FDBFF", "#B10DC9"],
+                borderColor: ["#0074D9", "#FF4136", "#2ECC40", "#FF851B", "#7FDBFF", "#B10DC9"],
+                fill: true,
+                order: 1
+            },
+            ]
+        },
+        })
+    }
 
 </script>
 

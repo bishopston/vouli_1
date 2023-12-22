@@ -33,11 +33,16 @@ urlpatterns = [
     #statistics per reservation period
     path('statistics_per_period/<int:reservation_id>/', views.statistics_per_period, name='statistics_per_period'),
     path('reservationsPerDayResPeriod/<int:reservation_id>/', views.reservationsPerDayResPeriod, name='reservationsPerDayResPeriod'),
+    path('studentsPerDayResPeriod/<int:reservation_id>/', views.studentsPerDayResPeriod, name='studentsPerDayResPeriod'),
     path('reservationsPerDeptResPeriod/<int:reservation_id>/', views.reservationsPerDeptResPeriod, name='reservationsPerDeptResPeriod'),
+    path('schoolsPerDeptResPeriod/<int:reservation_id>/', views.schoolsPerDeptResPeriod, name='schoolsPerDeptResPeriod'),
     path('reservationsPerStatusResPeriod/<int:reservation_id>/', views.reservationsPerStatusResPeriod, name='reservationsPerStatusResPeriod'),
     path('reservationsPerPerformedResPeriod/<int:reservation_id>/', views.reservationsPerPerformedResPeriod, name='reservationsPerPerformedResPeriod'),
     path('reservationsPerTimeslotResPeriod/<int:reservation_id>/', views.reservationsPerTimeslotResPeriod, name='reservationsPerTimeslotResPeriod'),
     #statistics per school year
     path('statistics_per_year/<int:schoolYear_id>/', views.statistics_per_year, name='statistics_per_year'),
     path('reservationsPerDaySchoolYear/<int:schoolYear_id>/', views.reservationsPerDaySchoolYear, name='reservationsPerDaySchoolYear'),
+    path('reservationsPerResPeriodSchoolYear/<int:schoolYear_id>/', views.reservationsPerResPeriodSchoolYear, name='reservationsPerResPeriodSchoolYear'),
+    path('reservationsPerDeptSchoolYear/<int:schoolYear_id>/', views.reservationsPerDeptSchoolYear, name='reservationsPerDeptSchoolYear'),
+    path('studentsPerResPeriodSchoolYear/<int:schoolYear_id>/', views.studentsPerResPeriodSchoolYear, name='studentsPerResPeriodSchoolYear'),
 ]

@@ -1172,11 +1172,16 @@ def get_schoolusers(request):
     reservation_period_id = request.GET.get('reservation_period_id')
     department_id = request.GET.get('department_id')
 
-    # Query school users based on the selected department and reservation period
+    #Query school users based on the selected department and reservation period
     school_users = SchoolUser.objects.filter(
         department_id=department_id,
         reservation__reservation_period_id=reservation_period_id
     ).distinct()
+
+    # school_users = SchoolUser.objects.filter(
+    #     Q(department_id=department_id, reservation__reservation_period_id=reservation_period_id) &
+    #     ~Q(reservation__status='denied')
+    # ).distinct()
 
     options = '<option value="">Επιλογή...</option>'
     for user in school_users:
@@ -1299,6 +1304,31 @@ def reservationsPerDayResPeriod(request, reservation_id):
 
     return JsonResponse(reservations_per_day, safe=False)
 
+def studentsPerDayResPeriod(request, reservation_id):
+
+    reservation_period = get_object_or_404(ReservationPeriod, pk=reservation_id)
+    days = Day.objects.filter(date__gte=reservation_period.start_date, date__lte=reservation_period.end_date).order_by('date')
+    
+    #fill in chart dates
+    chart_days = []
+
+    for i in range(len(days)):
+        chart_days.append(datetime.strftime(days[i].date, "%d/%m/%Y"))
+
+    #fill in reservation number
+    stud_num=[]
+
+    for i in range(len(days)):
+        students = Reservation.objects.filter(reservation_date=days[i]).exclude(status='denied').aggregate(total_students=Sum(Cast('student_number', IntegerField())))
+        stud_num.append(students['total_students'])
+
+    #json dict
+    students_per_day=[]
+    for i in range(len(chart_days)):
+        students_per_day.append({chart_days[i]:stud_num[i]})
+
+    return JsonResponse(students_per_day, safe=False)
+
 def reservationsPerDeptResPeriod(request, reservation_id):
 
     reservation_period = get_object_or_404(ReservationPeriod, pk=reservation_id)
@@ -1325,6 +1355,37 @@ def reservationsPerDeptResPeriod(request, reservation_id):
         reservations_per_dept.append({chart_depts[i]:res_num_dept[i]})
 
     return JsonResponse(reservations_per_dept, safe=False)
+
+def schoolsPerDeptResPeriod(request, reservation_id):
+
+    reservation_period = get_object_or_404(ReservationPeriod, pk=reservation_id)
+
+    departments = Department.objects.filter(
+        schooluser__reservation__reservation_period_id=reservation_id
+    ).distinct()
+    
+    #fill in chart departments
+    chart_depts = []
+
+    for i in range(len(departments)):
+        chart_depts.append(departments[i].name)
+
+    #fill in reservation number
+    schoolnum_dept=[]
+
+    for i in range(len(departments)):
+        school_users = SchoolUser.objects.filter(
+            Q(department_id=departments[i].id, reservation__reservation_period=reservation_period) &
+            ~Q(reservation__status='denied')
+        ).distinct()
+        schoolnum_dept.append(school_users.distinct().count())
+
+    #json dict
+    schoolusers_per_dept=[]
+    for i in range(len(chart_depts)):
+        schoolusers_per_dept.append({chart_depts[i]:schoolnum_dept[i]})
+
+    return JsonResponse(schoolusers_per_dept, safe=False)
 
 def reservationsPerStatusResPeriod(request, reservation_id):
 
@@ -1426,3 +1487,78 @@ def reservationsPerDaySchoolYear(request, schoolYear_id):
         reservations_per_day.append({chart_days[i]:res_num[i]})
 
     return JsonResponse(reservations_per_day, safe=False)
+
+def reservationsPerResPeriodSchoolYear(request, schoolYear_id):
+
+    res_per = ReservationPeriod.objects.filter(schoolYear_id=schoolYear_id).order_by('start_date')
+    res_per_values = ReservationPeriod.objects.filter(schoolYear_id=schoolYear_id).order_by('start_date').values('name')
+
+    #fill in reservation periods
+    res_periods = []
+
+    for i in range(len(res_per_values)):
+        res_periods.append(res_per_values[i]['name'])
+
+    #fill in number of reservations per reservation period
+    res_per_res_period = []
+
+    for i in range(len(res_per)):
+        res_per_res_period.append(Reservation.objects.filter(reservation_period=res_per[i]).exclude(status='denied').count())
+
+    volumes_per_res_period = []
+    for i in range(len(res_periods)):
+        volumes_per_res_period.append({res_periods[i]:res_per_res_period[i]})
+
+    return JsonResponse(volumes_per_res_period, safe=False)
+
+def reservationsPerDeptSchoolYear(request, schoolYear_id):
+
+    school_year = get_object_or_404(SchoolYear, pk=schoolYear_id)
+
+    departments = Department.objects.filter(
+        schooluser__reservation__reservation_period__schoolYear=school_year
+    ).distinct()
+    
+    #fill in chart departments
+    chart_depts = []
+
+    for i in range(len(departments)):
+        chart_depts.append(departments[i].name)
+
+    #fill in reservation number
+    res_num_dept=[]
+
+    for i in range(len(departments)):
+        res_num_dept.append(Reservation.objects.filter(reservation_period__schoolYear=school_year).filter(schoolUser__department__id=departments[i].id).exclude(status='denied').count())
+
+    #json dict
+    reservations_per_dept=[]
+    for i in range(len(chart_depts)):
+        reservations_per_dept.append({chart_depts[i]:res_num_dept[i]})
+
+    return JsonResponse(reservations_per_dept, safe=False)
+
+def studentsPerResPeriodSchoolYear(request, schoolYear_id):
+
+    res_per = ReservationPeriod.objects.filter(schoolYear_id=schoolYear_id).order_by('start_date')
+    res_per_values = ReservationPeriod.objects.filter(schoolYear_id=schoolYear_id).order_by('start_date').values('name')
+
+    #fill in reservation periods
+    res_periods = []
+
+    for i in range(len(res_per_values)):
+        res_periods.append(res_per_values[i]['name'])
+
+    #fill in reservation number
+    stud_num=[]
+
+    for i in range(len(res_periods)):
+        students = Reservation.objects.filter(reservation_period=res_per[i]).exclude(status='denied').aggregate(total_students=Sum(Cast('student_number', IntegerField())))
+        stud_num.append(students['total_students'])
+
+    #json dict
+    students_per_res_period=[]
+    for i in range(len(res_periods)):
+        students_per_res_period.append({res_periods[i]:stud_num[i]})
+
+    return JsonResponse(students_per_res_period, safe=False)

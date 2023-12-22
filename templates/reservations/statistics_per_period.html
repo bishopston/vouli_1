@@ -62,6 +62,26 @@
             </div>
         </div>
         <div class="row">
+            <div class="col-xl-6">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <i class="fas fa-chart-bar me-1"></i>
+                        Αριθμός μαθητών ανα ημέρα
+                    </div>
+                    <div class="card-body"><canvas id="studentsPerDayChart" width="100%" height="40"></canvas></div>
+                </div>
+            </div>
+            <div class="col-xl-6">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <i class="fas fa-chart-bar me-1"></i>
+                        Αριθμός σχολείων ανα περιφερειακή διεύθυνση
+                    </div>
+                    <div class="card-body"><canvas id="schoolsPerDeptChart" width="100%" height="40"></canvas></div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
             <div class="col-xl-4">
                 <div class="card mb-4">
                     <div class="card-header">
@@ -102,6 +122,8 @@
     var dataURLreservationsPerStatus = '{% url "reservations:reservationsPerStatusResPeriod" reservation_period.id %}'
     var dataURLreservationsPerPerformed = '{% url "reservations:reservationsPerPerformedResPeriod" reservation_period.id %}'
     var dataURLreservationsPerTimeslot = '{% url "reservations:reservationsPerTimeslotResPeriod" reservation_period.id %}'
+    var dataURLstudentsPerDay = '{% url "reservations:studentsPerDayResPeriod" reservation_period.id %}'
+    var dataURLschoolsPerDept = '{% url "reservations:schoolsPerDeptResPeriod" reservation_period.id %}'
 
     var state ={	
         'itemsreservations':[],
@@ -114,6 +136,10 @@
         'valuesreservationsperperformed':[],
         'itemsreservationspertimeslot':[],
         'valuesreservationspertimeslot':[],
+        'itemsstudents':[],
+        'valuesstudents':[],
+        'itemsschoolsperdept':[],
+        'valuesschoolsperdept':[],
         }
 
     $.ajax({
@@ -214,6 +240,48 @@
             console.log(state.itemsreservationspertimeslot)
             console.log(state.valuesreservationspertimeslot)
             setreservationsPerTimeslotChart()
+        },
+        error: function(error_data){
+            console.log("error")
+            console.log(error_data)
+        }
+    })
+
+    $.ajax({
+        method: "GET",
+        url: dataURLstudentsPerDay,
+        success: function(response){
+            for (var i in response){
+                var key = Object.keys(response[i])[0]
+                var value = Object.values(response[i])[0]
+            
+            state.itemsstudents.push(key)
+            state.valuesstudents.push(value)
+            }
+            console.log(state.itemsstudents)
+            console.log(state.valuesstudents)
+            setstudentsPerDayChart()
+        },
+        error: function(error_data){
+            console.log("error")
+            console.log(error_data)
+        }
+    })
+
+    $.ajax({
+        method: "GET",
+        url: dataURLschoolsPerDept,
+        success: function(response){
+            for (var i in response){
+                var key = Object.keys(response[i])[0]
+                var value = Object.values(response[i])[0]
+            
+            state.itemsschoolsperdept.push(key)
+            state.valuesschoolsperdept.push(value)
+            }
+            console.log(state.itemsschoolsperdept)
+            console.log(state.valuesschoolsperdept)
+            setschoolsPerDeptChart()
         },
         error: function(error_data){
             console.log("error")
@@ -392,6 +460,95 @@
         },
         })
     }
+
+    function setstudentsPerDayChart(){
+        //Chart.defaults.global.defaultFontStyle = 'Bold'
+        var ctx = document.getElementById("studentsPerDayChart").getContext('2d');
+        
+        var studentsPerDayChart = new Chart(ctx, {
+        responsive: true,
+        type: 'bar',
+        data: {
+            labels: state.itemsstudents,
+            datasets: [{
+                label: "Μαθητές",
+                data: state.valuesstudents,
+                borderWidth: 1,
+                borderColor: 'rgba(237, 120, 228, 0.8)',
+                backgroundColor: 'rgba(237, 120, 228, 0.8)',
+                order: 1
+            },
+            ]
+        },
+        options: {
+                scales: {
+                    yAxes: [{
+                        id: 'A',
+                        position: 'left',
+                        type: 'linear',
+                        ticks: {
+                            beginAtZero:true,
+                            precision: 0
+                        }
+                    },
+                    ],
+                    xAxes: [{
+                        ticks: {
+                            autoSkip: true,
+                            sampleSize: 7
+                        }
+                    }]
+                },
+                legend: {
+                    display: true,
+                }
+            }
+            })
+        }
+
+    function setschoolsPerDeptChart(){
+        //Chart.defaults.global.defaultFontStyle = 'Bold'
+        var ctx = document.getElementById("schoolsPerDeptChart").getContext('2d');
+        
+        var reservationsPerDeptChart = new Chart(ctx, {
+        responsive: true,
+        type: 'bar',
+        data: {
+            labels: state.itemsschoolsperdept,
+            datasets: [{
+                label: "Σχολεία",
+                data: state.valuesschoolsperdept,
+                borderWidth: 1,
+                borderColor: 'rgba(50, 96, 58, 0.64)',
+                backgroundColor: 'rgba(50, 96, 58, 0.64)',
+                order: 1
+            },
+            ]
+        },
+        options: {
+                scales: {
+                    yAxes: [{
+                        id: 'A',
+                        position: 'left',
+                        type: 'linear',
+                        ticks: {
+                            beginAtZero:true,
+                            precision: 0
+                        }
+                    },
+                    ],
+                    xAxes: [{
+                        ticks: {
+                            autoSkip: false,
+                        }
+                    }]
+                },
+                legend: {
+                    display: true,
+                }
+            }
+            })
+        }
 
 </script>
 
