@@ -36,4 +36,5 @@ urlpatterns = [
     path('reservationsPerDeptResPeriod/<int:reservation_id>/', views.reservationsPerDeptResPeriod, name='reservationsPerDeptResPeriod'),
     path('reservationsPerStatusResPeriod/<int:reservation_id>/', views.reservationsPerStatusResPeriod, name='reservationsPerStatusResPeriod'),
     path('reservationsPerPerformedResPeriod/<int:reservation_id>/', views.reservationsPerPerformedResPeriod, name='reservationsPerPerformedResPeriod'),
+    path('reservationsPerTimeslotResPeriod/<int:reservation_id>/', views.reservationsPerTimeslotResPeriod, name='reservationsPerTimeslotResPeriod'),
 ]
