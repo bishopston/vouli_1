@@ -41,7 +41,84 @@
                 </div>
             </div>
         </div>
+        <div class="row">
+            <div class="col-xl-6">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <i class="fas fa-chart-bar me-1"></i>
+                        Κρατήσεις ανα σχολικό έτος
+                    </div>
+                    <div class="card-body"><canvas id="reservationsPerSchYear" width="100%" height="30"></canvas></div>
+                </div>
+            </div>
+            <div class="col-xl-6">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <i class="fas fa-chart-bar me-1"></i>
+                        Κρατήσεις ανα περίοδο επισκέψεων
+                    </div>
+                    <div class="card-body"><canvas id="reservationsPerResPeriodChart" width="100%" height="30"></canvas></div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script> 
+
+    var dataURLreservationsPerSchYear = '{% url "reservations:reservationsPerSchoolYearTotal" %}'
+
+    var state ={	
+        'itemsreservationsperschyear':[],
+        'valuesreservationsperschyear':[],
+        }
+
+        $.ajax({
+        method: "GET",
+        url: dataURLreservationsPerSchYear,
+        success: function(response){
+            for (var i in response){
+                var key = Object.keys(response[i])[0]
+                var value = Object.values(response[i])[0]
+            
+            state.itemsreservationsperschyear.push(key)
+            state.valuesreservationsperschyear.push(value)
+            }
+            console.log(state.itemsreservationsperschyear)
+            console.log(state.valuesreservationsperschyear)
+            setreservationsPerSchYearChart()
+        },
+        error: function(error_data){
+            console.log("error")
+            console.log(error_data)
+        }
+    })
+
+    function setreservationsPerSchYearChart(){
+        var ctx = document.getElementById("reservationsPerSchYear").getContext('2d');
+        
+        var reservationsPerSchYearChart = new Chart(ctx, {
+        responsive: true,
+        type: 'pie',
+        data: {
+            labels: state.itemsreservationsperschyear,
+            datasets: [{
+                label: 'Κρατήσεις ανα Περίοδο Επισκέψεων',
+                data: state.valuesreservationsperschyear,
+                yAxisID: 'A',
+                borderWidth: 1,
+                backgroundColor: ["#FFDC00", "#001f3f", "#39CCCC", "#01FF70", "#85144b", "#F012BE", "#0074D9", "#FF4136", "#2ECC40", "#FF851B", "#7FDBFF", "#B10DC9"],
+                borderColor: ["#FFDC00", "#001f3f", "#39CCCC", "#01FF70", "#85144b", "#F012BE", "#0074D9", "#FF4136", "#2ECC40", "#FF851B", "#7FDBFF", "#B10DC9"],
+                fill: true,
+                order: 1
+            },
+            ]
+        },
+        })
+    }
+
+</script>
 
 {% endblock %}

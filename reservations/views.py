@@ -1370,7 +1370,7 @@ def schoolsPerDeptResPeriod(request, reservation_id):
     for i in range(len(departments)):
         chart_depts.append(departments[i].name)
 
-    #fill in reservation number
+    #fill in school number
     schoolnum_dept=[]
 
     for i in range(len(departments)):
@@ -1549,7 +1549,7 @@ def studentsPerResPeriodSchoolYear(request, schoolYear_id):
     for i in range(len(res_per_values)):
         res_periods.append(res_per_values[i]['name'])
 
-    #fill in reservation number
+    #fill in student number
     stud_num=[]
 
     for i in range(len(res_periods)):
@@ -1591,3 +1591,49 @@ def statistics_all_years(request):
     })
 
     return render(request, 'reservations/statistics_all_years.html', context)
+
+def reservationsPerSchoolYearTotal(request):
+
+    school_years = SchoolYear.objects.all().order_by('start_date')
+    school_years_values = SchoolYear.objects.all().order_by('start_date').values('name')
+
+    #fill in school years
+    school_years_names = []
+
+    for i in range(len(school_years_values)):
+        school_years_names.append(school_years_values[i]['name'])
+
+    #fill in number of reservations per school year
+    res_per_sch_year = []
+
+    for i in range(len(school_years)):
+        res_per_sch_year.append(Reservation.objects.filter(reservation_period__schoolYear=school_years[i]).count())
+
+    volumes_per_sch_year = []
+    for i in range(len(school_years_names)):
+        volumes_per_sch_year.append({school_years_names[i]:res_per_sch_year[i]})
+
+    return JsonResponse(volumes_per_sch_year, safe=False)
+
+def reservationsPerResPeriodTotal(request):
+
+    res_per = ReservationPeriod.objects.all().order_by('start_date')
+    res_per_values = ReservationPeriod.objects.all().order_by('start_date').values('name')
+
+    #fill in reservation periods
+    res_periods = []
+
+    for i in range(len(res_per_values)):
+        res_periods.append(res_per_values[i]['name'])
+
+    #fill in number of reservations per reservation period
+    res_per_res_period = []
+
+    for i in range(len(res_periods)):
+        res_per_res_period.append(Reservation.objects.filter(reservation_period=res_per[i]).exclude(status='denied').count())
+
+    volumes_per_res_period = []
+    for i in range(len(res_periods)):
+        volumes_per_res_period.append({res_periods[i]:res_per_res_period[i]})
+
+    return JsonResponse(volumes_per_res_period, safe=False)
