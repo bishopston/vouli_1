@@ -48,7 +48,7 @@
                         <i class="fas fa-chart-bar me-1"></i>
                         Κρατήσεις ανα σχολικό έτος
                     </div>
-                    <div class="card-body"><canvas id="reservationsPerSchYear" width="100%" height="30"></canvas></div>
+                    <div class="card-body"><canvas id="reservationsPerSchYear" width="100%" height="40"></canvas></div>
                 </div>
             </div>
             <div class="col-xl-6">
@@ -57,7 +57,27 @@
                         <i class="fas fa-chart-bar me-1"></i>
                         Κρατήσεις ανα περίοδο επισκέψεων
                     </div>
-                    <div class="card-body"><canvas id="reservationsPerResPeriodChart" width="100%" height="30"></canvas></div>
+                    <div class="card-body"><canvas id="reservationsPerResPeriodChart" width="100%" height="40"></canvas></div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-xl-6">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <i class="fas fa-chart-bar me-1"></i>
+                        Μαθητές ανα σχολικό έτος
+                    </div>
+                    <div class="card-body"><canvas id="studentsPerSchYear" width="100%" height="40"></canvas></div>
+                </div>
+            </div>
+            <div class="col-xl-6">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <i class="fas fa-chart-bar me-1"></i>
+                        Μαθητές ανα περίοδο επισκέψεων
+                    </div>
+                    <div class="card-body"><canvas id="studentsPerResPeriodChart" width="100%" height="40"></canvas></div>
                 </div>
             </div>
         </div>
@@ -69,13 +89,22 @@
 <script> 
 
     var dataURLreservationsPerSchYear = '{% url "reservations:reservationsPerSchoolYearTotal" %}'
+    var dataURLreservationsPerResPeriod = '{% url "reservations:reservationsPerResPeriodTotal" %}'
+    var dataURLstudentsPerSchYear = '{% url "reservations:studentsPerSchoolYearTotal" %}'
+    var dataURLstudentsPerResPeriod = '{% url "reservations:studentsPerResPeriodTotal" %}'
 
     var state ={	
         'itemsreservationsperschyear':[],
         'valuesreservationsperschyear':[],
+        'itemsreservationsperresperiod':[],
+        'valuesreservationsperresperiod':[],
+        'itemsstudentsperschyear':[],
+        'valuesstudentsperschyear':[],
+        'itemsstudentsperresperiod':[],
+        'valuesstudentsperresperiod':[],
         }
 
-        $.ajax({
+    $.ajax({
         method: "GET",
         url: dataURLreservationsPerSchYear,
         success: function(response){
@@ -96,6 +125,69 @@
         }
     })
 
+    $.ajax({
+        method: "GET",
+        url: dataURLreservationsPerResPeriod,
+        success: function(response){
+            for (var i in response){
+                var key = Object.keys(response[i])[0]
+                var value = Object.values(response[i])[0]
+            
+            state.itemsreservationsperresperiod.push(key)
+            state.valuesreservationsperresperiod.push(value)
+            }
+            console.log(state.itemsreservationsperresperiod)
+            console.log(state.valuesreservationsperresperiod)
+            setreservationsPerResPeriodChart()
+        },
+        error: function(error_data){
+            console.log("error")
+            console.log(error_data)
+        }
+    })
+
+    $.ajax({
+        method: "GET",
+        url: dataURLstudentsPerSchYear,
+        success: function(response){
+            for (var i in response){
+                var key = Object.keys(response[i])[0]
+                var value = Object.values(response[i])[0]
+            
+            state.itemsstudentsperschyear.push(key)
+            state.valuesstudentsperschyear.push(value)
+            }
+            console.log(state.itemsstudentsperschyear)
+            console.log(state.valuesstudentsperschyear)
+            setstudentsPerSchYearChart()
+        },
+        error: function(error_data){
+            console.log("error")
+            console.log(error_data)
+        }
+    })
+
+    $.ajax({
+        method: "GET",
+        url: dataURLstudentsPerResPeriod,
+        success: function(response){
+            for (var i in response){
+                var key = Object.keys(response[i])[0]
+                var value = Object.values(response[i])[0]
+            
+            state.itemsstudentsperresperiod.push(key)
+            state.valuesstudentsperresperiod.push(value)
+            }
+            console.log(state.itemsstudentsperresperiod)
+            console.log(state.valuesstudentsperresperiod)
+            setstudentsPerResPeriodChart()
+        },
+        error: function(error_data){
+            console.log("error")
+            console.log(error_data)
+        }
+    })
+
     function setreservationsPerSchYearChart(){
         var ctx = document.getElementById("reservationsPerSchYear").getContext('2d');
         
@@ -105,7 +197,7 @@
         data: {
             labels: state.itemsreservationsperschyear,
             datasets: [{
-                label: 'Κρατήσεις ανα Περίοδο Επισκέψεων',
+                label: 'Κρατήσεις',
                 data: state.valuesreservationsperschyear,
                 yAxisID: 'A',
                 borderWidth: 1,
@@ -119,6 +211,116 @@
         })
     }
 
+    function setreservationsPerResPeriodChart(){
+        //Chart.defaults.global.defaultFontStyle = 'Bold'
+        var ctx = document.getElementById("reservationsPerResPeriodChart").getContext('2d');
+        
+        var reservationsPerResPeriodChart = new Chart(ctx, {
+        responsive: true,
+        type: 'bar',
+        data: {
+            labels: state.itemsreservationsperresperiod,
+            datasets: [{
+                label: "Κρατήσεις",
+                data: state.valuesreservationsperresperiod,
+                borderWidth: 1,
+                borderColor: 'rgba(120, 224, 151, 0.8)',
+                backgroundColor: 'rgba(120, 224, 151, 0.8)',
+                order: 1
+            },
+            ]
+        },
+        options: {
+                scales: {
+                    yAxes: [{
+                        id: 'A',
+                        position: 'left',
+                        type: 'linear',
+                        ticks: {
+                            beginAtZero:true,
+                            precision: 0
+                        }
+                    },
+                    ],
+                    xAxes: [{
+                        ticks: {
+                            autoSkip: false,
+                        }
+                    }]
+                },
+                legend: {
+                    display: true,
+                }
+            }
+            })
+        }
+
+        function setstudentsPerSchYearChart(){
+        var ctx = document.getElementById("studentsPerSchYear").getContext('2d');
+        
+        var studentsPerSchYearChart = new Chart(ctx, {
+        responsive: true,
+        type: 'pie',
+        data: {
+            labels: state.itemsstudentsperschyear,
+            datasets: [{
+                label: 'Μαθητές',
+                data: state.valuesstudentsperschyear,
+                yAxisID: 'A',
+                borderWidth: 1,
+                backgroundColor: ["#B10DC9", "#7FDBFF", "#FF851B", "#2ECC40", "#FF4136", "#0074D9", "#F012BE", "#85144b", "#01FF70", "#39CCCC", "#001f3f", "#FFDC00"],
+                borderColor: ["#B10DC9", "#7FDBFF", "#FF851B", "#2ECC40", "#FF4136", "#0074D9", "#F012BE", "#85144b", "#01FF70", "#39CCCC", "#001f3f", "#FFDC00"],
+                fill: true,
+                order: 1
+            },
+            ]
+        },
+        })
+    }
+
+    function setstudentsPerResPeriodChart(){
+        //Chart.defaults.global.defaultFontStyle = 'Bold'
+        var ctx = document.getElementById("studentsPerResPeriodChart").getContext('2d');
+        
+        var studentsPerResPeriodChart = new Chart(ctx, {
+        responsive: true,
+        type: 'bar',
+        data: {
+            labels: state.itemsstudentsperresperiod,
+            datasets: [{
+                label: "Κρατήσεις",
+                data: state.valuesstudentsperresperiod,
+                borderWidth: 1,
+                borderColor: 'rgba(237, 165, 106, 0.8)',
+                backgroundColor: 'rgba(237, 165, 106, 0.8)',
+                order: 1
+            },
+            ]
+        },
+        options: {
+                scales: {
+                    yAxes: [{
+                        id: 'A',
+                        position: 'left',
+                        type: 'linear',
+                        ticks: {
+                            beginAtZero:true,
+                            precision: 0
+                        }
+                    },
+                    ],
+                    xAxes: [{
+                        ticks: {
+                            autoSkip: false,
+                        }
+                    }]
+                },
+                legend: {
+                    display: true,
+                }
+            }
+            })
+        }
 </script>
 
 {% endblock %}
