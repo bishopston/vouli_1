@@ -6,7 +6,7 @@
     <div class="row w-100">
         {% if my_school %}
             {% if reservation_allowed %}
-				{% if my_reservations_current_year_number < 3 %}
+				{% if my_reservations_current_year_number < 3 and next_available_res_period == my_reservation_period %}
 					<div class="card text-center mt-5">
 						<div class="card-header">
 							Ίδρυμα της Βουλής

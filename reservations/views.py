@@ -304,6 +304,10 @@ def my_reservations(request):
     #query user's reservations
     my_reservations = Reservation.objects.filter(schoolUser__creator=request.user).order_by('-reservation_date__date', 'timeslot__dayTime__slot')
 
+    # need to check if the res period of the already registered user's reservations is the same with the next available res period
+    if my_reservations:
+        my_reservation_period = ReservationPeriod.objects.filter(reservation__schoolUser__creator=request.user).first()
+
     #query current school year
     current_school_year = SchoolYear.objects.filter(start_date__lte=datetime.now(), end_date__gte=datetime.now()).first()
     if current_school_year:   
@@ -341,6 +345,7 @@ def my_reservations(request):
 
                 context = {'my_reservations': my_reservations,
                         'my_reservations_current_year_number': my_reservations_current_year_number,
+                        'my_reservation_period': my_reservation_period,
                         'next_available_res_period': closest_available_res_period[0],
                         'next_available_res_period_start_date': closest_available_res_period[0].start_date,
                         'next_available_res_period_end_date': closest_available_res_period[0].end_date,
@@ -454,6 +459,10 @@ def make_reservation(request, reservation_period_id, school_user_id):
                 query = Q(schoolUser__creator=request.user) & Q(reservation_period__schoolYear=current_school_year)
                 # Filter reservations based on the current school year and the user
                 my_reservations_current_year_number = len(Reservation.objects.filter(query).exclude(status='denied'))
+                if my_reservations_current_year_number:
+                    my_reservation_period = ReservationPeriod.objects.filter(reservation__schoolUser__creator=request.user).first()
+                else:
+                    my_reservation_period = res_period
             else:
                 my_reservations_current_year_number = 0
 
@@ -482,7 +491,7 @@ def make_reservation(request, reservation_period_id, school_user_id):
             if len(set(existing_reservation_dates)) > 1 or (len(set(existing_reservation_dates)) == 1 and existing_reservation_dates[0] != selected_calendar_date.id):
                 context['different_selected_date_violation_error'] = 'Δικαιούστε να καταχωρίσετε αίτημα επίσκεψης σε μία μόνο ημερομηνία εντός του τρέχοντος σχολικού έτους.'
             else:
-                if submitted_forms_count <= max_additional_reservations:
+                if submitted_forms_count <= max_additional_reservations and my_reservation_period == res_period:
                     # The user is allowed to make the requested number of reservations
 
                     # Process and save the reservations
