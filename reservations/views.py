@@ -1044,8 +1044,12 @@ def calendar_reservations_res_period_selection(request):
         # Reset selected values
         form = ReservationCalendarByDateForm()
         return redirect('reservations:calendar_reservations', reservation_period_id=selected_reservation_period_id)
+    
     if request.GET.get('filter') == '1' and selected_reservation_period_id == '':
         context['error_message'] = 'Πρέπει να διαλέξετε μία περίοδο επισκέψεων'
+
+    if request.GET.get('filter') == '2':
+        form = ReservationCalendarByDateForm()
 
     context.update({
         'form': form
@@ -1061,7 +1065,7 @@ def reservation_dashboard(request):
     context = {}
 
     school_years = SchoolYear.objects.all()
-    historical_reservations = Reservation.objects.all()
+    historical_reservations = Reservation.objects.all().order_by('reservation_period__start_date', 'reservation_date__date')
     reservation_periods = ReservationPeriod.objects.all()
     departments = Department.objects.all()
     school_users = SchoolUser.objects.all()
@@ -1101,19 +1105,22 @@ def reservation_dashboard(request):
         print(form.errors)  # Print form errors for debugging
 
     if selected_school_year_id != '' and selected_school_year_id is not None:
-        historical_reservations = historical_reservations.filter(reservation_period__schoolYear=selected_school_year_id)
+        historical_reservations = historical_reservations.filter(reservation_period__schoolYear=selected_school_year_id).order_by('reservation_period__start_date', 'reservation_date__date')
         # reservation_periods = ReservationPeriod.objects.filter(schoolYear_id=selected_school_year_id)
 
     if selected_reservation_period_id != '' and selected_reservation_period_id is not None:
-        historical_reservations = historical_reservations.filter(reservation_period=selected_reservation_period_id)
+        historical_reservations = historical_reservations.filter(reservation_period=selected_reservation_period_id).order_by('reservation_period__start_date', 'reservation_date__date')
         # departments = Department.objects.filter(schooluser__reservation__reservation_period_id=selected_reservation_period_id).distinct()
 
     if selected_department_id != '' and selected_department_id is not None:
-        historical_reservations = historical_reservations.filter(schoolUser__department=selected_department_id)
+        historical_reservations = historical_reservations.filter(schoolUser__department=selected_department_id).order_by('reservation_period__start_date', 'reservation_date__date')
         # school_users = SchoolUser.objects.filter(department_id=selected_department_id).filter(reservation__reservation_period_id=selected_reservation_period_id)
 
     if selected_school_user_id != '' and selected_school_user_id is not None:
-        historical_reservations = historical_reservations.filter(schoolUser=selected_school_user_id).filter(reservation_period_id=selected_reservation_period_id)
+        historical_reservations = historical_reservations.filter(schoolUser=selected_school_user_id).filter(reservation_period_id=selected_reservation_period_id).order_by('reservation_period__start_date', 'reservation_date__date')
+
+    if request.GET.get('filter') == '2':
+        form = ReservationDashboardForm()
 
     historical_reservations_num = historical_reservations.count()
 
@@ -1687,3 +1694,38 @@ def studentsPerResPeriodTotal(request):
         students_per_res_period.append({res_periods[i]:stud_num[i]})
 
     return JsonResponse(students_per_res_period, safe=False)
+
+@ login_required
+@user_passes_test(lambda u: u.is_superuser)   
+def statistics_period_selection(request):
+
+    form = ReservationCalendarByDateForm()
+    context = {}
+
+    selected_reservation_period_id = request.GET.get('reservation_period')
+    selected_school_year_id = request.GET.get('school_year')
+
+    # Check if the Filter button is clicked
+    if request.GET.get('filter') == '1' and selected_reservation_period_id:
+        # Reset selected values
+        form = ReservationCalendarByDateForm()
+        return redirect('reservations:statistics_per_period', reservation_id=selected_reservation_period_id)
+    
+    if request.GET.get('filter') == '1' and selected_reservation_period_id == '' and selected_school_year_id:
+        # Reset selected values
+        form = ReservationCalendarByDateForm()
+        return redirect('reservations:statistics_per_year', schoolYear_id=selected_school_year_id)
+
+    if request.GET.get('filter') == '1' and selected_reservation_period_id == '' and selected_school_year_id == '':
+        # Reset selected values
+        form = ReservationCalendarByDateForm()
+        return redirect('reservations:statistics_all_years')
+
+    if request.GET.get('filter') == '2':
+        form = ReservationCalendarByDateForm()
+
+    context.update({
+        'form': form
+    })
+
+    return render(request, 'reservations/statistics_period_selection.html', context)

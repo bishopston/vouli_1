@@ -51,4 +51,5 @@ urlpatterns = [
     path('reservationsPerResPeriodTotal/', views.reservationsPerResPeriodTotal, name='reservationsPerResPeriodTotal'),
     path('studentsPerSchoolYearTotal/', views.studentsPerSchoolYearTotal, name='studentsPerSchoolYearTotal'),
     path('studentsPerResPeriodTotal/', views.studentsPerResPeriodTotal, name='studentsPerResPeriodTotal'),
+    path('statistics_period_selection/', views.statistics_period_selection, name='statistics_period_selection'),
 ]

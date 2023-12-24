@@ -49,8 +49,10 @@
             <label for="{{ form.school_year.id_for_label }}" class="bold-label">Σχολείο:</label>
             {{ form.school_user|as_crispy_field }}
           </div>
-          <!-- {{ form|crispy }} -->
-          <button type="submit" class="btn btn-primary" name="filter" value="1">Αναζήτηση</button>
+          <div class="d-flex justify-content-between">
+            <button type="submit" class="btn btn-primary" name="filter" value="1">Αναζήτηση</button>
+            <button type="submit" class="btn btn-outline-primary" name="filter" value="2">Reset</button>
+          </div>
       </form>
     </div>
     
