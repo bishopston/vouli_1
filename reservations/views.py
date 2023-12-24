@@ -23,6 +23,33 @@ from datetime import datetime, date
 from itertools import groupby
 
 
+@ login_required
+@user_passes_test(lambda u: u.is_superuser)   
+def timeslot_res_period_selection(request):
+
+    form = ReservationCalendarByDateForm()
+    context = {}
+
+    selected_reservation_period_id = request.GET.get('reservation_period')
+
+    # Check if the Filter button is clicked
+    if request.GET.get('filter') == '1' and selected_reservation_period_id:
+        # Reset selected values
+        form = ReservationCalendarByDateForm()
+        return redirect('reservations:edit_timeslots', reservation_period_id=selected_reservation_period_id)
+    
+    if request.GET.get('filter') == '1' and selected_reservation_period_id == '':
+        context['error_message'] = 'Πρέπει να διαλέξετε μία περίοδο επισκέψεων'
+
+    if request.GET.get('filter') == '2':
+        form = ReservationCalendarByDateForm()
+
+    context.update({
+        'form': form
+    })
+
+    return render(request, 'reservations/timeslots_res_period_selection.html', context)
+
 @login_required
 @user_passes_test(lambda u: u.is_superuser)
 def add_timeslots(request, reservation_period_id):
@@ -53,6 +80,63 @@ def add_timeslots(request, reservation_period_id):
         return HttpResponseRedirect(request.path_info)
 
     return render(request, 'reservations/add_timeslots.html', {'reservation_period': reservation_period, 'qs_days': qs_days, 'qs_slots': qs_slots})
+
+@login_required
+@user_passes_test(lambda u: u.is_superuser)
+def edit_timeslots(request, reservation_period_id):
+    reservation_period = ReservationPeriod.objects.get(id=reservation_period_id)
+    timeslots = Timeslot.objects.filter(reservation_period=reservation_period).order_by('dayTime__day', 'dayTime__slot')
+    
+    if request.method == 'POST':
+        selected_timeslots = request.POST.getlist('timeslots')
+        
+        # Update availability based on selected checkboxes
+        for timeslot_id in selected_timeslots:
+            timeslot = Timeslot.objects.get(id=timeslot_id)
+            timeslot.is_reservation_allowed = not timeslot.is_reservation_allowed
+            timeslot.save()
+        
+        return HttpResponseRedirect(request.path_info)
+
+    return render(request, 'reservations/edit_timeslots_2.html', {'reservation_period': reservation_period, 'timeslots': timeslots})
+
+@login_required
+@user_passes_test(lambda u: u.is_superuser)
+def delete_timeslots(request):
+    if request.method == "POST":
+        timeslot_ids = request.POST.getlist('id[]')
+        for id in timeslot_ids:
+            tslot = Timeslot.objects.get(pk=id)
+            tslot.delete()
+        return redirect(reverse('schools:schooluser_list'))
+    
+
+@ login_required
+@user_passes_test(lambda u: u.is_superuser)   
+def exceptional_rule_res_period_selection(request):
+
+    form = ReservationCalendarByDateForm()
+    context = {}
+
+    selected_reservation_period_id = request.GET.get('reservation_period')
+
+    # Check if the Filter button is clicked
+    if request.GET.get('filter') == '1' and selected_reservation_period_id:
+        # Reset selected values
+        form = ReservationCalendarByDateForm()
+        return redirect('reservations:calendar_timeslot', reservation_period_id=selected_reservation_period_id)
+    
+    if request.GET.get('filter') == '1' and selected_reservation_period_id == '':
+        context['error_message'] = 'Πρέπει να διαλέξετε μία περίοδο επισκέψεων'
+
+    if request.GET.get('filter') == '2':
+        form = ReservationCalendarByDateForm()
+
+    context.update({
+        'form': form
+    })
+
+    return render(request, 'reservations/exceptional_rule_res_period_selection.html', context)
 
 @login_required
 @user_passes_test(lambda u: u.is_superuser)
@@ -190,35 +274,7 @@ def delete_exceptional_rule(request):
     return redirect(redirect_url)
 
 
-@login_required
-@user_passes_test(lambda u: u.is_superuser)
-def edit_timeslots(request, reservation_period_id):
-    reservation_period = ReservationPeriod.objects.get(id=reservation_period_id)
-    timeslots = Timeslot.objects.filter(reservation_period=reservation_period).order_by('dayTime__day', 'dayTime__slot')
-    
-    if request.method == 'POST':
-        selected_timeslots = request.POST.getlist('timeslots')
-        
-        # Update availability based on selected checkboxes
-        for timeslot_id in selected_timeslots:
-            timeslot = Timeslot.objects.get(id=timeslot_id)
-            timeslot.is_reservation_allowed = not timeslot.is_reservation_allowed
-            timeslot.save()
-        
-        return HttpResponseRedirect(request.path_info)
 
-    return render(request, 'reservations/edit_timeslots_2.html', {'reservation_period': reservation_period, 'timeslots': timeslots})
-
-@login_required
-@user_passes_test(lambda u: u.is_superuser)
-def delete_timeslots(request):
-    if request.method == "POST":
-        timeslot_ids = request.POST.getlist('id[]')
-        for id in timeslot_ids:
-            tslot = Timeslot.objects.get(pk=id)
-            tslot.delete()
-        return redirect(reverse('schools:schooluser_list'))
-    
 @login_required
 def calendar_month(request, reservation_period_id, school_user_id, year=None, month=None):
     # If reservation_period_id is provided, get the start date of the reservation period
