@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect, HttpResponseRedirect, get_object_or_404
-from django.http import Http404
+from django.http import Http404, HttpResponse
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.utils import timezone
@@ -10,7 +10,8 @@ from django.db.models import Q, Sum, IntegerField, F, Value, Count, Case, When
 from django.db.models.functions import Cast
 from django.contrib import messages
 from django.core.mail import send_mail
-from django.template.loader import render_to_string
+from django.template.loader import render_to_string, get_template
+from django.views import View
 from .models import Day, ReservationPeriod, Timeslot, DayTime, Reservation, ReservationWindow, ExceptionalRule, SchoolYear
 from schools.models import SchoolUser, Department
 from .forms import ReservationForm, BaseReservationFormSet, ReservationUpdateForm, ReservationUpdateAdminForm, ReservationDashboardForm, ReservationCalendarByDateForm
@@ -21,6 +22,7 @@ from datetime import datetime as dt
 import pytz
 from datetime import datetime, date
 from itertools import groupby
+from xhtml2pdf import pisa
 
 
 @ login_required
@@ -864,7 +866,7 @@ def handle_reservations(request):
     if len(available_res_periods) > 0:
         dates = available_res_periods.values('start_date').order_by('start_date')
         closest_available_res_period = available_res_periods.filter(start_date=dates[0]['start_date'])
-        candidate_reservations = Reservation.objects.filter(reservation_period=closest_available_res_period[0]).order_by('-created_at', 'timeslot__dayTime__slot')
+        candidate_reservations = Reservation.objects.filter(reservation_period=closest_available_res_period[0]).order_by('-created_at', 'schoolUser__school__name', 'timeslot__dayTime__slot')
         context['closest_available_res_period'] = closest_available_res_period[0]
         context['candidate_reservations'] = candidate_reservations
         context['candidate_reservations_num'] = len(candidate_reservations)
@@ -1794,3 +1796,56 @@ def statistics_period_selection(request):
     })
 
     return render(request, 'reservations/statistics_period_selection.html', context)
+
+@login_required
+@user_passes_test(lambda u: u.is_superuser)
+def reservation_details(request, reservation_id):
+
+    reservation = get_object_or_404(Reservation, id=reservation_id)
+    reservation_date = reservation.reservation_date
+    schoolUser = reservation.schoolUser
+    timeslot = reservation.timeslot
+    teacher_number = reservation.teacher_number
+    student_number = reservation.student_number
+    amea = reservation.amea
+    terms_accepted = reservation.terms_accepted
+    status = reservation.status
+    is_performed = reservation.is_performed
+    created_at = reservation.created_at
+
+    context = {'reservation': reservation,
+            'reservation_date': reservation_date,
+            'schoolUser': schoolUser,
+            'timeslot': timeslot,
+            'teacher_number': teacher_number,
+            'student_number': student_number,
+            'amea': amea,
+            'terms_accepted': terms_accepted,
+            'status': status,
+            'is_performed': is_performed,
+            'created_at': created_at,
+    }
+
+    return render(request, 'reservations/reservation_screener.html', context)
+
+class ReservationPDFView(View):
+    template_name = 'reservations/reservation_details.html'  # Create an HTML template for the details
+
+    def get(self, request, reservation_id, *args, **kwargs):
+        reservation = Reservation.objects.get(pk=reservation_id)
+
+        # Render the HTML template with the reservation details
+        template = get_template(self.template_name)
+        html = template.render({'reservation': reservation})
+
+        # Create a PDF file
+        response = HttpResponse(content_type='application/pdf')
+        #response['Content-Disposition'] = f'filename={reservation_id}_reservation_details.pdf'
+        response['Content-Disposition'] = f'attachment; filename={reservation.id}_reservation_details.pdf'
+
+        # Generate the PDF
+        pisa_status = pisa.CreatePDF(html, dest=response)
+        if pisa_status.err:
+            return HttpResponse('We had some errors <pre>' + html + '</pre>')
+
+        return response

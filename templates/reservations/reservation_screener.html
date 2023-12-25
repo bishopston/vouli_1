@@ -1,0 +1,94 @@
+{% extends '../base/base_admin.html' %}
+
+{% block content %}
+
+<div class="my-5 mx-auto">
+
+    <div class="row w-100">
+        <div class="my-3 d-flex justify-content-center">
+            <h2>ΣΤΟΙΧΕΙΑ ΚΡΑΤΗΣΗΣ</h2>
+        </div>
+    </div>
+
+    <div class="row w-100">
+        <div class="d-flex justify-content-center mb-2">
+            <table class="table table-bordered">
+                <tbody>
+                    <tr>
+                        <td nowrap>ΠΕΡΙΦΕΡΕΙΑΚΗ ΔΙΕΥΘΥΝΣΗ:</td>
+                        <td nowrap>{{schoolUser.department.name}}</td>												
+                    </tr>
+                    <tr>
+                        <td nowrap>ΟΝΟΜΑ ΣΧΟΛΕΙΟΥ:</td>
+                        <td nowrap>{{schoolUser.school.name}}</td>												
+                    </tr>
+                    <tr>
+                        <td nowrap>ΗΜΕΡΟΜΗΝΙΑ:</td>
+                        <td nowrap>{{reservation_date.date|date:'d/m/Y'}}</td>												
+                    </tr>
+                    <tr>
+                        <td nowrap>ΩΡΑ:</td>
+                        <td nowrap>{{timeslot.dayTime.slot|time:"H:i"}}</td>												
+                    </tr>
+                    <tr>
+                        <td nowrap>ΑΡΙΘΜΟΣ ΜΑΘΗΤΩΝ/ΤΡΙΩΝ:</td>
+                        <td nowrap>{{student_number}}</td>												
+                    </tr>
+                    <tr>
+                        <td nowrap>ΑΡΙΘΜΟΣ ΕΚΠΑΙΔΕΥΤΙΚΩΝ:</td>
+                        <td nowrap>{{teacher_number}}</td>												
+                    </tr>
+                    <tr>
+                        <td nowrap>ΑΜΕΑ:</td>
+                        <td nowrap>
+                            {% if amea %}
+                                ΝΑΙ
+                            {% else%}
+                                ΟΧΙ
+                            {% endif %}
+                        </td>												
+                    </tr>
+                    <tr>
+                        <td nowrap>ΑΠΟΔΟΧΗ ΟΡΩΝ:</td>
+                        <td nowrap>
+                            {% if terms_accepted %}
+                                ΝΑΙ
+                            {% else%}
+                                ΟΧΙ
+                            {% endif %} - {{created_at|date:"d/m/Y"}}
+                        </td>												
+                    </tr>
+                    <tr>
+                        <td nowrap>ΚΑΤΑΣΤΑΣΗ:</td>
+                        <td nowrap>{{ reservation.get_status_display }}</td>												
+                    </tr>
+                    <tr>
+                        <td nowrap>ΠΡΑΓΜΑΤΟΠΟΙΗΜΕΝΗ:</td>
+                        <td nowrap>
+                            {% if is_performed %}
+                                ΝΑΙ
+                            {% else%}
+                                ΟΧΙ
+                            {% endif %}
+                        </td>												
+                    </tr>
+                    <tr>
+                        <td nowrap>ΚΑΤΑΧΩΡΙΣΗ ΚΡΑΤΗΣΗΣ:</td>
+                        <td nowrap>{{created_at|date:"d/m/Y"}}</td>												
+                    </tr>
+                </tbody>
+            
+            </table>
+
+            
+        </div>
+        <div class="d-flex justify-content-center mb-2">
+            <div class="my-1">
+                <a href="{% url 'reservations:reservation_pdf' reservation.id %}" class="btn btn-success">Λήψη PDF</a>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}

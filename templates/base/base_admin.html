@@ -92,7 +92,7 @@
                                    </nav>
                             </div>
                             <div class="sb-sidenav-menu-heading">Κρατησεις</div>
-                            <a class="nav-link" href="#!">
+                            <a class="nav-link" href="{% url 'reservations:handle_reservations' %}">
                                 <div class="sb-nav-link-icon"><i class="fas fa-chart-area"></i></div>
                                 Διαχείριση Κρατήσεων
                             </a>
@@ -100,15 +100,15 @@
                                 <div class="sb-nav-link-icon"><i class="fas fa-table"></i></div>
                                 Κρατήσεις Διαχειριστή
                             </a>
-                            <a class="nav-link" href="#!">
+                            <a class="nav-link" href="{% url 'reservations:calendar_reservations_res_period_selection' %}">
                                 <div class="sb-nav-link-icon"><i class="fas fa-table"></i></div>
                                 Ημερολόγιο Κρατήσεων
                             </a>
-                            <a class="nav-link" href="#!">
+                            <a class="nav-link" href="{% url 'reservations:reservation_dashboard' %}">
                                 <div class="sb-nav-link-icon"><i class="fas fa-chart-area"></i></div>
                                 Ιστορικό Κρατήσεων
                             </a>
-                            <a class="nav-link" href="#!">
+                            <a class="nav-link" href="{% url 'reservations:statistics_period_selection' %}">
                                 <div class="sb-nav-link-icon"><i class="fas fa-table"></i></div>
                                 Στατιστικά Στοιχεία
                             </a>

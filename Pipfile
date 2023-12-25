@@ -11,6 +11,8 @@ crispy-bootstrap5 = "*"
 pytz = "*"
 python-dateutil = "*"
 django-simple-history = "*"
+reportlab = "*"
+xhtml2pdf = "*"
 
 [dev-packages]
 
