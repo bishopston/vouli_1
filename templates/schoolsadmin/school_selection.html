@@ -2,14 +2,14 @@
 {% load crispy_forms_tags %}
 
 {% block content %}
-<div class="my-3 d-flex justify-content-center">
+<div class=" mx-3 my-3 d-flex justify-content-center">
   <div class="col-md-2"></div>
   <div class="col-md-6">
     <div class="row">
       <div class="d-flex justify-content-center my-5"><h2>ΕΠΙΛΟΓΗ ΣΧΟΛΕΙΩΝ</h2></div>
     </div>
     <div class="row">
-      <form method="get" id="schoolForm" data-schools-url="{% url 'schools:ajax_load_schools' %}" novalidate>
+      <form method="get" action="{% url 'schoolsadmin:school_selection' %}" id="schoolForm" data-schools-url="{% url 'schools:ajax_load_schools' %}" novalidate>
         {% csrf_token %}
         <!-- {% if error_message %}
           <center><p><strong class="text-danger">{{ error_message }}</strong></p></center>
@@ -18,7 +18,7 @@
           {{ form.department|as_crispy_field }}
         </div>
          <div class="mt-2 d-flex justify-content-center">
-          <button type="submit" class="btn btn-primary my-3" name="filter" value="'1">ΑΝΑΖΗΤΗΣΗ</button>
+          <button type="submit" class="btn btn-primary my-3" name="filter" value="1">ΑΝΑΖΗΤΗΣΗ</button>
           <!-- <a href="{% url 'schools:schooluser_list' %}" class="btn btn-danger">ΑΚΥΡΟ</a> -->
         </div>
       </form>

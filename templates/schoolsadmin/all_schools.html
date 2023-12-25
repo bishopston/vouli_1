@@ -1,0 +1,167 @@
+{% extends '../base/base_admin.html' %}
+
+{% block content %}
+
+    <!-- Custom CSS for DataTables buttons -->
+    <style>
+        /* Custom styles for DataTables buttons */
+        .dataTables_wrapper .dt-buttons {
+            position: relative;
+            float: right;
+        }
+
+        .dataTables_wrapper .dataTables_filter {
+            float: left;
+            margin-right: 10px; /* Adjust the margin as needed */
+        }
+
+        /* Style for the 'excel' button */
+        .dt-button.buttons-excel {
+            color: #fff; /* Text color */
+            background-color: #4caf50; /* Background color */
+            border: 1px solid #4caf50; /* Border color */
+        }
+
+        /* Hover style for the 'excel' button */
+        .dt-button.buttons-excel:hover {
+            background-color: #45a049; /* Hover background color */
+        }
+
+        /* Style for the 'pdf' button */
+        .dt-button.buttons-pdf {
+            color: #fff; /* Text color */
+            background-color: #e18ff5; /* Background color */
+            border: 1px solid #e18ff5; /* Border color */
+        }
+
+        /* Hover style for the 'pdf' button */
+        .dt-button.buttons-pdf:hover {
+            background-color: #0d47a1; /* Hover background color */
+        }
+
+        #schools-table_length {
+            margin-right: 30px; /* Adjust the margin as needed */
+        }
+
+        #schools-table_filter {
+            float: right;
+            margin-left: 10px; /* Adjust the margin as needed */
+        }
+
+        #schools-table_wrapper .dt-buttons {
+            float: right;
+        }
+
+    </style>
+
+
+    <div class="container bg-white text-dark d-flex flex-wrap overflow-auto mt-4">
+
+        <div class="row w-100">
+            <div class="mt-3 d-flex justify-content-center">
+                <h3 class="my-4">ΕΓΓΕΓΡΑΜΜΕΝΑ ΣΧΟΛΕΙΑ</h3>
+            </div>
+        </div>
+        {% if school_users %}
+        <div class="row w-100">
+            <div class="my-3">
+                <table id="schools-table" class="table table-striped table-sm">
+                    <thead>
+                        <tr>
+                            <th><small><strong>Περιφερειακή Διεύθυνση</strong></small></th>
+                            <th><small><strong>Σχολείο</strong></small></th>
+                            <th><small><strong>Διεύθυνση</strong></small></th>
+                            <th><small><strong>Πόλη</strong></small></th>
+                            <th><small><strong>ΤΚ</strong></small></th>
+                            <th><small><strong>Τηλέφωνο</strong></small></th>
+                            <th><small><strong>Email</strong></small></th>
+                            <th><small><strong>Όνομα Διευθυντή</strong></small></th>
+                            <th><small><strong>Επώνυμο Διευθυντή</strong></small></th>
+                            <th><small><strong>Ημερομηνία Εγγραφής</strong></small></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for school_user in school_users %}
+                            <tr>
+                                <td><small>{{ school_user.department.name}}</a></small></td>
+                                <td><small><a href="{% url 'schoolsadmin:schools_details' school_user.id %}">{{ school_user.school.name }}</a></small></td>
+                                <td><small>{{ school_user.address }} {{ school_user.address_number }}</small></td>
+                                <td><small>{{ school_user.city }}</small></td>
+                                <td><small>{{ school_user.zipcode }}</small></td>
+                                <td><small>{{ school_user.phone }}</small></td>
+                                <td><small>{{ school_user.creator.email }}</small></td>
+                                <td><small>{{ school_user.director_name }}</small></td>
+                                <td><small>{{ school_user.director_surname }}</small></td>
+                                <td><small>{{ school_user.created_at|date:'d/m/Y' }}</small></td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% else %}
+        <div class="row w-100">
+            <div class="my-3">
+                <div class="card mt-5">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-center">
+                            <nav aria-label="breadcrumb">
+                                <ol class="breadcrumb">
+                                    <li class="breadcrumb-item active" aria-current="page"><strong>Δεν υπάρχουν εγγεγραμμένα σχολεία</strong></li>
+                                </ol>
+                            </nav>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <script>
+
+        $(document).ready(function () {
+            $('#schools-table').DataTable({
+                dom: 'lBfrtip',
+            language: {
+                "sEmptyTable": "Δεν υπάρχουν δεδομένα",
+                "sInfo": "Εμφανίζονται _START_ έως _END_ από _TOTAL_ συνολικά",
+                "sInfoEmpty": "Εμφανίζονται 0 έως 0 από 0 συνολικά",
+                "sInfoFiltered": "(Φιλτράρισμα από _MAX_ συνολικά)",
+                "sInfoPostFix": "",
+                "sInfoThousands": ".",
+                "sLengthMenu": "Δείξε _MENU_ εγγραφές",
+                "sLoadingRecords": "Φόρτωση...",
+                "sProcessing": "Επεξεργασία...",
+                "sSearch": "Αναζήτηση:",
+                "sZeroRecords": "Δεν βρέθηκαν αποτελέσματα",
+                "oPaginate": {
+                "sFirst": "Πρώτη",
+                "sPrevious": "Προηγούμενο",
+                "sNext": "Επόμενο",
+                "sLast": "Τελευταία"
+                },
+                "oAria": {
+                "sSortAscending": ": activate to sort column ascending",
+                "sSortDescending": ": activate to sort column descending"
+                }
+            },
+            buttons: [ {
+                    extend: 'excelHtml5',
+                    autoFilter: true,
+                    sheetName: 'Exported data',
+                },
+                {
+                    extend: 'pdfHtml5',
+                    orientation: 'landscape',
+                    pageSize: 'A4',
+                }
+            ],
+            bInfo: false,    
+            searching: true,
+            });
+        });
+        
+    </script>
+
+{% endblock %}

@@ -1,0 +1,110 @@
+{% extends '../base/base_admin.html' %}
+
+{% block content %}
+
+<div class="my-5 d-flex justify-content-center">
+    <div class="row">
+        {% if school_user %}
+                <div class="my-3">
+                    <div class="d-flex justify-content-center mb-3"><h5>ΣΤΟΙΧΕΙΑ ΣΧΟΛΕΙΟΥ</h5></div>
+                    <div class="row">
+                        <div class="d-flex justify-content-center mb-2">
+                            <table class="table table-bordered">
+                                <tbody>
+                                    <tr>
+                                        <td nowrap>ΠΕΡΙΦΕΡΕΙΑΚΗ ΔΙΕΥΘΥΝΣΗ:</td>
+                                        <td nowrap>{{school_user.department.name}}</td>												
+                                    </tr>
+                                    <tr>
+                                        <td nowrap>ΟΝΟΜΑ ΣΧΟΛΕΙΟΥ:</td>
+                                        <td nowrap>{{school_user.school.name}}</td>												
+                                    </tr>
+                                    <tr>
+                                        <td nowrap>ΠΕΡΙΦΕΡΕΙΑ:</td>
+                                        <td nowrap>{{school_user.school.periphery}}</td>												
+                                    </tr>
+                                    <tr>
+                                        <td nowrap>ΔΗΜΟΣ:</td>
+                                        <td nowrap>{{school_user.school.ota_municipality}}</td>												
+                                    </tr>
+                                    <tr>
+                                        <td nowrap>ΕΠΙΠΕΔΟ ΕΚΠΑΙΔΕΥΣΗΣ:</td>
+                                        <td nowrap>{{school_user.school.education_level}}</td>												
+                                    </tr>
+                                    <tr>
+                                        <td nowrap>ΤΥΠΟΣ ΣΧΟΛΕΙΟΥ:</td>
+                                        <td nowrap>{{school_user.school.type}}</td>												
+                                    </tr>
+                                    <tr>
+                                        <td nowrap>ΝΟΜΙΚΟΣ ΧΑΡΑΚΤΗΡΑΣ:</td>
+                                        <td nowrap>{{school_user.school.legal_character}}</td>												
+                                    </tr>
+                                    <tr>
+                                        <td nowrap>ΔΙΕΥΘΥΝΣΗ:</td>
+                                        <td nowrap>{{school_user.address}}</td>												
+                                    </tr>
+                                    <tr>
+                                        <td nowrap>ΑΡΙΘΜΟΣ:</td>
+                                        <td nowrap>{{school_user.address_number}}</td>												
+                                    </tr>
+                                    <tr>
+                                        <td nowrap>ΠΟΛΗ:</td>
+                                        <td nowrap>{{school_user.city}}</td>												
+                                    </tr>
+                                    <tr>
+                                        <td nowrap>ΤΑΧ. ΚΩΔΙΚΑΣ:</td>
+                                        <td nowrap>{{school_user.zipcode}}</td>												
+                                    </tr>
+                                    <tr>
+                                        <td nowrap>ΤΗΛΕΦΩΝΟ:</td>
+                                        <td nowrap>{{school_user.phone}}</td>												
+                                    </tr>
+                                    <tr>
+                                        <td nowrap>Email:</td>
+                                        <td nowrap>{{user.email}}</td>												
+                                    </tr>
+                                    <tr>
+                                        <td nowrap>ΟΝΟΜΑ ΔΙΕΥΘΥΝΤΗ:</td>
+                                        <td nowrap>{{school_user.director_name}}</td>												
+                                    </tr>
+                                    <tr>
+                                        <td nowrap>ΕΠΩΝΥΜΟ ΔΙΕΥΘΥΝΤΗ:</td>
+                                        <td nowrap>{{school_user.director_surname}}</td>												
+                                    </tr>
+                                    <tr>
+                                        <td nowrap>ΗΜΕΡΟΜΗΝΙΑ ΕΓΓΡΑΦΗΣ:</td>
+                                        <td nowrap>{{school_user.created_at|date:"d/m/Y"}}</td>												
+                                    </tr>
+                                </tbody>                            
+                            </table>                           
+                        </div>                       
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="d-flex justify-content-center">
+                        <a href="{{request.META.HTTP_REFERER}}" class="btn btn-primary">Πίσω</a>
+                    </div>
+                </div>
+
+    </div>
+    {% else %}
+    <div class="row w-100">
+        <div class="my-3">
+            <div class="card mt-5">
+                <div class="card-body">
+                    <div class="d-flex justify-content-center">
+                        <nav aria-label="breadcrumb">
+                            <ol class="breadcrumb">
+                                <li class="breadcrumb-item active" aria-current="page"><strong>Δε βρέθηκε σχολείο</strong></li>
+                            </ol>
+                        </nav>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}    
+</div>
+
+
+{% endblock %}

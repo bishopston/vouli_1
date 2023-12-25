@@ -38,6 +38,20 @@
         .dt-button.buttons-pdf:hover {
             background-color: #0d47a1; /* Hover background color */
         }
+
+        #reservations-table_length {
+            margin-right: 30px; /* Adjust the margin as needed */
+        }
+
+        #reservations-table_filter {
+            float: right;
+            margin-left: 10px; /* Adjust the margin as needed */
+        }
+
+        #reservations-table_wrapper .dt-buttons {
+            float: right;
+        }
+
     </style>
 
 
@@ -161,7 +175,7 @@
 
 $(document).ready(function () {
     $('#reservations-table').DataTable({
-        dom: 'Bfrtip',
+        dom: 'lBfrtip',
       language: {
         "sEmptyTable": "Δεν υπάρχουν δεδομένα",
         "sInfo": "Εμφανίζονται _START_ έως _END_ από _TOTAL_ συνολικά",
