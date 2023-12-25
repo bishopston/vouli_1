@@ -2,6 +2,44 @@
 
 {% block content %}
 
+    <!-- Custom CSS for DataTables buttons -->
+    <style>
+        /* Custom styles for DataTables buttons */
+        .dataTables_wrapper .dt-buttons {
+            position: relative;
+            float: right;
+        }
+
+        .dataTables_wrapper .dataTables_filter {
+            float: left;
+            margin-right: 10px; /* Adjust the margin as needed */
+        }
+
+        /* Style for the 'excel' button */
+        .dt-button.buttons-excel {
+            color: #fff; /* Text color */
+            background-color: #4caf50; /* Background color */
+            border: 1px solid #4caf50; /* Border color */
+        }
+
+        /* Hover style for the 'excel' button */
+        .dt-button.buttons-excel:hover {
+            background-color: #45a049; /* Hover background color */
+        }
+
+        /* Style for the 'pdf' button */
+        .dt-button.buttons-pdf {
+            color: #fff; /* Text color */
+            background-color: #e18ff5; /* Background color */
+            border: 1px solid #e18ff5; /* Border color */
+        }
+
+        /* Hover style for the 'pdf' button */
+        .dt-button.buttons-pdf:hover {
+            background-color: #0d47a1; /* Hover background color */
+        }
+    </style>
+
 
 <div class="container bg-white text-dark d-flex flex-wrap overflow-auto mt-4">
     {% if closest_available_res_period %}
@@ -118,11 +156,13 @@
     </div>
 </div>
 
+
 <script>
 
 $(document).ready(function () {
     $('#reservations-table').DataTable({
-      "language": {
+        dom: 'Bfrtip',
+      language: {
         "sEmptyTable": "Δεν υπάρχουν δεδομένα",
         "sInfo": "Εμφανίζονται _START_ έως _END_ από _TOTAL_ συνολικά",
         "sInfoEmpty": "Εμφανίζονται 0 έως 0 από 0 συνολικά",
@@ -145,9 +185,19 @@ $(document).ready(function () {
           "sSortDescending": ": activate to sort column descending"
         }
       },
-      "bFilter": true,  
-      "bInfo": false,    // Disable information display
-      "searching": true
+      buttons: [ {
+            extend: 'excelHtml5',
+            autoFilter: true,
+            sheetName: 'Exported data',
+        },
+        {
+            extend: 'pdfHtml5',
+            orientation: 'landscape',
+            pageSize: 'A4',
+        }
+    ],
+      bInfo: false,    // Disable information display
+      searching: true,
     });
   });
 

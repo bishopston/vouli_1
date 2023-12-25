@@ -50,7 +50,7 @@ INSTALLED_APPS = [
     "base",
     "schools",
     "reservations",
-
+    "schoolsadmin",
 ]
 
 MIDDLEWARE = [

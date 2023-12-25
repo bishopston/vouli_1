@@ -85,6 +85,7 @@
         <div class="d-flex justify-content-center mb-2">
             <div class="my-1">
                 <a href="{% url 'reservations:reservation_pdf' reservation.id %}" class="btn btn-success">Λήψη PDF</a>
+                <a href="{{request.META.HTTP_REFERER}}" class="btn btn-primary ms-1">Πίσω</a>
             </div>
         </div>
     </div>

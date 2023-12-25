@@ -1,10 +1,20 @@
 from django.db import models
 from django.core.exceptions import ValidationError
 from django.conf import settings
+from django.utils import timezone
 from schools.models import SchoolUser
 from datetime import datetime as dt
 import pytz
 from simple_history.models import HistoricalRecords
+
+# Get current UTC time
+utc_now = dt.now(pytz.utc)
+
+# Define the Athens time zone
+athens_tz = pytz.timezone('Europe/Athens')
+
+# Convert UTC time to Athens time
+athens_now = utc_now.astimezone(athens_tz)
 
 # Model for defining days
 class Day(models.Model):
@@ -182,6 +192,8 @@ class Reservation(models.Model):
             # If there are denied reservations, allow submitting a new reservation regardless of its status
             super().save(*args, **kwargs)
             return
+
+        self.updated_at = timezone.now()
 
         # Continue with the save process
         super().save(*args, **kwargs)
