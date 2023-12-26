@@ -1,0 +1,31 @@
+{% extends '../base/base_admin.html' %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+
+<div class="d-flex justify-content-center my-3">
+    <div class="col-md-6">
+        <div class="d-flex flex-wrap align-content-center justify-content-center mt-5">
+            <div class="card">
+                <h5 class="card-header">{{school_update.school}}</h5>
+                <div class="card-body">
+                    <form action="{% url 'schoolsadmin:schooluser_update' school_update.id %}" method="post">
+                        {% csrf_token %}
+                        {% for error in schoolUpdateForm.errors %}
+                        <center><p><strong class="text-danger">Please select a valid {{ error }} value</strong></p></center>
+                        {% endfor %} 
+                        <!-- {{ schoolUpdateForm.director_name|as_crispy_field }}
+                        {{ schoolUpdateForm.director_surname|as_crispy_field }} -->
+                        {{ schoolUpdateForm|crispy }}
+                        <div class="d-flex justify-content-between">
+                            <button type="submit" class="btn btn-success">ΕΝΗΜΕΡΩΣΗ</button>
+                            <a href="{% url 'schoolsadmin:schools_created_by_admin' %}" class="btn btn-primary">ΑΚΥΡΟ</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>   
+</div>
+
+{% endblock %}

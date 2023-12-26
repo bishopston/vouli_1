@@ -15,7 +15,7 @@ from django.views import View
 from .models import Day, ReservationPeriod, Timeslot, DayTime, Reservation, ReservationWindow, ExceptionalRule, SchoolYear
 from schools.models import SchoolUser, Department
 from .forms import ReservationForm, BaseReservationFormSet, ReservationUpdateForm, ReservationUpdateAdminForm, ReservationDashboardForm, ReservationCalendarByDateForm
-from .utils import get_occupied_daytimes, get_allowed_daytimes, get_occupied_exceptional_daytimes, get_allowed_exceptional_daytimes, calculate_availability_percentage
+from .utils import get_athens_now_time, get_occupied_daytimes, get_allowed_daytimes, get_occupied_exceptional_daytimes, get_allowed_exceptional_daytimes, calculate_availability_percentage
 from datetime import timedelta
 import datetime
 from datetime import datetime as dt
@@ -25,14 +25,7 @@ from itertools import groupby
 from xhtml2pdf import pisa
 
 
-# Get current UTC time
-utc_now = datetime.now(pytz.utc)
 
-# Define the Athens time zone
-athens_tz = pytz.timezone('Europe/Athens')
-
-# Convert UTC time to Athens time
-athens_now = utc_now.astimezone(athens_tz)
 
 @ login_required
 @user_passes_test(lambda u: u.is_superuser)   
@@ -368,6 +361,16 @@ def chunk_days(days):
 
 @login_required
 def my_reservations(request):
+
+    # Get current UTC time
+    utc_now = datetime.now(pytz.utc)
+
+    # Define the Athens time zone
+    athens_tz = pytz.timezone('Europe/Athens')
+
+    # Convert UTC time to Athens time
+    athens_now = utc_now.astimezone(athens_tz)
+
     #query user's reservations
     my_reservations = Reservation.objects.filter(schoolUser__creator=request.user).order_by('-reservation_date__date', 'timeslot__dayTime__slot')
 
@@ -385,14 +388,6 @@ def my_reservations(request):
     else:
         my_reservations_current_year_number = 0
 
-    # Get current UTC time
-    utc_now = datetime.now(pytz.utc)
-
-    # Define the Athens time zone
-    athens_tz = pytz.timezone('Europe/Athens')
-
-    # Convert UTC time to Athens time
-    athens_now = utc_now.astimezone(athens_tz)
 
     #query closest available reservation period whose start date hasn't come yet and res window has not finished yet - closest_available_res_period[0]
     q = ReservationPeriod.objects.filter(is_available=True).filter(start_date__gte=athens_now).filter(reservationwindow__end_date__gte=athens_now)
@@ -452,6 +447,16 @@ def my_reservations(request):
 
 @login_required
 def make_reservation(request, reservation_period_id, school_user_id):
+
+    # Get current UTC time
+    utc_now = datetime.now(pytz.utc)
+
+    # Define the Athens time zone
+    athens_tz = pytz.timezone('Europe/Athens')
+
+    # Convert UTC time to Athens time
+    athens_now = utc_now.astimezone(athens_tz)
+
     schoolUser = SchoolUser.objects.get(pk=school_user_id)
     res_period = get_object_or_404(ReservationPeriod, pk=reservation_period_id)
     date = request.GET.get('date')
@@ -620,6 +625,15 @@ def make_reservation(request, reservation_period_id, school_user_id):
 @login_required
 def preview_reservation(request, reservation_period_id, school_user_id):
 
+    # Get current UTC time
+    utc_now = datetime.now(pytz.utc)
+
+    # Define the Athens time zone
+    athens_tz = pytz.timezone('Europe/Athens')
+
+    # Convert UTC time to Athens time
+    athens_now = utc_now.astimezone(athens_tz)
+
     date = request.GET.get('date') or request.POST.get('date')
     res_period = get_object_or_404(ReservationPeriod, pk=reservation_period_id)
 
@@ -775,6 +789,16 @@ def preview_reservation(request, reservation_period_id, school_user_id):
 @login_required
 @user_passes_test(lambda u: u.is_superuser)
 def calendar_timeslot(request, reservation_period_id, year=None, month=None):
+
+    # Get current UTC time
+    utc_now = datetime.now(pytz.utc)
+
+    # Define the Athens time zone
+    athens_tz = pytz.timezone('Europe/Athens')
+
+    # Convert UTC time to Athens time
+    athens_now = utc_now.astimezone(athens_tz)
+
     # If reservation_period_id is provided, get the start date of the reservation period
     if reservation_period_id:
         #reservation_period = ReservationPeriod.objects.get(pk=reservation_period_id)
@@ -868,6 +892,15 @@ def update_reservation(request, reservation_id, school_user_id):
 @login_required
 @user_passes_test(lambda u: u.is_superuser)
 def handle_reservations(request):
+
+    # Get current UTC time
+    utc_now = datetime.now(pytz.utc)
+
+    # Define the Athens time zone
+    athens_tz = pytz.timezone('Europe/Athens')
+
+    # Convert UTC time to Athens time
+    athens_now = utc_now.astimezone(athens_tz)
 
     available_res_periods = ReservationPeriod.objects.filter(is_available=True)
     context = {}
@@ -980,6 +1013,16 @@ def send_consolidated_email(user, reservations):
 @ login_required
 @user_passes_test(lambda u: u.is_superuser)                                                       
 def update_reservation_admin(request, reservation_id):
+
+    # Get current UTC time
+    utc_now = datetime.now(pytz.utc)
+
+    # Define the Athens time zone
+    athens_tz = pytz.timezone('Europe/Athens')
+
+    # Convert UTC time to Athens time
+    athens_now = utc_now.astimezone(athens_tz)
+
     #update_reservation = get_object_or_404(Reservation, id=reservation_id)
     update_reservation = Reservation.objects.get(id=reservation_id)
     schoolUser = update_reservation.schoolUser
@@ -1276,6 +1319,16 @@ def get_schoolusers(request):
 @login_required
 @user_passes_test(lambda u: u.is_superuser)
 def calendar_reservations(request, reservation_period_id, year=None, month=None):
+
+    # Get current UTC time
+    utc_now = datetime.now(pytz.utc)
+
+    # Define the Athens time zone
+    athens_tz = pytz.timezone('Europe/Athens')
+
+    # Convert UTC time to Athens time
+    athens_now = utc_now.astimezone(athens_tz)
+
     # If reservation_period_id is provided, get the start date of the reservation period
     if reservation_period_id:
         #reservation_period = ReservationPeriod.objects.get(pk=reservation_period_id)

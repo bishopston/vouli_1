@@ -1,7 +1,9 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required, user_passes_test
-from schools.models import School, SchoolUser, Department
+from django.urls import reverse
+from schools.models import SchoolUser, Department
 from schools.forms import SchoolUserForm
+from .forms import SchoolUserUpdateForm
 
 @login_required
 @user_passes_test(lambda u: u.is_superuser)
@@ -67,3 +69,40 @@ def schools_details(request, school_id):
     }
 
     return render(request, 'schoolsadmin/schools_details.html', context)
+
+@login_required
+@user_passes_test(lambda u: u.is_superuser)
+def schools_created_by_admin(request):
+
+    superuser_school_users = SchoolUser.objects.filter(creator__is_superuser=True).order_by('school__name')
+
+    context = {
+        'superuser_school_users': superuser_school_users,
+    }
+
+    return render(request, 'schoolsadmin/schools_created_by_admin.html', context)
+
+@ login_required
+@user_passes_test(lambda u: u.is_superuser)
+def SchoolUserUpdateView(request, school_id):
+    school_update = get_object_or_404(SchoolUser, id=school_id) 
+    schoolUpdateForm = SchoolUserUpdateForm(instance=school_update)
+
+    if request.method == 'POST':
+        schoolUpdateForm = SchoolUserUpdateForm(request.POST, instance=school_update)
+        if schoolUpdateForm.is_valid():
+            schoolUpdateForm.save()
+            return redirect(reverse('schoolsadmin:schools_created_by_admin'))
+
+    return render(request, 'schoolsadmin/school_update_admin.html', {'school_update':school_update, 'schoolUpdateForm': schoolUpdateForm,})
+
+@ login_required
+@user_passes_test(lambda u: u.is_superuser)
+def SchoolUserDeleteView(request, school_id):
+    school_delete = get_object_or_404(SchoolUser, id=school_id) 
+
+    if request.method == 'POST':         
+        school_delete.delete()                    
+        return redirect('schoolsadmin:schools_created_by_admin')           
+
+    return render(request, 'schoolsadmin/school_delete_admin.html', {'school_delete': school_delete})

@@ -1,5 +1,18 @@
 from datetime import datetime
 from .models import Day, Timeslot, ExceptionalRule, Reservation
+import pytz
+
+def get_athens_now_time():
+    # Get current UTC time
+    utc_now = datetime.now(pytz.utc)
+
+    # Define the Athens time zone
+    athens_tz = pytz.timezone('Europe/Athens')
+
+    # Convert UTC time to Athens time
+    athens_now = utc_now.astimezone(athens_tz)
+
+    return athens_now
 
 def get_occupied_daytimes(selected_date, reservation_period):
     day_of_week_mapping = {
