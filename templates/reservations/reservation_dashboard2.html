@@ -15,6 +15,54 @@
 	margin-left: 50px;
   }
 
+  /* Custom styles for DataTables buttons */
+  .dataTables_wrapper .dt-buttons {
+      position: relative;
+      float: right;
+  }
+
+  .dataTables_wrapper .dataTables_filter {
+      float: left;
+      margin-right: 10px; /* Adjust the margin as needed */
+  }
+
+  /* Style for the 'excel' button */
+  .dt-button.buttons-excel {
+      color: #fff; /* Text color */
+      background-color: #4caf50; /* Background color */
+      border: 1px solid #4caf50; /* Border color */
+  }
+
+  /* Hover style for the 'excel' button */
+  .dt-button.buttons-excel:hover {
+      background-color: #45a049; /* Hover background color */
+  }
+
+  /* Style for the 'pdf' button */
+  .dt-button.buttons-pdf {
+      color: #fff; /* Text color */
+      background-color: #e18ff5; /* Background color */
+      border: 1px solid #e18ff5; /* Border color */
+  }
+
+  /* Hover style for the 'pdf' button */
+  .dt-button.buttons-pdf:hover {
+      background-color: #0d47a1; /* Hover background color */
+  }
+
+  #reservations-table_length {
+      margin-right: 30px; /* Adjust the margin as needed */
+  }
+
+  #reservations-table_filter {
+      float: right;
+      margin-left: 10px; /* Adjust the margin as needed */
+  }
+
+  #reservations-table_wrapper .dt-buttons {
+      float: right;
+  }
+
 </style>
 
 <div class="container bg-white text-dark d-flex flex-wrap overflow-auto mt-4">
@@ -218,35 +266,46 @@
 <script>
 
   $(document).ready(function () {
-      $('#reservations-table').DataTable({
-        "language": {
-          "sEmptyTable": "Δεν υπάρχουν δεδομένα",
-          "sInfo": "Εμφανίζονται _START_ έως _END_ από _TOTAL_ συνολικά",
-          "sInfoEmpty": "Εμφανίζονται 0 έως 0 από 0 συνολικά",
-          "sInfoFiltered": "(Φιλτράρισμα από _MAX_ συνολικά)",
-          "sInfoPostFix": "",
-          "sInfoThousands": ".",
-          "sLengthMenu": "Δείξε _MENU_ εγγραφές",
-          "sLoadingRecords": "Φόρτωση...",
-          "sProcessing": "Επεξεργασία...",
-          "sSearch": "Αναζήτηση:",
-          "sZeroRecords": "Δεν βρέθηκαν αποτελέσματα",
-          "oPaginate": {
-            "sFirst": "Πρώτη",
-            "sPrevious": "Προηγούμενο",
-            "sNext": "Επόμενο",
-            "sLast": "Τελευταία"
-          },
-          "oAria": {
-            "sSortAscending": ": activate to sort column ascending",
-            "sSortDescending": ": activate to sort column descending"
-          }
+    $('#reservations-table').DataTable({
+        dom: 'lBfrtip',
+      language: {
+        "sEmptyTable": "Δεν υπάρχουν δεδομένα",
+        "sInfo": "Εμφανίζονται _START_ έως _END_ από _TOTAL_ συνολικά",
+        "sInfoEmpty": "Εμφανίζονται 0 έως 0 από 0 συνολικά",
+        "sInfoFiltered": "(Φιλτράρισμα από _MAX_ συνολικά)",
+        "sInfoPostFix": "",
+        "sInfoThousands": ".",
+        "sLengthMenu": "Δείξε _MENU_ εγγραφές",
+        "sLoadingRecords": "Φόρτωση...",
+        "sProcessing": "Επεξεργασία...",
+        "sSearch": "Αναζήτηση:",
+        "sZeroRecords": "Δεν βρέθηκαν αποτελέσματα",
+        "oPaginate": {
+          "sFirst": "Πρώτη",
+          "sPrevious": "Προηγούμενο",
+          "sNext": "Επόμενο",
+          "sLast": "Τελευταία"
         },
-        "bFilter": true,  
-        "bInfo": false,    // Disable information display
-        "searching": true
-      });
+        "oAria": {
+          "sSortAscending": ": activate to sort column ascending",
+          "sSortDescending": ": activate to sort column descending"
+        }
+      },
+      buttons: [ {
+            extend: 'excelHtml5',
+            autoFilter: true,
+            sheetName: 'Exported data',
+        },
+        {
+            extend: 'pdfHtml5',
+            orientation: 'landscape',
+            pageSize: 'A4',
+        }
+    ],
+      bInfo: false,    // Disable information display
+      searching: true,
     });
+  });
   
 </script>
 

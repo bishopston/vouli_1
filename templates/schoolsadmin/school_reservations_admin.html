@@ -10,7 +10,7 @@
                     {% if my_reservations_current_year_number < 3 and next_available_res_period == my_reservation_period %}
                         <div class="card text-center mt-5">
                             <div class="card-header">
-                                <h5>Ίδρυμα της Βουλής</h5>
+                                <h5>{{ my_school.school.name }}</h5>
                             </div>
                             <div class="card-body">
                             <h5 class="card-title">Αιτήσεις Επίσκεψης Σχολείων</h5>
@@ -23,12 +23,12 @@
                     {% else %}
                         <div class="card text-center mt-5">
                             <div class="card-header">
-                                <h5>Ίδρυμα της Βουλής</h5>
+                                <h5>{{ my_school.school.name }}</h5>
                             </div>
                             <div class="card-body">
                             <h5 class="card-title">Αιτήσεις Επίσκεψης Σχολείων</h5>
                             <p class="card-text">Έχετε φτάσει στο ανώτατο επιτρεπτό όριο κρατήσεων για τη φετινή σχολική χρονιά</p>
-                            <a href="#" class="btn btn-primary">ΠΙΝΑΚΑΣ ΕΛΕΓΧΟΥ</a>
+                            <a href="{% url 'schoolsadmin:schools_created_by_admin' %}" class="btn btn-primary">ΣΧΟΛΕΙΑ ΔΙΑΧΕΙΡΙΣΤΗ</a>
                             </div>
                         </div>
                     {% endif %}
@@ -36,7 +36,7 @@
                     {% if my_reservations_current_year_number < 3 %}
                         <div class="card text-center mt-5">
                             <div class="card-header">
-                                <h5>Ίδρυμα της Βουλής</h5>
+                                <h5>{{ my_school.school.name }}</h5>
                             </div>
                             <div class="card-body">
                             <h5 class="card-title">Αιτήσεις Επίσκεψης Σχολείων</h5>
@@ -49,12 +49,12 @@
                     {% else %}
                         <div class="card text-center mt-5">
                             <div class="card-header">
-                                <h5>Ίδρυμα της Βουλής</h5>
+                                <h5>{{ my_school.school.name }}</h5>
                             </div>
                             <div class="card-body">
                             <h5 class="card-title">Αιτήσεις Επίσκεψης Σχολείων</h5>
                             <p class="card-text">Έχετε φτάσει στο ανώτατο επιτρεπτό όριο κρατήσεων για τη φετινή σχολική χρονιά</p>
-                            <a href="#" class="btn btn-primary">ΠΙΝΑΚΑΣ ΕΛΕΓΧΟΥ</a>
+                            <a href="{% url 'schoolsadmin:schools_created_by_admin' %}" class="btn btn-primary">ΣΧΟΛΕΙΑ ΔΙΑΧΕΙΡΙΣΤΗ</a>
                             </div>
                         </div>
                     {% endif %}
@@ -62,12 +62,12 @@
 			{% else %}
 				<div class="card text-center mt-5">
 					<div class="card-header">
-						<h5>Ίδρυμα της Βουλής</h5>
+						<h5>{{ my_school.school.name }}</h5>
 					</div>
 					<div class="card-body">
 					<h5 class="card-title">Αιτήσεις Επίσκεψης Σχολείων</h5>
 					<p class="card-text">Δεν έχει ξεκινήσει ακόμα η περίοδος δημιουργίας κρατήσεων για την επόμενη περίοδο επισκέψεων στη Βουλή</p>
-					<a href="#" class="btn btn-primary">ΠΙΝΑΚΑΣ ΕΛΕΓΧΟΥ</a>
+					<a href="{% url 'schoolsadmin:schools_created_by_admin' %}" class="btn btn-primary">ΣΧΟΛΕΙΑ ΔΙΑΧΕΙΡΙΣΤΗ</a>
 					</div>
 				</div>
 			{% endif %}
@@ -76,16 +76,9 @@
     <div class="row w-100">
         {% if my_school %}
             {% if my_reservations %}
-                <!-- <div class="my-5 d-flex justify-content-center">
-                    <nav aria-label="breadcrumb">
-                        <ol class="breadcrumb">
-                        <li class="breadcrumb-item active" aria-current="page">Ιστορικό Κρατήσεων για το {{ my_school.school.name }}</li>
-                        </ol>
-                    </nav>
-                </div> -->
                 <div class="card text-center mt-5">
                     <div class="card-header">
-                        <h5>{{ my_school.school.name }} - Ιστορικό Κρατήσεων</h5>
+                        <h5>Ιστορικό Κρατήσεων</h5>
                     </div>
                     <div class="card-body">
                         <div class="table-responsive">
@@ -154,9 +147,6 @@
                         <li class="breadcrumb-item active" aria-current="page">Δεν έχετε προχωρήσει ακόμα σε εγγραφή σχολείου</li>
                     </ol>
                 </nav>
-            </div>
-            <div class="d-flex justify-content-center">
-                <a href="{% url 'schools:schooluser_add' %}" class="btn btn-success">ΠΡΟΣΘΕΣΗ ΣΧΟΛΕΙΟΥ</a>
             </div>
         {% endif %}
     </div>

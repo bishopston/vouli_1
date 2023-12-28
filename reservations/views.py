@@ -281,6 +281,16 @@ def delete_exceptional_rule(request):
 
 @login_required
 def calendar_month(request, reservation_period_id, school_user_id, year=None, month=None):
+
+    # Get current UTC time
+    utc_now = datetime.now(pytz.utc)
+
+    # Define the Athens time zone
+    athens_tz = pytz.timezone('Europe/Athens')
+
+    # Convert UTC time to Athens time
+    athens_now = utc_now.astimezone(athens_tz)
+
     # If reservation_period_id is provided, get the start date of the reservation period
     if reservation_period_id:
         #reservation_period = ReservationPeriod.objects.get(pk=reservation_period_id)
@@ -375,8 +385,8 @@ def my_reservations(request):
     my_reservations = Reservation.objects.filter(schoolUser__creator=request.user).order_by('-reservation_date__date', 'timeslot__dayTime__slot')
 
     # need to check if the res period of the already registered user's reservations is the same with the next available res period
-    if my_reservations:
-        my_reservation_period = ReservationPeriod.objects.filter(reservation__schoolUser__creator=request.user).first()
+    # if my_reservations:
+    #     my_reservation_period = ReservationPeriod.objects.filter(reservation__schoolUser__creator=request.user).first()
 
     #query current school year
     current_school_year = SchoolYear.objects.filter(start_date__lte=athens_now, end_date__gte=athens_now).first()
@@ -407,13 +417,25 @@ def my_reservations(request):
 
                 context = {'my_reservations': my_reservations,
                         'my_reservations_current_year_number': my_reservations_current_year_number,
-                        'my_reservation_period': my_reservation_period,
                         'next_available_res_period': closest_available_res_period[0],
                         'next_available_res_period_start_date': closest_available_res_period[0].start_date,
                         'next_available_res_period_end_date': closest_available_res_period[0].end_date,
                         'reservation_allowed': closest_available_res_period[0].reservationwindow_set.first().is_reservation_allowed(),
                         'my_school': my_school,
                 }
+
+                # need to check if the res period of the already registered user's reservations is the same with the next available res period
+                if my_reservations:
+                    print(ReservationPeriod.objects.filter(reservation__schoolUser__creator=request.user).first().start_date)
+                    context = {'my_reservations': my_reservations,
+                            'my_reservations_current_year_number': my_reservations_current_year_number,
+                            'my_reservation_period': ReservationPeriod.objects.filter(reservation__schoolUser__creator=request.user).first(),
+                            'next_available_res_period': closest_available_res_period[0],
+                            'next_available_res_period_start_date': closest_available_res_period[0].start_date,
+                            'next_available_res_period_end_date': closest_available_res_period[0].end_date,
+                            'reservation_allowed': closest_available_res_period[0].reservationwindow_set.first().is_reservation_allowed(),
+                            'my_school': my_school,
+                        }
 
                 return render(request, 'reservations/myreservations.html', context)
 
@@ -852,7 +874,10 @@ def delete_reservation(request, reservation_id, school_user_id):
         if request.method == 'POST':    
             if delete_reservation.status == 'pending':
                 delete_reservation.delete()                    
-                return redirect('reservations:my_reservations')  
+                if request.user.is_superuser:
+                    return redirect(reverse('schoolsadmin:school_reservations_admin' , kwargs={ 'school_id': schoolUser.id }))
+                else:
+                    return redirect(reverse('reservations:my_reservations'))
             else:
                 error = 'Μπορείτε να διαγράψετε μόνο εκκρεμείς κρατήσεις.'         
 
@@ -878,7 +903,10 @@ def update_reservation(request, reservation_id, school_user_id):
             reservationUpdateForm = ReservationUpdateForm(request.POST, instance=update_reservation)
             if reservationUpdateForm.is_valid():
                 reservationUpdateForm.save()
-                return redirect(reverse('reservations:my_reservations'))
+                if request.user.is_superuser:
+                    return redirect(reverse('schoolsadmin:school_reservations_admin' , kwargs={ 'school_id': schoolUser.id }))
+                else:
+                    return redirect(reverse('reservations:my_reservations'))
 
     return render(request, 'reservations/update_reservation.html', {'update_reservation':update_reservation, 
                                                                     'reservationUpdateForm': reservationUpdateForm,
@@ -1386,7 +1414,7 @@ def reservation_details_by_date(request):
     # date_obj = datetime.strptime(date, '%Y-%m-%d')
 
     # Query reservations for the given date
-    reservations = Reservation.objects.filter(reservation_date__date=date).exclude(status='denied')
+    reservations = Reservation.objects.filter(reservation_date__date=date).exclude(status='denied').order_by('timeslot__dayTime__slot')
 
     context = {'date': date, 'reservations': reservations}
     return render(request, 'reservations/reservation_details_table.html', context)

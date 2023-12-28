@@ -61,7 +61,7 @@
                             <form action="{% url 'reservations:delete_reservation' delete_reservation.id schoolUser.id %}" method="post">
                                 {% csrf_token %}
                                 <button type="submit" class="btn btn-danger me-2">ΔΙΑΓΡΑΦΗ</button>
-                                <a href="{% url 'reservations:my_reservations' %}" class="btn btn-primary">ΑΚΥΡΟ</a>
+                                <a href="{{request.META.HTTP_REFERER}}" class="btn btn-primary">ΑΚΥΡΟ</a>
                             </form>
                         </div>
                     </div>

@@ -66,7 +66,7 @@
                             {{ form|crispy }}
                             <div class="d-flex justify-content-between">
                                 <button type="submit" class="btn btn-success">ΤΡΟΠΟΠΟΙΗΣΗ</button>
-                                <a href="{% url 'reservations:handle_reservations' %}" class="btn btn-primary">ΑΚΥΡΟ</a>
+                                <a href="{{request.META.HTTP_REFERER}}" class="btn btn-primary">ΑΚΥΡΟ</a>
                             </div>
                         </form>
                     

@@ -13,5 +13,5 @@ urlpatterns = [
     # path('add/', views.SchoolUserCreateView, name='schooluser_add'),
     path('delete/<int:school_id>/', views.SchoolUserDeleteView, name='schooluser_delete'),
     path('update/<int:school_id>/', views.SchoolUserUpdateView, name='schooluser_update'),
-    # path('ajax/load-schools/', views.load_schools, name='ajax_load_schools'),
+    path('school_reservations_admin/<int:school_id>/', views.school_reservations_admin, name='school_reservations_admin'),
 ]
