@@ -11,6 +11,7 @@ WORKDIR /code
 # Install dependencies
 COPY Pipfile Pipfile.lock /code/
 RUN pip install pipenv && pipenv install --system
+RUN apt-get update && apt-get install -y git
 
 # Copy project
 COPY . /code/
