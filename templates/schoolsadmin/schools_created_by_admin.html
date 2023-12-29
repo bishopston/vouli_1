@@ -116,6 +116,11 @@
                 </table>
             </div>
         </div>
+        <div class="row w-100">
+            <div class="mt-2 d-flex justify-content-start">
+                <a href="{% url 'schoolsadmin:schooluser_add' %}" class="btn btn-primary">Δημιουργία Σχολείου-Χρήστη</a>
+            </div>
+        </div>
         {% else %}
         <div class="row w-100">
             <div class="my-3">
@@ -130,6 +135,11 @@
                         </div>
                     </div>
                 </div>
+            </div>
+        </div>
+        <div class="row w-100">
+            <div class="mt-2 d-flex justify-content-center">
+                <a href="{% url 'schoolsadmin:schooluser_add' %}" class="btn btn-primary">Δημιουργία Σχολείου-Χρήστη</a>
             </div>
         </div>
         {% endif %}
