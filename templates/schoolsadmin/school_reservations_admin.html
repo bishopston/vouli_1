@@ -117,7 +117,7 @@
                                     <!-- <td><small>{{ my_reservation.updated_at|date:'d/m/Y' }}</small></td> -->
                                     <td>
                                         {% if my_reservation.status == 'pending' %}
-                                            <a href="{% url 'reservations:update_reservation' my_reservation.id my_school.id %}"><i class="fa fa-pencil" aria-hidden="true"></i></a>
+                                            <a href="{% url 'reservations:update_reservation_admin' my_reservation.id %}"><i class="fa fa-pencil" aria-hidden="true"></i></a>
                                         {% endif %}
                                     </td>    
                                     <td>

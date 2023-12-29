@@ -1,0 +1,82 @@
+{% extends '../base/base_admin.html' %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<div class="my-3 d-flex justify-content-center">
+  <div class="col-md-2"></div>
+  <div class="col-md-8">
+    <div class="row">
+      <div class="d-flex justify-content-center mb-2"><h2>ΦΟΡΜΑ ΕΓΓΡΑΦΗΣ ΣΧΟΛΕΙΟΥ</h2></div>
+    </div>
+    <div class="row">
+      <form method="post" id="schoolForm" data-schools-url="{% url 'schools:ajax_load_schools' %}" novalidate>
+        {% csrf_token %}
+        {% if error_message %}
+          <center><p><strong class="text-danger">{{ error_message }}</strong></p></center>
+        {% endif %}
+        <div class="col">
+          {{ form.department|as_crispy_field }}
+        </div>
+        <div class="col">
+          {{ form.school|as_crispy_field }}
+        </div>
+        <div class="row">
+          <div class="col-md-9">
+            {{ form.address|as_crispy_field }}
+          </div>
+          <div class="col-md-3">
+            {{ form.address_number|as_crispy_field }}
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-7">
+            {{ form.city|as_crispy_field }}
+          </div>
+          <div class="col-md-2">
+            {{ form.zipcode|as_crispy_field }}
+          </div>
+          <div class="col-md-3">
+            {{ form.phone|as_crispy_field }}
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-5">
+            {{ form.director_name|as_crispy_field }}
+          </div>
+          <div class="col-md-7">
+            {{ form.director_surname|as_crispy_field }}
+          </div>
+        </div>
+        <div class="col">
+          {{ form.privacy_accepted|as_crispy_field }}
+        </div>
+        <div class="mt-2">
+          <button type="submit" class="btn btn-primary me-3">ΕΓΓΡΑΦΗ</button>
+          <a href="{% url 'schoolsadmin:schools_created_by_admin' %}" class="btn btn-danger">ΑΚΥΡΟ</a>
+        </div>
+      </form>
+    </div>
+  </div>
+  <div class="col-md-2"></div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+<script>
+  $("#id_department").change(function () {
+    var url = $("#schoolForm").attr("data-schools-url");  // get the url of the `load_cities` view
+    var departmentId = $(this).val();  // get the selected country ID from the HTML input
+
+    $.ajax({                       // initialize an AJAX request
+      url: url,                    // set the url of the request (= localhost:8000/hr/ajax/load-cities/)
+      data: {
+        'department': departmentId       // add the country id to the GET parameters
+      },
+      success: function (data) {   // `data` is the return of the `load_cities` view function
+        $("#id_school").html(data);  // replace the contents of the city input with the data that came from the server
+      }
+    });
+
+  });
+</script>
+
+{% endblock %}

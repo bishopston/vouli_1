@@ -1,7 +1,8 @@
-from django.shortcuts import render, redirect, get_object_or_404
+from django.shortcuts import render, redirect, get_object_or_404, HttpResponseRedirect
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.urls import reverse
 from django.db.models import Q
+from django.contrib import messages
 from schools.models import SchoolUser, Department
 from reservations.models import ReservationPeriod, Reservation, ReservationWindow, SchoolYear
 from schools.forms import SchoolUserForm
@@ -127,7 +128,7 @@ def school_reservations_admin(request, school_id):
     athens_now = utc_now.astimezone(athens_tz)
 
     #query user's reservations
-    my_reservations = Reservation.objects.filter(schoolUser=school_id).order_by('-reservation_date__date', 'timeslot__dayTime__slot')
+    my_reservations = Reservation.objects.filter(schoolUser=school_id).order_by('-reservation_date__date', 'timeslot__dayTime__slot', 'status')
 
     #query current school year
     current_school_year = SchoolYear.objects.filter(start_date__lte=athens_now, end_date__gte=athens_now).first()
@@ -205,3 +206,60 @@ def school_reservations_admin(request, school_id):
 
         except (IndexError, SchoolUser.DoesNotExist):
             return render(request, 'schoolsadmin/school_reservations_admin.html')
+
+@ login_required
+@user_passes_test(lambda u: u.is_superuser)
+def school_reservations(request, school_id):
+
+    my_school = get_object_or_404(SchoolUser, id=school_id) 
+    my_reservations = Reservation.objects.filter(schoolUser=school_id).order_by('-reservation_date__date', 'timeslot__dayTime__slot', 'status')
+
+    return render(request, 'schoolsadmin/school_reservations.html', {'my_reservations': my_reservations,
+                                                                     'my_school': my_school,
+                                                                     })
+
+@ login_required
+@user_passes_test(lambda u: u.is_superuser)
+def SchoolUserCreateView(request):
+    # my_schools = SchoolUser.objects.filter(creator=request.user)
+
+    form = SchoolUserForm()
+    if request.method == "POST":
+        form = SchoolUserForm(request.POST)
+        if form.is_valid():
+            privacy_accepted_ = form.cleaned_data["privacy_accepted"]
+            school_user = SchoolUser(
+                department = form.cleaned_data["department"],
+                school = form.cleaned_data["school"],
+                director_name = form.cleaned_data["director_name"],
+                director_surname = form.cleaned_data["director_surname"],
+                address = form.cleaned_data["address"],
+                address_number = form.cleaned_data["address_number"],
+                city = form.cleaned_data["city"],
+                zipcode = form.cleaned_data["zipcode"],
+                phone = form.cleaned_data["phone"],
+                #email = form.cleaned_data["email"],
+                privacy_accepted = form.cleaned_data["privacy_accepted"],
+                creator = request.user
+            )
+            if privacy_accepted_ == True and len(SchoolUser.objects.filter(school__name=form.cleaned_data["school"])) == 0:
+                school_user.save()
+                #messages.success(request, 'Πραγματοποιήσατε με επιτυχία την εγγραφή σχολείου')
+                messages.add_message(request, messages.INFO, '--Πραγματοποιήσατε με επιτυχία την εγγραφή σχολείου--')
+                return HttpResponseRedirect(reverse('schoolsadmin:schools_created_by_admin'))
+            # if len(my_schools) > 0:
+            #     form = SchoolUserForm()
+            #     return render(request, 'schools/school_add.html', {'form': form, 'error_message': "Έχετε ήδη προβεί σε εγγραφή σχολείου"})
+            if len(SchoolUser.objects.filter(school__name=form.cleaned_data["school"])) > 0:
+                form = SchoolUserForm()
+                return render(request, 'schools/school_add.html', {'form': form, 'error_message': "Υπάρχει ήδη εγγεγραμμένο σχολείο με το συγκεκριμένο όνομα."})
+            if privacy_accepted_ == False:
+                form = SchoolUserForm()
+                return render(request, 'schools/school_add.html', {'form': form, 'error_message': "Πρέπει να συναινέσετε στην πολιτική συλλογής και επεξεργασίας προσωπικών δεδομένων"})                
+            
+        # else:
+        #     form = SchoolUserForm()
+
+    context = {'form': form}
+
+    return render(request, 'schools/school_add.html', context)

@@ -102,7 +102,7 @@
                                 <td><small>{{ school_user.director_surname }}</small></td>
                                 <td><small>{{ school_user.created_at|date:'d/m/Y' }}</small></td>
                                 <td>
-                                    <a class="btn btn-sm btn-primary h-25 d-inline-block" href="{% url 'schoolsadmin:school_reservations_admin' school_user.id %}" role="button"><small>Κρατήσεις</small></a>
+                                    <a class="btn btn-sm btn-outline-primary h-25 d-inline-block" href="{% url 'schoolsadmin:school_reservations_admin' school_user.id %}" role="button"><small>Κρατήσεις</small></a>
                                 </td>   
                                 <td>
                                     <a href="{% url 'schoolsadmin:schooluser_update' school_user.id %}"><i class="fa fa-pencil" aria-hidden="true"></i></a>

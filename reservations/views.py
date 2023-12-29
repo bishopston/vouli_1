@@ -382,7 +382,7 @@ def my_reservations(request):
     athens_now = utc_now.astimezone(athens_tz)
 
     #query user's reservations
-    my_reservations = Reservation.objects.filter(schoolUser__creator=request.user).order_by('-reservation_date__date', 'timeslot__dayTime__slot')
+    my_reservations = Reservation.objects.filter(schoolUser__creator=request.user).order_by('-reservation_date__date', 'timeslot__dayTime__slot', 'status')
 
     # need to check if the res period of the already registered user's reservations is the same with the next available res period
     # if my_reservations:
@@ -605,7 +605,11 @@ def make_reservation(request, reservation_period_id, school_user_id):
                                 updated_by = request.user
                             )
                             my_reservation.save()
-                    return HttpResponseRedirect(reverse('reservations:my_reservations'))
+                    #return HttpResponseRedirect(reverse('reservations:my_reservations'))
+                    if request.user.is_superuser:
+                        return redirect(reverse('schoolsadmin:school_reservations_admin' , kwargs={ 'school_id': schoolUser.id }))
+                    else:
+                        return redirect(reverse('reservations:my_reservations'))
                 
                 else:
                     context['max_allowed_violation_error'] = 'Δικαιούστε να καταχωρίσετε αίτημα επίσκεψης για έως τρεις ομάδες μαθητών/τριών σε μία μόνο ημερομηνία.'
@@ -790,7 +794,11 @@ def preview_reservation(request, reservation_period_id, school_user_id):
                     request.session.pop('formset_data', None)
 
                     # Redirect to a success page or another view
-                    return HttpResponseRedirect(reverse('reservations:my_reservations'))
+                    # return HttpResponseRedirect(reverse('reservations:my_reservations'))
+                    if request.user.is_superuser:
+                        return redirect(reverse('schoolsadmin:school_reservations_admin' , kwargs={ 'school_id': schoolUser.id }))
+                    else:
+                        return redirect(reverse('reservations:my_reservations'))
                 
                 else:
                     preview_max_allowed_violation_error = 'Δικαιούστε να καταχωρίσετε αίτημα επίσκεψης για έως τρεις ομάδες μαθητών/τριών σε μία μόνο ημερομηνία.'
@@ -868,7 +876,7 @@ def delete_reservation(request, reservation_id, school_user_id):
     schoolUser = SchoolUser.objects.get(pk=school_user_id)
     error =''
 
-    if delete_reservation.schoolUser.creator != request.user:
+    if delete_reservation.schoolUser.creator != request.user and not request.user.is_superuser:
         raise Http404("Αδυναμία πρόσβασης")
     else:
         if request.method == 'POST':    
@@ -1087,7 +1095,9 @@ def update_reservation_admin(request, reservation_id):
         send_reservation_update_email(user, update_reservation)
 
         #     messages.success(request, 'Reservation updated successfully.')
-        return redirect(reverse('reservations:handle_reservations'))
+        next = request.POST.get('next')
+        #return redirect(reverse('reservations:handle_reservations'))
+        return HttpResponseRedirect(next)
     else:
         form = ReservationUpdateAdminForm(instance=update_reservation)
 
