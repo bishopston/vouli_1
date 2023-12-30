@@ -26,10 +26,10 @@
                   <button class="nav-link active" id="pills-schools-tab" data-bs-toggle="pill" data-bs-target="#pills-schools" type="button" role="tab" aria-controls="pills-schools" aria-selected="true">ΣΧΟΛΕΙΑ</button>
                 </li>
                 <li class="nav-item" role="presentation">
-                  <button class="nav-link" id="pills-profile-tab" data-bs-toggle="pill" data-bs-target="#pills-profile" type="button" role="tab" aria-controls="pills-profile" aria-selected="false">ΠΕΡΙΟΔΟΙ</button>
+                  <button class="nav-link" id="pills-periods-tab" data-bs-toggle="pill" data-bs-target="#pills-periods" type="button" role="tab" aria-controls="pills-periods" aria-selected="false">ΠΕΡΙΟΔΟΙ</button>
                 </li>
                 <li class="nav-item" role="presentation">
-                  <button class="nav-link" id="pills-contact-tab" data-bs-toggle="pill" data-bs-target="#pills-contact" type="button" role="tab" aria-controls="pills-contact" aria-selected="false">ΧΡΟΝΟΘΥΡΙΔΕΣ</button>
+                  <button class="nav-link" id="pills-timeslots-tab" data-bs-toggle="pill" data-bs-target="#pills-timeslots" type="button" role="tab" aria-controls="pills-timeslots" aria-selected="false">ΧΡΟΝΟΘΥΡΙΔΕΣ</button>
                 </li>
                 <li class="nav-item" role="presentation">
                     <button class="nav-link" id="pills-reservations-tab" data-bs-toggle="pill" data-bs-target="#pills-reservations" type="button" role="tab" aria-controls="pills-reservations" aria-selected="false">ΚΡΑΤΗΣΕΙΣ</button>
@@ -47,23 +47,19 @@
 
                         <div class="card shadow mb-4">
                             <div class="card-header py-3">
-                                <h6 class="m-0 font-weight-bold text-primary">Basic Card Example</h6>
+                                <a href="http://127.0.0.1:8000/admin/schools/department/" class="text-decoration-none"><h6 class="m-0 font-weight-bold text-primary">Περιφερειακές Διευθύνσεις</h6></a>
                             </div>
                             <div class="card-body">
-                                The styling for this basic card example is created by using default Bootstrap
-                                utility classes. By using utility classes, the style of the card component can be
-                                easily modified with no need for any custom CSS!
+                                Διαχείριση περιφερειακών διευθύνσεων πρωτοβάθμιας / δευτεροβάθμιας εκπαίδευσης
                             </div>
                         </div>
 
                         <div class="card shadow mb-4">
                             <div class="card-header py-3">
-                                <h6 class="m-0 font-weight-bold text-primary">Basic Card Example</h6>
+                                <a href="{% url 'schoolsadmin:school_selection' %}" class="text-decoration-none"><h6 class="m-0 font-weight-bold text-success">Εγγεγραμμένα Σχολεία</h6></a>
                             </div>
                             <div class="card-body">
-                                The styling for this basic card example is created by using default Bootstrap
-                                utility classes. By using utility classes, the style of the card component can be
-                                easily modified with no need for any custom CSS!
+                                Αναλυτικά στοιχεία για τα σχολεία που έχουν πραγματοποιήσει εγγραφή στην εφαρμογή επισκέψεων στον χώρο της Βουλής και τις κρατήσεις τους
                             </div>
                         </div>
 
@@ -73,32 +69,174 @@
 
                         <div class="card shadow mb-4">
                             <div class="card-header py-3">
-                                <h6 class="m-0 font-weight-bold text-primary">Basic Card Example</h6>
+                                <a href="http://127.0.0.1:8000/admin/schools/school/" class="text-decoration-none"><h6 class="m-0 font-weight-bold text-danger">Σχολικές Μονάδες</h6></a>
                             </div>
                             <div class="card-body">
-                                The styling for this basic card example is created by using default Bootstrap
-                                utility classes. By using utility classes, the style of the card component can be
-                                easily modified with no need for any custom CSS!
+                                Διαχείριση του μητρώου σχολικών μονάδων πρωτοβάθμιας / δευτεροβάθμιας εκπαίδευσης όλης της Ελλάδας
                             </div>
                         </div>
 
                         <div class="card shadow mb-4">
                             <div class="card-header py-3">
-                                <h6 class="m-0 font-weight-bold text-primary">Basic Card Example</h6>
+                                <a href="{% url 'schoolsadmin:schools_created_by_admin' %}" class="text-decoration-none"><h6 class="m-0 font-weight-bold text-warning">Σχολεία Διαχειριστή</h6></a>
                             </div>
                             <div class="card-body">
-                                The styling for this basic card example is created by using default Bootstrap
-                                utility classes. By using utility classes, the style of the card component can be
-                                easily modified with no need for any custom CSS!
+                                Αναλυτικά στοιχεία για τα σχολεία και τις κρατήσεις που έχουν εγγραφεί στην εφαρμογή από τον διαχειριστή 
                             </div>
                         </div>
 
                     </div>
                 </div>
             </div>
-            <div class="tab-pane fade" id="pills-profile" role="tabpanel" aria-labelledby="pills-profile-tab" tabindex="0">...</div>
-            <div class="tab-pane fade" id="pills-contact" role="tabpanel" aria-labelledby="pills-contact-tab" tabindex="0">...</div>
-            <div class="tab-pane fade" id="pills-reservations" role="tabpanel" aria-labelledby="pills-reservations-tab" tabindex="0">...</div>
+            <div class="tab-pane fade" id="pills-periods" role="tabpanel" aria-labelledby="pills-periods-tab" tabindex="0">
+
+                <div class="row">
+
+                    <div class="col-lg-6">
+
+                        <div class="card shadow mb-4">
+                            <div class="card-header py-3">
+                                <a href="http://127.0.0.1:8000/admin/reservations/schoolyear/" class="text-decoration-none"><h6 class="m-0 font-weight-bold text-primary">Σχολικά Έτη</h6></a>
+                            </div>
+                            <div class="card-body">
+                                Καθορισμός και διαχείριση ακαδημαϊκών ετών με βάση τις περιόδους επίσκεψης στη Βουλή
+                            </div>
+                        </div>
+
+                        <div class="card shadow mb-4">
+                            <div class="card-header py-3">
+                                <a href="http://127.0.0.1:8000/admin/reservations/reservationwindow/" class="text-decoration-none"><h6 class="m-0 font-weight-bold text-danger">Περίοδοι Κρατήσεων</h6></a>
+                            </div>
+                            <div class="card-body">
+                                Καθορισμός και διαχείριση περιόδων κατά τις οποίες μπορεί να πραγματοποιηθούν κρατήσεις για κάθε μία από τις περιόδους επισκέψεων
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div class="col-lg-6">
+
+                        <div class="card shadow mb-4">
+                            <div class="card-header py-3">
+                                <a href="http://127.0.0.1:8000/admin/reservations/reservationperiod/" class="text-decoration-none"><h6 class="m-0 font-weight-bold text-success">Περίοδοι Επισκέψεων</h6></a>
+                            </div>
+                            <div class="card-body">
+                                Διαχείριση περιόδων επίσκεψης και καθορισμός διαθεσιμότητας για επισκέψεις στη Βουλή
+                            </div>
+                        </div>
+
+                        <div class="card shadow mb-4">
+                            <div class="card-header py-3">
+                                <a href="http://127.0.0.1:8000/admin/reservations/day/" class="text-decoration-none"><h6 class="m-0 font-weight-bold text-warning">Διαχείριση Αργιών</h6></a>
+                            </div>
+                            <div class="card-body">
+                                Διαχείριση ημερολογίου σχετικά με τον καθορισμό αργιών κατά τις οποίες δεν επιτρέπονται επισκέψεις στη Βουλή
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+            <div class="tab-pane fade" id="pills-timeslots" role="tabpanel" aria-labelledby="pills-timeslots-tab" tabindex="0">
+
+                <div class="row">
+
+                    <div class="col-lg-6">
+
+                        <div class="card shadow mb-4">
+                            <div class="card-header py-3">
+                                <a href="{% url 'reservations:timeslot_res_period_selection' %}" class="text-decoration-none"><h6 class="m-0 font-weight-bold text-primary">Περιοδικές Χρονοθυρίδες</h6></a>
+                            </div>
+                            <div class="card-body">
+                                Καθορισμός και διαχείριση χρονοθυρίδων κατά τις οποίες επιτρέπονται επισκέψεις στη διάρκεια μιας περιόδου επισκέψεων
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div class="col-lg-6">
+
+                        <div class="card shadow mb-4">
+                            <div class="card-header py-3">
+                                <a href="{% url 'reservations:exceptional_rule_res_period_selection' %}" class="text-decoration-none"><h6 class="m-0 font-weight-bold text-danger">Κατά Εξαίρεση Χρονοθυρίδες</h6></a>
+                            </div>
+                            <div class="card-body">
+                                Καθορισμός και διαχείριση επιτρεπτών χρονοθυρίδων για επισκέψεις σε συγκεκριμένες ημέρες μιας περιόδου επισκέψεων
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+            <div class="tab-pane fade" id="pills-reservations" role="tabpanel" aria-labelledby="pills-reservations-tab" tabindex="0">
+
+                <div class="row">
+
+                    <div class="col-lg-6">
+
+                        <div class="card shadow mb-4">
+                            <div class="card-header py-3">
+                                <a href="{% url 'reservations:handle_reservations' %}" class="text-decoration-none"><h6 class="m-0 font-weight-bold text-primary">Διαχείριση Κρατήσεων</h6></a>
+                            </div>
+                            <div class="card-body">
+                                Επισκόπηση και διαχείριση κρατήσεων για την εκάστοτε περίοδο που είναι διαθέσιμη για δημιουργία κρατήσεων επίσκεψης
+                            </div>
+                        </div>
+
+                        <div class="card shadow mb-4">
+                            <div class="card-header py-3">
+                                <a href="{% url 'reservations:calendar_reservations_res_period_selection' %}" class="text-decoration-none"><h6 class="m-0 font-weight-bold text-danger">Ημερολόγιο Κρατήσεων</h6></a>
+                            </div>
+                            <div class="card-body">
+                                Επισκόπηση ημερολογίου κρατήσεων και διαθεσιμότητας ημερών για συγκεκριμένη περίοδο ενδιαφέροντος
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div class="col-lg-6">
+
+                        <div class="card shadow mb-4">
+                            <div class="card-header py-3">
+                                <a href="{% url 'reservations:reservations_created_by_admin' %}" class="text-decoration-none"><h6 class="m-0 font-weight-bold text-success">Κρατήσεις Διαχειριστή</h6></a>
+                            </div>
+                            <div class="card-body">
+                                Επισκόπηση και διαχείριση κρατήσεων που έχουν δημιουργηθεί από τον διαχειριστή για λογαριασμό σχολείων
+                            </div>
+                        </div>
+
+                        <div class="card shadow mb-4">
+                            <div class="card-header py-3">
+                                <a href="{% url 'reservations:reservation_dashboard' %}" class="text-decoration-none"><h6 class="m-0 font-weight-bold text-warning">Ιστορικό Κρατήσεων</h6></a>
+                            </div>
+                            <div class="card-body">
+                                Επισκόπηση συνολικού ιστορικού κρατήσεων και δυνατότητα φιλτραρίσματος ανά έτος, περίοδο, περιφερειακή διεύθυνση, σχολείο
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-lg-3"></div>
+                    <div class="col-lg-6">
+
+                        <div class="card shadow mb-4">
+                            <div class="card-header py-3">
+                                <a href="{% url 'reservations:statistics_period_selection' %}" class="text-decoration-none"><h6 class="m-0 font-weight-bold text-secondary">Στατιστικά Στοιχεία</h6></a>
+                            </div>
+                            <div class="card-body">
+                                Ιστορικά στατιστικά στοιχεία κρατήσεων / σχολείων ανά περίοδο, σχολικό έτος ή και συνολικά για όλα τα έτη
+                            </div>
+                        </div>
+
+                    </div>
+                    <div class="col-lg-3"></div>
+                </div>
+
+            </div>
         </div>
     </div>
 </div>

@@ -68,13 +68,13 @@
                     <div class="sb-sidenav-menu">
                         <div class="nav">
                             <!-- <div class="sb-sidenav-menu-heading">Core</div> -->
-                            <a class="nav-link" href="#!">
+                            <a class="nav-link" href="{% url 'base:admin_dashboard' %}">
                                 <div class="sb-nav-link-icon"><i class="fas fa-tachometer-alt"></i></div>
                                 Πίνακας Ελέγχου
                             </a>
                             <div class="sb-sidenav-menu-heading">Σχολεια</div>
                             <a class="nav-link collapsed" href="#" data-bs-toggle="collapse" data-bs-target="#collapseLayouts" aria-expanded="false" aria-controls="collapseLayouts">
-                                <div class="sb-nav-link-icon"><i class="fas fa-columns"></i></div>
+                                <div class="sb-nav-link-icon"><i class="fas fa-user-graduate"></i></div>
                                 Εγγραφές
                                 <div class="sb-sidenav-collapse-arrow"><i class="fas fa-angle-down"></i></div>
                             </a>
@@ -88,7 +88,7 @@
                             </div>
                             <div class="sb-sidenav-menu-heading">Ημερολογιο</div>
                             <a class="nav-link collapsed" href="#" data-bs-toggle="collapse" data-bs-target="#collapseLayouts2" aria-expanded="false" aria-controls="collapseLayouts2">
-                                <div class="sb-nav-link-icon"><i class="fas fa-columns"></i></div>
+                                <div class="sb-nav-link-icon"><i class="fas fa-stopwatch"></i></div>
                                 Περίοδοι
                                 <div class="sb-sidenav-collapse-arrow"><i class="fas fa-angle-down"></i></div>
                             </a>
@@ -101,7 +101,7 @@
                                 </nav>
                             </div>
                             <a class="nav-link collapsed" href="#" data-bs-toggle="collapse" data-bs-target="#collapseLayouts3" aria-expanded="false" aria-controls="collapseLayouts3">
-                                <div class="sb-nav-link-icon"><i class="fas fa-columns"></i></div>
+                                <div class="sb-nav-link-icon"><i class="far fa-clock"></i></div>
                                 Χρονοθυρίδες
                                 <div class="sb-sidenav-collapse-arrow"><i class="fas fa-angle-down"></i></div>
                             </a>
@@ -113,7 +113,7 @@
                             </div>
                             <div class="sb-sidenav-menu-heading">Κρατησεις</div>
                             <a class="nav-link" href="{% url 'reservations:handle_reservations' %}">
-                                <div class="sb-nav-link-icon"><i class="fas fa-chart-area"></i></div>
+                                <div class="sb-nav-link-icon"><i class="far fa-calendar-check"></i></div>
                                 Διαχείριση Κρατήσεων
                             </a>
                             <a class="nav-link" href="{% url 'reservations:reservations_created_by_admin' %}">
@@ -121,15 +121,15 @@
                                 Κρατήσεις Διαχειριστή
                             </a>
                             <a class="nav-link" href="{% url 'reservations:calendar_reservations_res_period_selection' %}">
-                                <div class="sb-nav-link-icon"><i class="fas fa-table"></i></div>
+                                <div class="sb-nav-link-icon"><i class="fas fa-calendar-alt"></i></div>
                                 Ημερολόγιο Κρατήσεων
                             </a>
                             <a class="nav-link" href="{% url 'reservations:reservation_dashboard' %}">
-                                <div class="sb-nav-link-icon"><i class="fas fa-chart-area"></i></div>
+                                <div class="sb-nav-link-icon"><i class="fas fa-columns"></i></div>
                                 Ιστορικό Κρατήσεων
                             </a>
                             <a class="nav-link" href="{% url 'reservations:statistics_period_selection' %}">
-                                <div class="sb-nav-link-icon"><i class="fas fa-table"></i></div>
+                                <div class="sb-nav-link-icon"><i class="fas fa-chart-area"></i></div>
                                 Στατιστικά Στοιχεία
                             </a>
                         </div>
