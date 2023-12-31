@@ -2,6 +2,27 @@
 
 {% block content %}
 
+{% if is_superuser %}
+
+    <div class="container bg-white text-dark d-flex flex-wrap overflow-auto">
+        <div class="row w-100 mt-5">
+            <div class="mt-5 d-flex justify-content-center">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item active" aria-current="page">Μπορείτε να δείτε τα σχολεία που έχουν εγγραφεί από τον διαχειριστή στη σελίδα διαχείρισης.</li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
+        <div class="row w-100">
+            <div class="mt-2 d-flex justify-content-center">
+                <a href="{% url 'schoolsadmin:schools_created_by_admin' %}" class="btn btn-primary">ΣΧΟΛΕΙΑ ΔΙΑΧΕΙΡΙΣΤΗ</a>
+            </div>
+        </div>
+    </div>
+
+{% else %}
+
 <div class="my-5 mx-auto">
     <div class="row">
         {% if my_schools %}
@@ -103,5 +124,6 @@
     </div>
 </div>
 
+{% endif %}
 
 {% endblock %}

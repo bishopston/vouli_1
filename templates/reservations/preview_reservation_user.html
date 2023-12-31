@@ -1,0 +1,118 @@
+{% extends '../base/base_user.html' %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<div class="container bg-white text-dark">
+    <div class="row w-100">
+        <div class="mt-3 d-flex justify-content-center">
+            <h3 class="my-4 text-decoration-underline">Επισκόπηση Κράτησης</h3>
+        </div>
+    </div>
+    <div class="row w-100">
+        <div class="my-3 d-flex justify-content-between">
+            <div class="me-3"><h5><strong>
+                {% if week_day == 'Monday' %}
+                Δευτέρα 
+                {% elif week_day == 'Tuesday' %}
+                Τρίτη 
+                {% elif week_day == 'Wednesday' %}
+                Τετάρτη 
+                {% elif week_day == 'Thursday' %}
+                Πέμπτη 
+                {% elif week_day == 'Friday' %}
+                Παρασκευή 
+                {% elif week_day == 'Saturday' %}
+                Σάββατο 
+                {% else %}
+                Κυριακή 
+                {% endif %}
+
+                {{ selected_calendar_date_day }} 
+
+                {% if selected_calendar_date_month == 'January' %}
+                Ιανουαρίου 
+                {% elif selected_calendar_date_month == 'February' %}
+                Φεβρουαρίου 
+                {% elif selected_calendar_date_month == 'March' %}
+                Μαρτίου 
+                {% elif selected_calendar_date_month == 'April' %}
+                Απριλίου 
+                {% elif selected_calendar_date_month == 'May' %}
+                Μαΐου 
+                {% elif selected_calendar_date_month == 'June' %}
+                Ιουνίου 
+                {% elif selected_calendar_date_month == 'July' %}
+                Ιουλίου 
+                {% elif selected_calendar_date_month == 'August' %}
+                Αυγούστου 
+                {% elif selected_calendar_date_month == 'September' %}
+                Σεπτεμβρίου 
+                {% elif selected_calendar_date_month == 'October' %}
+                Οκτωβρίου 
+                {% elif selected_calendar_date_month == 'November' %}
+                Νοεμβρίου 
+                {% else %}
+                Δεκεμβρίου 
+                {% endif %}
+
+                {{ selected_calendar_date_year }}
+            </strong></h5></div>
+            <div><h5><strong>{{ schoolUser.school.name }}</strong></h5></div>
+        </div>
+    </div>
+    <!-- Display the formset data for confirmation -->
+    <form method="post" action="{% url 'reservations:preview_reservation' reservation_period_id=reservation_period_id school_user_id=school_user_id %}?date={{ date }}">
+        {% csrf_token %}
+        
+        <!-- Iterate through formset data and display only filled data -->
+
+        {{ formset.management_form }}
+        {% for form in formset %}
+            {{ form|crispy }}
+        {% endfor %}  
+
+        <button type="submit" class="btn btn-primary" name="submit">Καταχώριση</button>
+    </form>
+
+</div>
+
+<!-- Add this script at the end of your HTML template -->
+<script>
+    $(document).ready(function () {
+        // Check if the page is the preview page
+        var isPreviewPage = window.location.href.indexOf('/preview_reservation/') !== -1;
+
+        // Make timeslot dropdown non-editable if on the preview page
+        if (isPreviewPage) {
+            $('select[name$="-timeslot"]').prop('readonly', true);
+
+            // Handle form submission to prevent changing the value
+            $('form').submit(function (event) {
+                $('select[name$="-timeslot"]').prop('disabled', false);
+            });
+        }
+
+        // Make student_number dropdown non-editable if on the preview page
+        if (isPreviewPage) {
+            $('select[name$="-student_number"]').prop('readonly', true);
+
+            // Handle form submission to prevent changing the value
+            $('form').submit(function (event) {
+                $('select[name$="-student_number"]').prop('disabled', false);
+            });
+        }
+
+        // Make teacher_number dropdown non-editable if on the preview page
+        if (isPreviewPage) {
+            $('select[name$="-teacher_number"]').prop('readonly', true);
+
+            // Handle form submission to prevent changing the value
+            $('form').submit(function (event) {
+                $('select[name$="-teacher_number"]').prop('disabled', false);
+            });
+        }
+
+    });
+</script>
+
+{% endblock %}

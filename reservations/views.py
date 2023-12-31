@@ -338,7 +338,10 @@ def calendar_month(request, reservation_period_id, school_user_id, year=None, mo
         'school_user': school_user,
     }
 
-    return render(request, 'reservations/calendar_month_3.html', context)
+    if request.user.is_superuser:
+        return render(request, 'reservations/calendar_month_admin.html', context)
+    else:
+        return render(request, 'reservations/calendar_month_user.html', context)
 
 def get_month_days(year, month, res_period_id):
     # Assuming a Day model with a 'date' field
@@ -675,7 +678,12 @@ def make_reservation(request, reservation_period_id, school_user_id):
         'preview_max_allowed_violation_error': preview_max_allowed_violation_error,
     })
 
-    return render(request, 'reservations/reservation2.html', context)
+    #return render(request, 'reservations/reservation2.html', context)
+
+    if request.user.is_superuser:
+        return render(request, 'reservations/reservation_admin.html', context)
+    else:
+        return render(request, 'reservations/reservation_user.html', context)
 
 
 @login_required
@@ -870,17 +878,30 @@ def preview_reservation(request, reservation_period_id, school_user_id):
             #     preview_max_allowed_violation_error = 'Δικαιούστε να καταχωρίσετε αίτημα επίσκεψης για έως τρεις ομάδες μαθητών/τριών σε μία μόνο ημερομηνία.'
             #     return redirect(redirect_url + f'&preview_max_allowed_violation_error={preview_max_allowed_violation_error}')
 
-    return render(request, 'reservations/preview_reservation3.html', {'formset': formset,
-                                                                        'reservation_period_id': reservation_period_id,
-                                                                        'school_user_id': school_user_id,
-                                                                        'date': date,
-                                                                        'selected_calendar_date': selected_calendar_date,
-                                                                        'week_day': selected_calendar_date_name,
-                                                                        'selected_calendar_date_day': selected_calendar_date_day,
-                                                                        'selected_calendar_date_month': selected_calendar_date_month,
-                                                                        'selected_calendar_date_year': selected_calendar_date_year,
-                                                                        'schoolUser': schoolUser,
-                                                                        })
+    if request.user.is_superuser:
+        return render(request, 'reservations/preview_reservation_admin.html', {'formset': formset,
+                                                                            'reservation_period_id': reservation_period_id,
+                                                                            'school_user_id': school_user_id,
+                                                                            'date': date,
+                                                                            'selected_calendar_date': selected_calendar_date,
+                                                                            'week_day': selected_calendar_date_name,
+                                                                            'selected_calendar_date_day': selected_calendar_date_day,
+                                                                            'selected_calendar_date_month': selected_calendar_date_month,
+                                                                            'selected_calendar_date_year': selected_calendar_date_year,
+                                                                            'schoolUser': schoolUser,
+                                                                            })
+    else:
+        return render(request, 'reservations/preview_reservation_user.html', {'formset': formset,
+                                                                            'reservation_period_id': reservation_period_id,
+                                                                            'school_user_id': school_user_id,
+                                                                            'date': date,
+                                                                            'selected_calendar_date': selected_calendar_date,
+                                                                            'week_day': selected_calendar_date_name,
+                                                                            'selected_calendar_date_day': selected_calendar_date_day,
+                                                                            'selected_calendar_date_month': selected_calendar_date_month,
+                                                                            'selected_calendar_date_year': selected_calendar_date_year,
+                                                                            'schoolUser': schoolUser,
+                                                                            })
 
 @login_required
 @user_passes_test(lambda u: u.is_superuser)

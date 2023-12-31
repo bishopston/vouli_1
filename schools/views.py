@@ -11,7 +11,7 @@ from .forms import SchoolUserForm, SchoolUserUpdateForm
 def SchoolUserView(request):
     my_schools = SchoolUser.objects.filter(creator=request.user)
 
-    return render(request, 'schools/schools.html', {'my_schools': my_schools})
+    return render(request, 'schools/schools.html', {'my_schools': my_schools, 'is_superuser': request.user.is_superuser,})
 
 
 @ login_required
