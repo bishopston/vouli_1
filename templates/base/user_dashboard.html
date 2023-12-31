@@ -1,0 +1,104 @@
+{% extends '../base/base_user.html' %}
+
+{% block content %}
+
+<style>
+
+    .bg-gray-600 {
+        background-color:#858796!important
+    }
+
+    .blue-background {
+      background-color: #66a1e4; /* Blue background color */
+      color: #fff; /* Text color */
+      text-align: center;
+      border-radius: 10px;
+      display: flex;
+      align-items: center; /* Center vertically */
+      justify-content: center; /* Center horizontally */
+      height: 100%; /* Ensure 100% height */
+    }
+
+    .orange-background {
+      background-color: #e4a366; /* Blue background color */
+      color: #fff; /* Text color */
+      text-align: center;
+      border-radius: 10px;
+      display: flex;
+      align-items: center; /* Center vertically */
+      justify-content: center; /* Center horizontally */
+      height: 100%; /* Ensure 100% height */
+    }
+
+    .icon {
+      font-size: 3rem; /* Adjust the font size as needed */
+    }
+
+    .card-content {
+      padding: 40px; /* Adjust the padding as needed */
+    }
+
+    .custom-card-title {
+      color: #e4a366; /* Custom text color for the card title */
+    }
+
+</style>
+
+<div class="container bg-gray-600 text-white mt-5 py-3">
+    <div class="row w-100">
+        <div class="d-flex justify-content-center">
+            <h4>ΠΙΝΑΚΑΣ ΕΛΕΓΧΟΥ</h4>
+        </div>
+    </div>
+</div>
+
+<div class="container bg-white text-dark d-flex flex-wrap overflow-auto mt-4">
+    <div class="row w-100">
+
+        <div class="container mt-3">
+            <div class="card mb-3">
+              <div class="row">
+                <div class="col-md-2">
+                  <div class="blue-background">
+                    <div class="icon">
+                      <i class="fas fa-user-graduate"></i>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-10">
+                  <div class="card-body card-content">
+                    <a href="{% url 'schools:schooluser_list' %}" class="text-decoration-none"><h5 class="card-title">Το Σχολείο Μου</h5></a>
+                    <p class="card-text">Πραγματοποιήστε την εγγραφή του σχολείου σας στην εφαρμογή για να μπορέσετε να προχωρήσετε σε καταχώριση κράτησης για επίσκεψη στη Βουλή των Ελλήνων.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+  
+    </div>   
+    <div class="row w-100">
+
+        <div class="container mt-3">
+            <div class="card mb-3">
+              <div class="row">
+                <div class="col-md-2">
+                  <div class="orange-background">
+                    <div class="icon">
+                      <i class="far fa-calendar-check"></i>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-10">
+                  <div class="card-body card-content">
+                    <a href="{% url 'reservations:my_reservations' %}" class="text-decoration-none"><h5 class="custom-card-title">Οι Κρατήσεις Μου</h5></a>
+                    <p class="card-text">Καταχωρίστε αίτημα επίσκεψης για το σχολείο σας στην περίοδο που επιθυμείτε και διαχειριστείτε τις κρατήσεις σας για επίσκεψη στη Βουλή των Ελλήνων.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+  
+    </div>  
+</div>
+
+{% endblock %}
