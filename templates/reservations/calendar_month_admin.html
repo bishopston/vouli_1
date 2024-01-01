@@ -78,7 +78,7 @@
                         {% endfor %} -->
                         {% for day in week %}
                             {% with availability_percentage=day.availability_percentage %}
-                                <td {% if day.is_vacation %}class="text-muted"{% endif %}
+                                <td {% if day.is_vacation %}class="text-danger"{% endif %}
                                     {% if availability_percentage is not None %}
                                         class="{% if availability_percentage == 0 %}bg-danger{% elif availability_percentage < 0.25 %}bg-warning{% else %}bg-light{% endif %}"
                                     {% endif %}>

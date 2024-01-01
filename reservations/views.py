@@ -12,6 +12,7 @@ from django.contrib import messages
 from django.core.mail import send_mail
 from django.template.loader import render_to_string, get_template
 from django.views import View
+from django.core.mail import EmailMessage
 from .models import Day, ReservationPeriod, Timeslot, DayTime, Reservation, ReservationWindow, ExceptionalRule, SchoolYear
 from schools.models import SchoolUser, Department
 from .forms import ReservationForm, BaseReservationFormSet, ReservationUpdateForm, ReservationUpdateAdminForm, ReservationDashboardForm, ReservationCalendarByDateForm
@@ -23,7 +24,7 @@ import pytz
 from datetime import datetime, date
 from itertools import groupby
 from xhtml2pdf import pisa
-
+import base64
 
 
 
@@ -520,7 +521,8 @@ def make_reservation(request, reservation_period_id, school_user_id):
     non_occupied_timeslots_count = len(non_occupied_timeslots)
 
     context = {} 
-
+    my_reservations = []
+    
     ReservationFormSet = formset_factory(ReservationForm, extra=3, max_num=3, formset=BaseReservationFormSet)
 
     if request.method == 'POST':
@@ -617,10 +619,11 @@ def make_reservation(request, reservation_period_id, school_user_id):
                                     updated_by = request.user
                                 )
                                 my_reservation.save()
-                        #return HttpResponseRedirect(reverse('reservations:my_reservations'))
-                        # if request.user.is_superuser:
-                        #     return redirect(reverse('schoolsadmin:school_reservations_admin' , kwargs={ 'school_id': schoolUser.id }))
-                        # else:
+                                my_reservations.append(my_reservation)
+
+                        messages.add_message(request, messages.INFO, 'Καταχωρίσατε με επιτυχία την κράτησή σας!')
+                        send_consolidated_reservation_registration_emails(my_reservations)
+
                         return redirect(reverse('reservations:my_reservations'))
                 
                     else:
@@ -643,6 +646,10 @@ def make_reservation(request, reservation_period_id, school_user_id):
                                 updated_by = request.user
                             )
                             my_reservation.save()
+                            my_reservations.append(my_reservation)
+
+                messages.add_message(request, messages.INFO, 'Καταχωρίσατε με επιτυχία την κράτησή σας!')
+                send_consolidated_reservation_registration_emails(my_reservations)
 
                 return redirect(reverse('schoolsadmin:school_reservations_admin' , kwargs={ 'school_id': schoolUser.id }))
 
@@ -681,9 +688,15 @@ def make_reservation(request, reservation_period_id, school_user_id):
     #return render(request, 'reservations/reservation2.html', context)
 
     if request.user.is_superuser:
-        return render(request, 'reservations/reservation_admin.html', context)
+        if selected_calendar_date.is_vacation:
+            return render(request, 'reservations/reservation_vacation_admin.html', context)
+        else:
+            return render(request, 'reservations/reservation_admin.html', context)
     else:
-        return render(request, 'reservations/reservation_user.html', context)
+        if selected_calendar_date.is_vacation:
+            return render(request, 'reservations/reservation_vacation_user.html', context)
+        else:
+            return render(request, 'reservations/reservation_user.html', context)
 
 
 @login_required
@@ -712,6 +725,8 @@ def preview_reservation(request, reservation_period_id, school_user_id):
     schoolUser = SchoolUser.objects.get(pk=school_user_id)
 
     formset_data = request.session.get('formset_data', [])
+
+    my_reservations = []
 
     # Extract the data for each form from formset_data
     form_data_list = [data for data in formset_data if data]
@@ -830,6 +845,17 @@ def preview_reservation(request, reservation_period_id, school_user_id):
                                                     updated_by=request.user,
                                                     **form_data)
 
+                            my_reservation = Reservation(timeslot_id=timeslot_id, 
+                                                    reservation_period=ReservationPeriod.objects.get(id=reservation_period_id), 
+                                                    schoolUser=SchoolUser.objects.get(id=school_user_id),
+                                                    reservation_date=Day.objects.get(id=selected_date_id),
+                                                    updated_by=request.user,
+                                                    **form_data)
+                            my_reservations.append(my_reservation)
+                        
+                        messages.add_message(request, messages.INFO, 'Καταχωρίσατε με επιτυχία την κράτησή σας!')
+                        send_consolidated_reservation_registration_emails(my_reservations)
+
                         # Clear the session data
                         request.session.pop('formset_data', None)
 
@@ -863,6 +889,17 @@ def preview_reservation(request, reservation_period_id, school_user_id):
                                             reservation_date=Day.objects.get(id=selected_date_id),
                                             updated_by=request.user,
                                             **form_data)
+
+                    my_reservation = Reservation(timeslot_id=timeslot_id, 
+                                            reservation_period=ReservationPeriod.objects.get(id=reservation_period_id), 
+                                            schoolUser=SchoolUser.objects.get(id=school_user_id),
+                                            reservation_date=Day.objects.get(id=selected_date_id),
+                                            updated_by=request.user,
+                                            **form_data)
+                    my_reservations.append(my_reservation)
+                
+                messages.add_message(request, messages.INFO, 'Καταχωρίσατε με επιτυχία την κράτησή σας!')
+                send_consolidated_reservation_registration_emails(my_reservations)
 
                 # Clear the session data
                 request.session.pop('formset_data', None)
@@ -941,6 +978,11 @@ def calendar_timeslot(request, reservation_period_id, year=None, month=None):
 
     # Retrieve days for the current month
     month_days = get_month_days(year, month, reservation_period_id)
+
+    for week in month_days:
+        for day in week:
+            if isinstance(day, Day):
+                day.exceptional_timeslots = ExceptionalRule.objects.filter(date=day)
 
     context = {
         #'current_month': f'{month}/{year}',
@@ -1093,25 +1135,6 @@ def send_consolidated_reservation_emails(reservations):
         user = user_reservations_list[0].schoolUser.creator  # Assuming user is a ForeignKey in Reservation model
         send_consolidated_email(user, user_reservations_list)
 
-#Send a consolidated email to a user
-# def send_consolidated_email(user, reservations):
-#     # Customize the email subject and message based on your requirements
-#     subject = 'Your Reservations Status'
-#     message = 'Your reservations have been processed.\n'
-
-#     # Add details of each reservation to the email message
-#     for reservation in reservations:
-#         message += f'Reservation ID: {reservation.id}, Date: {reservation.reservation_date}, Status: {reservation.get_status_display()}\n'
-
-#     # Send the email
-#     send_mail(
-#         subject,
-#         message,
-#         'admin@parliament.foundation',
-#         [user.email], 
-#         fail_silently=False,
-#     )
-
 # Send a consolidated email to a user
 def send_consolidated_email(user, reservations):
     # Customize the email subject and message based on your requirements
@@ -1121,6 +1144,8 @@ def send_consolidated_email(user, reservations):
     html_message = render_to_string('email_templates/consolidated_reservations.html', {
         'reservations': reservations,
     })
+
+    athens_time = timezone.localtime(timezone.now(), timezone=timezone.get_current_timezone())
 
     # Send the email
     send_mail(
@@ -1132,6 +1157,50 @@ def send_consolidated_email(user, reservations):
         html_message=html_message,
     )
 
+# Send a consolidated email to each user
+def send_consolidated_reservation_registration_emails(reservations):
+    # Group reservations by user
+    user_reservations = {}
+    for reservation in reservations:
+        user_id = reservation.schoolUser.id
+        if user_id not in user_reservations:
+            user_reservations[user_id] = []
+        user_reservations[user_id].append(reservation)
+
+    # Send a consolidated email to each user
+    for user_id, user_reservations_list in user_reservations.items():
+        user = user_reservations_list[0].schoolUser.creator  # Assuming user is a ForeignKey in Reservation model
+        send_consolidated_registration_email(user, user_reservations_list)
+
+# Send a consolidated email to a user
+def send_consolidated_registration_email(user, reservations):
+    # Customize the email subject and message based on your requirements
+    subject = 'Επίσκεψη στη Βουλή των Ελλήνων'
+
+    # Create an HTML version of your email content
+    html_message = render_to_string('email_templates/consolidated_reservations_registration.html', {
+        'reservations': reservations,
+    })
+
+    athens_time = timezone.localtime(timezone.now(), timezone=timezone.get_current_timezone())
+
+    # Encode the subject to base64
+    encoded_subject = base64.b64encode(subject.encode('utf-8')).decode('utf-8')
+
+
+    # Send the email
+    email = EmailMessage(
+        '=?utf-8?b?{}?='.format(encoded_subject), 
+        'This is a plain text version of your email content.\n\n' + html_message,  # Combine plain text and HTML
+        'admin@parliament.foundation',
+        [user.email],
+    )
+
+    # Add a custom 'Date' header
+    email.extra_headers['Date'] = athens_time.strftime('%a, %d %b %Y %H:%M:%S %z')
+
+    # Send the email
+    email.send(fail_silently=True)
              
 @ login_required
 @user_passes_test(lambda u: u.is_superuser)                                                       

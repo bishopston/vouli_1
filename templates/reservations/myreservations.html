@@ -104,7 +104,18 @@
                             </ol>
                         </nav>
                     </div> -->
-                    <div class="card text-center mt-5">
+                    <div class="success-message mt-3">
+                        {% if messages %}
+                            {% for message in messages %}
+                                {% if '!' in message.message %}
+                                    <h5 class="alert alert-success text-center" style="padding-top: 5px; padding-bottom: 5px;">
+                                        {{ message }}
+                                    </h5>
+                                {% endif %}
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                    <div class="card text-center mt-4">
                         <div class="card-header">
                             <h5>{{ my_school.school.name }} - Ιστορικό Κρατήσεων</h5>
                         </div>
