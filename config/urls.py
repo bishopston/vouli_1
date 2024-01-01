@@ -24,7 +24,7 @@ urlpatterns = [
     # User management
     path('custom_login_redirect/', custom_login_redirect, name='custom_login_redirect'),
     #path('accounts/login/', CustomLoginView.as_view(), name='account_login'),
-    path('accounts/', include('allauth.urls')), # new
+    path('accounts/', include('allauth.urls')),
 
     # Local apps
     path('', include('base.urls')),
