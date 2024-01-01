@@ -1,3 +1,4 @@
+from django.db.models import Q
 from datetime import datetime
 from .models import Day, Timeslot, ExceptionalRule, Reservation
 import pytz
@@ -14,6 +15,34 @@ def get_athens_now_time():
 
     return athens_now
 
+# def get_occupied_daytimes(selected_date, reservation_period):
+#     day_of_week_mapping = {
+#         'Monday': 'a',
+#         'Tuesday': 'b',
+#         'Wednesday': 'c',
+#         'Thursday': 'd',
+#         'Friday': 'e',
+#         'Saturday': 'f',
+#         'Sunday': 'g',
+#     }
+
+#     selected_date_format = datetime.strptime(selected_date, "%Y-%m-%d")
+
+#     day_of_week = day_of_week_mapping[selected_date_format.strftime('%A')]
+
+#     selected_date_id = Day.objects.get(date=selected_date).id
+    
+#     # Retrieve occupied timeslots for the selected date and reservation period - exclude the denied
+#     occupied_daytimes = Timeslot.objects.filter(
+#         dayTime__day=day_of_week,
+#         reservation_period=reservation_period,
+#         reservation__reservation_date=selected_date_id,
+#     ).exclude(reservation__status='denied').distinct()
+
+#     #non_occupied_daytimes = available_daytimes.exclude(id__in=occupied_timeslots)
+
+#     return occupied_daytimes
+
 def get_occupied_daytimes(selected_date, reservation_period):
     day_of_week_mapping = {
         'Monday': 'a',
@@ -26,19 +55,27 @@ def get_occupied_daytimes(selected_date, reservation_period):
     }
 
     selected_date_format = datetime.strptime(selected_date, "%Y-%m-%d")
-
     day_of_week = day_of_week_mapping[selected_date_format.strftime('%A')]
-
     selected_date_id = Day.objects.get(date=selected_date).id
     
-    # Retrieve occupied timeslots for the selected date and reservation period - exclude the denied
-    occupied_daytimes = Timeslot.objects.filter(
+    # Retrieve all timeslots for the selected date and reservation period
+    all_daytimes = Timeslot.objects.filter(
         dayTime__day=day_of_week,
         reservation_period=reservation_period,
         reservation__reservation_date=selected_date_id,
-    ).exclude(reservation__status='denied')
+    )
 
-    #non_occupied_daytimes = available_daytimes.exclude(id__in=occupied_timeslots)
+    # # Retrieve all reservations for the selected date and reservation period
+    # all_reservations = Reservation.objects.filter(
+    #     reservation_date=selected_date_id,
+    #     reservation_period=reservation_period,
+    # )
+
+    # Get the timeslots with at least one reservation (excluding 'denied' ones)
+    occupied_daytimes = all_daytimes.filter(
+        Q(reservation__status__in=['pending', 'approved']) |
+        Q(reservation__status__isnull=True)
+    ).distinct()
 
     return occupied_daytimes
 

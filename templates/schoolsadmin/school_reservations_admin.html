@@ -76,7 +76,18 @@
     <div class="row w-100">
         {% if my_school %}
             {% if my_reservations %}
-                <div class="card text-center mt-5">
+                <div class="success-message mt-3">
+                    {% if messages %}
+                        {% for message in messages %}
+                            {% if '!' in message.message %}
+                                <h5 class="alert alert-success text-center" style="padding-top: 5px; padding-bottom: 5px;">
+                                    {{ message }}
+                                </h5>
+                            {% endif %}
+                        {% endfor %}
+                    {% endif %}
+                </div>
+                <div class="card text-center mt-4">
                     <div class="card-header">
                         <h5>Ιστορικό Κρατήσεων</h5>
                     </div>
@@ -117,7 +128,7 @@
                                     <!-- <td><small>{{ my_reservation.updated_at|date:'d/m/Y' }}</small></td> -->
                                     <td>
                                         {% if my_reservation.status == 'pending' %}
-                                            <a href="{% url 'reservations:update_reservation' my_reservation.id my_school.id %}"><i class="fa fa-pencil" aria-hidden="true"></i></a>
+                                            <a href="{% url 'reservations:update_reservation_admin' my_reservation.id %}"><i class="fa fa-pencil" aria-hidden="true"></i></a>
                                         {% endif %}
                                     </td>    
                                     <td>

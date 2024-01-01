@@ -12,6 +12,7 @@ from django.contrib import messages
 from django.core.mail import send_mail
 from django.template.loader import render_to_string, get_template
 from django.views import View
+from django.core.mail import EmailMessage
 from .models import Day, ReservationPeriod, Timeslot, DayTime, Reservation, ReservationWindow, ExceptionalRule, SchoolYear
 from schools.models import SchoolUser, Department
 from .forms import ReservationForm, BaseReservationFormSet, ReservationUpdateForm, ReservationUpdateAdminForm, ReservationDashboardForm, ReservationCalendarByDateForm
@@ -23,7 +24,7 @@ import pytz
 from datetime import datetime, date
 from itertools import groupby
 from xhtml2pdf import pisa
-
+import base64
 
 
 
@@ -338,7 +339,10 @@ def calendar_month(request, reservation_period_id, school_user_id, year=None, mo
         'school_user': school_user,
     }
 
-    return render(request, 'reservations/calendar_month_3.html', context)
+    if request.user.is_superuser:
+        return render(request, 'reservations/calendar_month_admin.html', context)
+    else:
+        return render(request, 'reservations/calendar_month_user.html', context)
 
 def get_month_days(year, month, res_period_id):
     # Assuming a Day model with a 'date' field
@@ -382,7 +386,10 @@ def my_reservations(request):
     athens_now = utc_now.astimezone(athens_tz)
 
     #query user's reservations
-    my_reservations = Reservation.objects.filter(schoolUser__creator=request.user).order_by('-reservation_date__date', 'timeslot__dayTime__slot')
+    if not request.user.is_superuser:
+        my_reservations = Reservation.objects.filter(schoolUser__creator=request.user).order_by('-reservation_date__date', 'timeslot__dayTime__slot', 'status')
+    else:
+        my_reservations = Reservation.objects.none()
 
     # need to check if the res period of the already registered user's reservations is the same with the next available res period
     # if my_reservations:
@@ -422,11 +429,12 @@ def my_reservations(request):
                         'next_available_res_period_end_date': closest_available_res_period[0].end_date,
                         'reservation_allowed': closest_available_res_period[0].reservationwindow_set.first().is_reservation_allowed(),
                         'my_school': my_school,
+                        'is_superuser': request.user.is_superuser,
                 }
 
                 # need to check if the res period of the already registered user's reservations is the same with the next available res period
                 if my_reservations:
-                    print(ReservationPeriod.objects.filter(reservation__schoolUser__creator=request.user).first().start_date)
+                    #print(ReservationPeriod.objects.filter(reservation__schoolUser__creator=request.user).first().start_date)
                     context = {'my_reservations': my_reservations,
                             'my_reservations_current_year_number': my_reservations_current_year_number,
                             'my_reservation_period': ReservationPeriod.objects.filter(reservation__schoolUser__creator=request.user).first(),
@@ -435,6 +443,7 @@ def my_reservations(request):
                             'next_available_res_period_end_date': closest_available_res_period[0].end_date,
                             'reservation_allowed': closest_available_res_period[0].reservationwindow_set.first().is_reservation_allowed(),
                             'my_school': my_school,
+                            'is_superuser': request.user.is_superuser,
                         }
 
                 return render(request, 'reservations/myreservations.html', context)
@@ -444,6 +453,7 @@ def my_reservations(request):
                 context = {'my_reservations': my_reservations,
                         'my_reservations_current_year_number': my_reservations_current_year_number,
                         'my_school': my_school,
+                        'is_superuser': request.user.is_superuser,
                 }
 
                 return render(request, 'reservations/myreservations.html', context)               
@@ -459,6 +469,7 @@ def my_reservations(request):
             context = {'my_reservations': my_reservations,
                     'my_reservations_current_year_number': my_reservations_current_year_number,
                     'my_school': my_school,
+                    'is_superuser': request.user.is_superuser,
             }
 
             return render(request, 'reservations/myreservations.html', context)
@@ -510,7 +521,8 @@ def make_reservation(request, reservation_period_id, school_user_id):
     non_occupied_timeslots_count = len(non_occupied_timeslots)
 
     context = {} 
-
+    my_reservations = []
+    
     ReservationFormSet = formset_factory(ReservationForm, extra=3, max_num=3, formset=BaseReservationFormSet)
 
     if request.method == 'POST':
@@ -546,50 +558,79 @@ def make_reservation(request, reservation_period_id, school_user_id):
 
         elif formset.is_valid():
 
-            #query current school year
-            current_school_year = SchoolYear.objects.filter(start_date__lte=athens_now, end_date__gte=athens_now).first()
-            if current_school_year:   
-                # Use Q objects to handle the OR condition for start and end dates
-                query = Q(schoolUser__creator=request.user) & Q(reservation_period__schoolYear=current_school_year)
-                # Filter reservations based on the current school year and the user
-                my_reservations_current_year_number = len(Reservation.objects.filter(query).exclude(status='denied'))
-                if my_reservations_current_year_number:
-                    my_reservation_period = ReservationPeriod.objects.filter(reservation__schoolUser__creator=request.user).first()
+            if not request.user.is_superuser:
+
+                #query current school year
+                current_school_year = SchoolYear.objects.filter(start_date__lte=athens_now, end_date__gte=athens_now).first()
+                if current_school_year:   
+                    # Use Q objects to handle the OR condition for start and end dates
+                    query = Q(schoolUser__creator=request.user) & Q(reservation_period__schoolYear=current_school_year)
+                    # Filter reservations based on the current school year and the user
+                    my_reservations_current_year_number = len(Reservation.objects.filter(query).exclude(status='denied'))
+                    if my_reservations_current_year_number:
+                        my_reservation_period = ReservationPeriod.objects.filter(reservation__schoolUser__creator=request.user).first()
+                    else:
+                        my_reservation_period = res_period
                 else:
-                    my_reservation_period = res_period
+                    my_reservations_current_year_number = 0
+
+                # # Count the number of existing reservations for the user and reservation period
+                # existing_reservations_count = Reservation.objects.filter(
+                #     schoolUser__creator=request.user,
+                #     reservation_period=res_period,
+                # ).exclude(status='denied').count()
+
+                # Count the number of existing reservations for the user on the selected date
+                existing_reservations_on_date = Reservation.objects.filter(
+                    schoolUser__creator=request.user,
+                    reservation_period=res_period,
+                    reservation_date=selected_calendar_date,
+                ).exclude(status='denied').count()
+
+                #if existing_reservations_count < 3 and existing_reservations_on_date < 3:
+                # Count the number of forms submitted in the formset
+                submitted_forms_count = len([form for form in formset.forms if form.cleaned_data.get('timeslot')])
+
+                # Calculate the maximum allowed additional reservations
+                max_additional_reservations = min(3 - my_reservations_current_year_number, 3 - existing_reservations_on_date)
+
+                existing_reservation_dates = Reservation.objects.filter(schoolUser__creator=request.user,reservation_period=res_period,).values_list('reservation_date', flat=True)
+
+                if len(set(existing_reservation_dates)) > 1 or (len(set(existing_reservation_dates)) == 1 and existing_reservation_dates[0] != selected_calendar_date.id):
+                    context['different_selected_date_violation_error'] = 'Δικαιούστε να καταχωρίσετε αίτημα επίσκεψης σε μία μόνο ημερομηνία εντός του τρέχοντος σχολικού έτους.'
+                else:
+                    if submitted_forms_count <= max_additional_reservations and my_reservation_period == res_period:
+                        # The user is allowed to make the requested number of reservations
+
+                        # Process and save the reservations
+                        for form in formset:
+                            #my_reservations = Reservation.objects.filter(schoolUser__creator=request.user).filter(reservation_period=res_period)
+                            if form.cleaned_data.get('timeslot'):
+                                #if len(Reservation.objects.filter(schoolUser__creator=request.user).filter(reservation_period=res_period)) < 4 and len(Reservation.objects.filter(schoolUser__creator=request.user).filter(reservation_period=res_period).exclude(reservation_date=selected_calendar_date)) == 0:
+                                my_reservation = Reservation(
+                                    schoolUser=schoolUser,
+                                    reservation_date=selected_calendar_date,
+                                    timeslot=form.cleaned_data["timeslot"],
+                                    teacher_number=form.cleaned_data["teacher_number"],
+                                    student_number=form.cleaned_data["student_number"],
+                                    amea=form.cleaned_data["amea"],
+                                    terms_accepted=form.cleaned_data["terms_accepted"],
+                                    reservation_period=res_period,
+                                    updated_by = request.user
+                                )
+                                my_reservation.save()
+                                my_reservations.append(my_reservation)
+
+                        messages.add_message(request, messages.INFO, 'Καταχωρίσατε με επιτυχία την κράτησή σας!')
+                        send_consolidated_reservation_registration_emails(my_reservations)
+
+                        return redirect(reverse('reservations:my_reservations'))
+                
+                    else:
+                        context['max_allowed_violation_error'] = 'Δικαιούστε να καταχωρίσετε αίτημα επίσκεψης για έως τρεις ομάδες μαθητών/τριών σε μία μόνο ημερομηνία.'
+
             else:
-                my_reservations_current_year_number = 0
-
-            # # Count the number of existing reservations for the user and reservation period
-            # existing_reservations_count = Reservation.objects.filter(
-            #     schoolUser__creator=request.user,
-            #     reservation_period=res_period,
-            # ).exclude(status='denied').count()
-
-            # Count the number of existing reservations for the user on the selected date
-            existing_reservations_on_date = Reservation.objects.filter(
-                schoolUser__creator=request.user,
-                reservation_period=res_period,
-                reservation_date=selected_calendar_date,
-            ).exclude(status='denied').count()
-
-            #if existing_reservations_count < 3 and existing_reservations_on_date < 3:
-            # Count the number of forms submitted in the formset
-            submitted_forms_count = len([form for form in formset.forms if form.cleaned_data.get('timeslot')])
-
-            # Calculate the maximum allowed additional reservations
-            max_additional_reservations = min(3 - my_reservations_current_year_number, 3 - existing_reservations_on_date)
-
-            existing_reservation_dates = Reservation.objects.filter(schoolUser__creator=request.user,reservation_period=res_period,).values_list('reservation_date', flat=True)
-
-            if len(set(existing_reservation_dates)) > 1 or (len(set(existing_reservation_dates)) == 1 and existing_reservation_dates[0] != selected_calendar_date.id):
-                context['different_selected_date_violation_error'] = 'Δικαιούστε να καταχωρίσετε αίτημα επίσκεψης σε μία μόνο ημερομηνία εντός του τρέχοντος σχολικού έτους.'
-            else:
-                if submitted_forms_count <= max_additional_reservations and my_reservation_period == res_period:
-                    # The user is allowed to make the requested number of reservations
-
-                    # Process and save the reservations
-                    for form in formset:
+                for form in formset:
                         #my_reservations = Reservation.objects.filter(schoolUser__creator=request.user).filter(reservation_period=res_period)
                         if form.cleaned_data.get('timeslot'):
                             #if len(Reservation.objects.filter(schoolUser__creator=request.user).filter(reservation_period=res_period)) < 4 and len(Reservation.objects.filter(schoolUser__creator=request.user).filter(reservation_period=res_period).exclude(reservation_date=selected_calendar_date)) == 0:
@@ -605,10 +646,13 @@ def make_reservation(request, reservation_period_id, school_user_id):
                                 updated_by = request.user
                             )
                             my_reservation.save()
-                    return HttpResponseRedirect(reverse('reservations:my_reservations'))
-                
-                else:
-                    context['max_allowed_violation_error'] = 'Δικαιούστε να καταχωρίσετε αίτημα επίσκεψης για έως τρεις ομάδες μαθητών/τριών σε μία μόνο ημερομηνία.'
+                            my_reservations.append(my_reservation)
+
+                messages.add_message(request, messages.INFO, 'Καταχωρίσατε με επιτυχία την κράτησή σας!')
+                send_consolidated_reservation_registration_emails(my_reservations)
+
+                return redirect(reverse('schoolsadmin:school_reservations_admin' , kwargs={ 'school_id': schoolUser.id }))
+
 
             #return HttpResponseRedirect(reverse('reservations:my_reservations'))
         else:
@@ -641,7 +685,18 @@ def make_reservation(request, reservation_period_id, school_user_id):
         'preview_max_allowed_violation_error': preview_max_allowed_violation_error,
     })
 
-    return render(request, 'reservations/reservation2.html', context)
+    #return render(request, 'reservations/reservation2.html', context)
+
+    if request.user.is_superuser:
+        if selected_calendar_date.is_vacation:
+            return render(request, 'reservations/reservation_vacation_admin.html', context)
+        else:
+            return render(request, 'reservations/reservation_admin.html', context)
+    else:
+        if selected_calendar_date.is_vacation:
+            return render(request, 'reservations/reservation_vacation_user.html', context)
+        else:
+            return render(request, 'reservations/reservation_user.html', context)
 
 
 @login_required
@@ -670,6 +725,8 @@ def preview_reservation(request, reservation_period_id, school_user_id):
     schoolUser = SchoolUser.objects.get(pk=school_user_id)
 
     formset_data = request.session.get('formset_data', [])
+
+    my_reservations = []
 
     # Extract the data for each form from formset_data
     form_data_list = [data for data in formset_data if data]
@@ -725,88 +782,163 @@ def preview_reservation(request, reservation_period_id, school_user_id):
 
         if formset.is_valid():
 
-            #query current school year
-            current_school_year = SchoolYear.objects.filter(start_date__lte=athens_now, end_date__gte=athens_now).first()
-            if current_school_year:   
-                # Use Q objects to handle the OR condition for start and end dates
-                query = Q(schoolUser__creator=request.user) & Q(reservation_period__schoolYear=current_school_year)
-                # Filter reservations based on the current school year and the user
-                my_reservations_current_year_number = len(Reservation.objects.filter(query).exclude(status='denied'))
-            else:
-                my_reservations_current_year_number = 0
+            if not request.user.is_superuser:
 
-            # # Count the number of existing reservations for the user and reservation period
-            # existing_reservations_count = Reservation.objects.filter(
-            #     schoolUser__creator=request.user,
-            #     reservation_period=res_period,
-            # ).exclude(status='denied').count()
-
-            # Count the number of existing reservations for the user on the selected date
-            existing_reservations_on_date = Reservation.objects.filter(
-                schoolUser__creator=request.user,
-                reservation_period=res_period,
-                reservation_date=selected_calendar_date,
-            ).exclude(status='denied').count()
-
-            #if existing_reservations_count < 3 and existing_reservations_on_date < 3:
-            # Count the number of forms submitted in the formset
-            submitted_forms_count = len([form for form in formset.forms if form.cleaned_data.get('timeslot')])
-
-            # Calculate the maximum allowed additional reservations
-            max_additional_reservations = min(3 - my_reservations_current_year_number, 3 - existing_reservations_on_date)
-
-
-            existing_reservation_dates = Reservation.objects.filter(schoolUser__creator=request.user,reservation_period=res_period,).values_list('reservation_date', flat=True)
-
-            if len(set(existing_reservation_dates)) > 1 or (len(set(existing_reservation_dates)) == 1 and existing_reservation_dates[0] != selected_calendar_date.id):
-                preview_different_selected_date_violation_error = 'Δικαιούστε να καταχωρίσετε αίτημα επίσκεψης σε μία μόνο ημερομηνία εντός του τρέχοντος σχολικού έτους.'
-                return redirect(redirect_url + f'&preview_different_selected_date_violation_error={preview_different_selected_date_violation_error}')
-            else:
-
-
-                if submitted_forms_count <= max_additional_reservations:
-                    # The user is allowed to make the requested number of reservations
-
-                # Process and save formset data to the model
-                    for form_data in formset.cleaned_data:
-
-                        # timeslot = form_data['timeslot'].id
-
-                        # Reservation.objects.create(timeslot=timeslot, **form_data)  # Replace YourModel with the actual model name
-                        selected_date_id = Day.objects.get(date=date).id
-
-                        timeslot_instance = form_data.pop('timeslot')  # Remove 'timeslot' from form_data
-                        #print(timeslot_instance)
-                        timeslot_id = timeslot_instance.id
-                        #print(timeslot_id)
-                        Reservation.objects.create(timeslot_id=timeslot_id, 
-                                                reservation_period=ReservationPeriod.objects.get(id=reservation_period_id), 
-                                                schoolUser=SchoolUser.objects.get(id=school_user_id),
-                                                reservation_date=Day.objects.get(id=selected_date_id),
-                                                updated_by=request.user,
-                                                **form_data)
-
-                    # Clear the session data
-                    request.session.pop('formset_data', None)
-
-                    # Redirect to a success page or another view
-                    return HttpResponseRedirect(reverse('reservations:my_reservations'))
-                
+                #query current school year
+                current_school_year = SchoolYear.objects.filter(start_date__lte=athens_now, end_date__gte=athens_now).first()
+                if current_school_year:   
+                    # Use Q objects to handle the OR condition for start and end dates
+                    query = Q(schoolUser__creator=request.user) & Q(reservation_period__schoolYear=current_school_year)
+                    # Filter reservations based on the current school year and the user
+                    my_reservations_current_year_number = len(Reservation.objects.filter(query).exclude(status='denied'))
                 else:
-                    preview_max_allowed_violation_error = 'Δικαιούστε να καταχωρίσετε αίτημα επίσκεψης για έως τρεις ομάδες μαθητών/τριών σε μία μόνο ημερομηνία.'
-                    return redirect(redirect_url + f'&preview_max_allowed_violation_error={preview_max_allowed_violation_error}')
+                    my_reservations_current_year_number = 0
 
-    return render(request, 'reservations/preview_reservation3.html', {'formset': formset,
-                                                                        'reservation_period_id': reservation_period_id,
-                                                                        'school_user_id': school_user_id,
-                                                                        'date': date,
-                                                                        'selected_calendar_date': selected_calendar_date,
-                                                                        'week_day': selected_calendar_date_name,
-                                                                        'selected_calendar_date_day': selected_calendar_date_day,
-                                                                        'selected_calendar_date_month': selected_calendar_date_month,
-                                                                        'selected_calendar_date_year': selected_calendar_date_year,
-                                                                        'schoolUser': schoolUser,
-                                                                        })
+                # # Count the number of existing reservations for the user and reservation period
+                # existing_reservations_count = Reservation.objects.filter(
+                #     schoolUser__creator=request.user,
+                #     reservation_period=res_period,
+                # ).exclude(status='denied').count()
+
+                # Count the number of existing reservations for the user on the selected date
+                existing_reservations_on_date = Reservation.objects.filter(
+                    schoolUser__creator=request.user,
+                    reservation_period=res_period,
+                    reservation_date=selected_calendar_date,
+                ).exclude(status='denied').count()
+
+                #if existing_reservations_count < 3 and existing_reservations_on_date < 3:
+                # Count the number of forms submitted in the formset
+                submitted_forms_count = len([form for form in formset.forms if form.cleaned_data.get('timeslot')])
+
+                # Calculate the maximum allowed additional reservations
+                max_additional_reservations = min(3 - my_reservations_current_year_number, 3 - existing_reservations_on_date)
+
+
+                existing_reservation_dates = Reservation.objects.filter(schoolUser__creator=request.user,reservation_period=res_period,).values_list('reservation_date', flat=True)
+
+                if len(set(existing_reservation_dates)) > 1 or (len(set(existing_reservation_dates)) == 1 and existing_reservation_dates[0] != selected_calendar_date.id):
+                    preview_different_selected_date_violation_error = 'Δικαιούστε να καταχωρίσετε αίτημα επίσκεψης σε μία μόνο ημερομηνία εντός του τρέχοντος σχολικού έτους.'
+                    return redirect(redirect_url + f'&preview_different_selected_date_violation_error={preview_different_selected_date_violation_error}')
+                else:
+
+
+                    if submitted_forms_count <= max_additional_reservations:
+                        # The user is allowed to make the requested number of reservations
+
+                        # Process and save formset data to the model
+                        for form_data in formset.cleaned_data:
+
+                            # timeslot = form_data['timeslot'].id
+
+                            # Reservation.objects.create(timeslot=timeslot, **form_data)  # Replace YourModel with the actual model name
+                            selected_date_id = Day.objects.get(date=date).id
+
+                            timeslot_instance = form_data.pop('timeslot')  # Remove 'timeslot' from form_data
+                            #print(timeslot_instance)
+                            timeslot_id = timeslot_instance.id
+                            #print(timeslot_id)
+                            Reservation.objects.create(timeslot_id=timeslot_id, 
+                                                    reservation_period=ReservationPeriod.objects.get(id=reservation_period_id), 
+                                                    schoolUser=SchoolUser.objects.get(id=school_user_id),
+                                                    reservation_date=Day.objects.get(id=selected_date_id),
+                                                    updated_by=request.user,
+                                                    **form_data)
+
+                            my_reservation = Reservation(timeslot_id=timeslot_id, 
+                                                    reservation_period=ReservationPeriod.objects.get(id=reservation_period_id), 
+                                                    schoolUser=SchoolUser.objects.get(id=school_user_id),
+                                                    reservation_date=Day.objects.get(id=selected_date_id),
+                                                    updated_by=request.user,
+                                                    **form_data)
+                            my_reservations.append(my_reservation)
+                        
+                        messages.add_message(request, messages.INFO, 'Καταχωρίσατε με επιτυχία την κράτησή σας!')
+                        send_consolidated_reservation_registration_emails(my_reservations)
+
+                        # Clear the session data
+                        request.session.pop('formset_data', None)
+
+                        # Redirect to a success page or another view
+                        # return HttpResponseRedirect(reverse('reservations:my_reservations'))
+                        # if request.user.is_superuser:
+                        #     return redirect(reverse('schoolsadmin:school_reservations_admin' , kwargs={ 'school_id': schoolUser.id }))
+                        # else:
+                        return redirect(reverse('reservations:my_reservations'))
+                    
+                    else:
+                        preview_max_allowed_violation_error = 'Δικαιούστε να καταχωρίσετε αίτημα επίσκεψης για έως τρεις ομάδες μαθητών/τριών σε μία μόνο ημερομηνία.'
+                        return redirect(redirect_url + f'&preview_max_allowed_violation_error={preview_max_allowed_violation_error}')
+                    
+            else:
+
+                for form_data in formset.cleaned_data:
+
+                    # timeslot = form_data['timeslot'].id
+
+                    # Reservation.objects.create(timeslot=timeslot, **form_data)  # Replace YourModel with the actual model name
+                    selected_date_id = Day.objects.get(date=date).id
+
+                    timeslot_instance = form_data.pop('timeslot')  # Remove 'timeslot' from form_data
+                    #print(timeslot_instance)
+                    timeslot_id = timeslot_instance.id
+                    #print(timeslot_id)
+                    Reservation.objects.create(timeslot_id=timeslot_id, 
+                                            reservation_period=ReservationPeriod.objects.get(id=reservation_period_id), 
+                                            schoolUser=SchoolUser.objects.get(id=school_user_id),
+                                            reservation_date=Day.objects.get(id=selected_date_id),
+                                            updated_by=request.user,
+                                            **form_data)
+
+                    my_reservation = Reservation(timeslot_id=timeslot_id, 
+                                            reservation_period=ReservationPeriod.objects.get(id=reservation_period_id), 
+                                            schoolUser=SchoolUser.objects.get(id=school_user_id),
+                                            reservation_date=Day.objects.get(id=selected_date_id),
+                                            updated_by=request.user,
+                                            **form_data)
+                    my_reservations.append(my_reservation)
+                
+                messages.add_message(request, messages.INFO, 'Καταχωρίσατε με επιτυχία την κράτησή σας!')
+                send_consolidated_reservation_registration_emails(my_reservations)
+
+                # Clear the session data
+                request.session.pop('formset_data', None)
+
+                # Redirect to a success page or another view
+                # return HttpResponseRedirect(reverse('reservations:my_reservations'))
+                # if request.user.is_superuser:
+                #     return redirect(reverse('schoolsadmin:school_reservations_admin' , kwargs={ 'school_id': schoolUser.id }))
+                # else:
+                return redirect(reverse('schoolsadmin:school_reservations_admin' , kwargs={ 'school_id': schoolUser.id }))
+            
+            # else:
+            #     preview_max_allowed_violation_error = 'Δικαιούστε να καταχωρίσετε αίτημα επίσκεψης για έως τρεις ομάδες μαθητών/τριών σε μία μόνο ημερομηνία.'
+            #     return redirect(redirect_url + f'&preview_max_allowed_violation_error={preview_max_allowed_violation_error}')
+
+    if request.user.is_superuser:
+        return render(request, 'reservations/preview_reservation_admin.html', {'formset': formset,
+                                                                            'reservation_period_id': reservation_period_id,
+                                                                            'school_user_id': school_user_id,
+                                                                            'date': date,
+                                                                            'selected_calendar_date': selected_calendar_date,
+                                                                            'week_day': selected_calendar_date_name,
+                                                                            'selected_calendar_date_day': selected_calendar_date_day,
+                                                                            'selected_calendar_date_month': selected_calendar_date_month,
+                                                                            'selected_calendar_date_year': selected_calendar_date_year,
+                                                                            'schoolUser': schoolUser,
+                                                                            })
+    else:
+        return render(request, 'reservations/preview_reservation_user.html', {'formset': formset,
+                                                                            'reservation_period_id': reservation_period_id,
+                                                                            'school_user_id': school_user_id,
+                                                                            'date': date,
+                                                                            'selected_calendar_date': selected_calendar_date,
+                                                                            'week_day': selected_calendar_date_name,
+                                                                            'selected_calendar_date_day': selected_calendar_date_day,
+                                                                            'selected_calendar_date_month': selected_calendar_date_month,
+                                                                            'selected_calendar_date_year': selected_calendar_date_year,
+                                                                            'schoolUser': schoolUser,
+                                                                            })
 
 @login_required
 @user_passes_test(lambda u: u.is_superuser)
@@ -847,6 +979,11 @@ def calendar_timeslot(request, reservation_period_id, year=None, month=None):
     # Retrieve days for the current month
     month_days = get_month_days(year, month, reservation_period_id)
 
+    for week in month_days:
+        for day in week:
+            if isinstance(day, Day):
+                day.exceptional_timeslots = ExceptionalRule.objects.filter(date=day)
+
     context = {
         #'current_month': f'{month}/{year}',
         'current_month': month,
@@ -868,7 +1005,7 @@ def delete_reservation(request, reservation_id, school_user_id):
     schoolUser = SchoolUser.objects.get(pk=school_user_id)
     error =''
 
-    if delete_reservation.schoolUser.creator != request.user:
+    if delete_reservation.schoolUser.creator != request.user and not request.user.is_superuser:
         raise Http404("Αδυναμία πρόσβασης")
     else:
         if request.method == 'POST':    
@@ -998,25 +1135,6 @@ def send_consolidated_reservation_emails(reservations):
         user = user_reservations_list[0].schoolUser.creator  # Assuming user is a ForeignKey in Reservation model
         send_consolidated_email(user, user_reservations_list)
 
-#Send a consolidated email to a user
-# def send_consolidated_email(user, reservations):
-#     # Customize the email subject and message based on your requirements
-#     subject = 'Your Reservations Status'
-#     message = 'Your reservations have been processed.\n'
-
-#     # Add details of each reservation to the email message
-#     for reservation in reservations:
-#         message += f'Reservation ID: {reservation.id}, Date: {reservation.reservation_date}, Status: {reservation.get_status_display()}\n'
-
-#     # Send the email
-#     send_mail(
-#         subject,
-#         message,
-#         'admin@parliament.foundation',
-#         [user.email], 
-#         fail_silently=False,
-#     )
-
 # Send a consolidated email to a user
 def send_consolidated_email(user, reservations):
     # Customize the email subject and message based on your requirements
@@ -1026,6 +1144,8 @@ def send_consolidated_email(user, reservations):
     html_message = render_to_string('email_templates/consolidated_reservations.html', {
         'reservations': reservations,
     })
+
+    athens_time = timezone.localtime(timezone.now(), timezone=timezone.get_current_timezone())
 
     # Send the email
     send_mail(
@@ -1037,6 +1157,50 @@ def send_consolidated_email(user, reservations):
         html_message=html_message,
     )
 
+# Send a consolidated email to each user
+def send_consolidated_reservation_registration_emails(reservations):
+    # Group reservations by user
+    user_reservations = {}
+    for reservation in reservations:
+        user_id = reservation.schoolUser.id
+        if user_id not in user_reservations:
+            user_reservations[user_id] = []
+        user_reservations[user_id].append(reservation)
+
+    # Send a consolidated email to each user
+    for user_id, user_reservations_list in user_reservations.items():
+        user = user_reservations_list[0].schoolUser.creator  # Assuming user is a ForeignKey in Reservation model
+        send_consolidated_registration_email(user, user_reservations_list)
+
+# Send a consolidated email to a user
+def send_consolidated_registration_email(user, reservations):
+    # Customize the email subject and message based on your requirements
+    subject = 'Επίσκεψη στη Βουλή των Ελλήνων'
+
+    # Create an HTML version of your email content
+    html_message = render_to_string('email_templates/consolidated_reservations_registration.html', {
+        'reservations': reservations,
+    })
+
+    athens_time = timezone.localtime(timezone.now(), timezone=timezone.get_current_timezone())
+
+    # Encode the subject to base64
+    encoded_subject = base64.b64encode(subject.encode('utf-8')).decode('utf-8')
+
+
+    # Send the email
+    email = EmailMessage(
+        '=?utf-8?b?{}?='.format(encoded_subject), 
+        'This is a plain text version of your email content.\n\n' + html_message,  # Combine plain text and HTML
+        'admin@parliament.foundation',
+        [user.email],
+    )
+
+    # Add a custom 'Date' header
+    email.extra_headers['Date'] = athens_time.strftime('%a, %d %b %Y %H:%M:%S %z')
+
+    # Send the email
+    email.send(fail_silently=True)
              
 @ login_required
 @user_passes_test(lambda u: u.is_superuser)                                                       
@@ -1087,7 +1251,9 @@ def update_reservation_admin(request, reservation_id):
         send_reservation_update_email(user, update_reservation)
 
         #     messages.success(request, 'Reservation updated successfully.')
-        return redirect(reverse('reservations:handle_reservations'))
+        next = request.POST.get('next')
+        #return redirect(reverse('reservations:handle_reservations'))
+        return HttpResponseRedirect(next)
     else:
         form = ReservationUpdateAdminForm(instance=update_reservation)
 
@@ -1940,3 +2106,16 @@ class ReservationPDFView(View):
             return HttpResponse('We had some errors <pre>' + html + '</pre>')
 
         return response
+
+@login_required
+@user_passes_test(lambda u: u.is_superuser)
+def reservations_created_by_admin(request):
+
+    reservations_created_by_admin = Reservation.objects.filter(schoolUser__creator__is_superuser=True).order_by('-created_at', 'schoolUser__school__name')
+
+    context = {
+        'reservations_created_by_admin': reservations_created_by_admin,
+        'reservations_created_by_admin_num': len(reservations_created_by_admin),
+    }
+
+    return render(request, 'reservations/reservations_created_by_admin.html', context)

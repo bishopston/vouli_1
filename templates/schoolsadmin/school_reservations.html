@@ -1,0 +1,75 @@
+{% extends '../base/base_admin.html' %}
+
+{% block content %}
+
+<div class="container bg-white text-dark d-flex flex-wrap overflow-auto mt-2">
+    <div class="row w-100 mt-5">
+        {% if my_reservations %}
+            <div class="card text-center">
+                <div class="card-header">
+                    <h5>{{ my_school.school.name }} - Ιστορικό Κρατήσεων</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <tr>
+                            <th><small><strong>Ημερομηνία Επίσκεψης</strong></small></th>
+                            <th><small><strong>´Ωρα</strong></small></th>
+                            <th><small><strong>Αρ. Μαθητών</strong></small></th>
+                            <th><small><strong>Αρ. Εκπαιδευτικών</strong></small></th>
+                            <th><small><strong>ΑΜΕΑ</strong></small></th>
+                            <th><small><strong>Κατάσταση</strong></small></th>
+                            <th><small><strong>Δημιουργία Κράτησης</strong></small></th>
+                            <!-- <th><small><strong>Ανανέωση Κράτησης</strong></small></th> -->
+                            </tr>
+                            {% for my_reservation in my_reservations %}
+                            <tr class="{% if my_reservation.status == 'pending' %}
+                                        bg-secondary text-light
+                                        {% elif my_reservation.status == 'approved' %}
+                                        bg-success text-light
+                                        {% else%}
+                                        bg-danger text-light
+                                        {% endif %}">
+                                <td><small>{{ my_reservation.reservation_date.date|date:'d/m/Y' }}</small></td>
+                                <td><small>{{ my_reservation.timeslot.dayTime.slot|time:"H:i" }}</small></td>
+                                <td><small>{{ my_reservation.student_number }}</small></td>
+                                <td><small>{{ my_reservation.teacher_number }}</small></td>
+                                <td><small>
+                                    {% if my_reservation.amea == True %}
+                                        ΝΑΙ
+                                    {% else %}
+                                        ΟΧΙ
+                                    {% endif %}
+                                </small></td>
+                                <td><small>{{ my_reservation.get_status_display }}</small></td>
+                                <td><small>{{ my_reservation.created_at|date:'d/m/Y' }}</small></td>
+                                <!-- <td><small>{{ my_reservation.updated_at|date:'d/m/Y' }}</small></td> -->
+                                <td>
+                                    {% if my_reservation.status == 'pending' %}
+                                        <a href="{% url 'reservations:update_reservation_admin' my_reservation.id %}"><i class="fa fa-pencil" aria-hidden="true"></i></a>
+                                    {% endif %}
+                                </td>                               
+                            </tr>
+                            {% endfor %}
+                        </table>
+                    </div>
+                </div>
+            </div>
+        {% else %}
+            <div class="my-5 d-flex justify-content-center">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item active" aria-current="page">Δεν έχουν δημιουργηθεί ακόμα κρατήσεις για το {{ my_school.school.name }}</li>
+                    </ol>
+                </nav>
+            </div>
+        {% endif %}
+    </div>
+    <div class="row w-100 mt-2">
+        <div class="mt-3 d-flex justify-content-center">
+            <a href="{{request.META.HTTP_REFERER}}" class="btn btn-primary">Πίσω</a>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

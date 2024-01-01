@@ -7,7 +7,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
         <meta name="description" content="" />
         <meta name="author" content="" />
-        <title>Επισκέψεις σχολείων στη Βουλή|Ίδρυμα της Βουλής</title>
+        <title>Dashboard - SB Admin</title>
         <link href="https://cdn.jsdelivr.net/npm/simple-datatables@7.1.2/dist/style.min.css" rel="stylesheet" />
         <link href="{% static '/css/styles_admin.css' %}" rel="stylesheet" />
         <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
@@ -15,13 +15,7 @@
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 
         <!-- Include DataTables CSS and JS files -->
-        <!-- <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.25/css/jquery.dataTables.css">
-        <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.10.25/js/jquery.dataTables.js"></script> -->
-
-        <!-- Include DataTables CSS and JS files -->
         <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.css">
-        <!-- <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/buttons/2.1.0/css/buttons.dataTables.min.css"> -->
-
 
         <!-- Include DataTables JS files -->
         <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
@@ -31,10 +25,6 @@
         <script type="text/javascript" charset="utf8" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
         <script type="text/javascript" charset="utf8" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
 
-        <!-- Include Buttons extensions for DataTables -->
-        <!-- <script type="text/javascript" charset="utf8" src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
-        <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/buttons/2.1.0/js/buttons.html5.min.js"></script> -->
-
     </head>
     <body class="sb-nav-fixed">
         <nav class="sb-topnav navbar navbar-expand navbar-dark bg-dark">
@@ -43,7 +33,7 @@
             <!-- Sidebar Toggle-->
             <button class="btn btn-link btn-sm order-1 order-lg-0 me-4 me-lg-0" id="sidebarToggle" href="#!"><i class="fas fa-bars"></i></button>
             <!-- Navbar Search-->
-            <form class="d-none d-md-inline-block form-inline ms-auto me-0 me-md-3 my-2 my-md-0">
+            <form class="d-none d-md-inline-block form-inline ms-auto me-0 me-md-3 my-2 my-md-0 invisible">
                 <div class="input-group">
                     <input class="form-control" type="text" placeholder="Search for..." aria-label="Search for..." aria-describedby="btnNavbarSearch" />
                     <button class="btn btn-primary" id="btnNavbarSearch" type="button"><i class="fas fa-search"></i></button>
@@ -68,69 +58,19 @@
                     <div class="sb-sidenav-menu">
                         <div class="nav">
                             <!-- <div class="sb-sidenav-menu-heading">Core</div> -->
-                            <a class="nav-link" href="{% url 'base:admin_dashboard' %}">
+                            <a class="nav-link" href="{% url 'base:user_dashboard' %}">
                                 <div class="sb-nav-link-icon"><i class="fas fa-tachometer-alt"></i></div>
                                 Πίνακας Ελέγχου
                             </a>
                             <div class="sb-sidenav-menu-heading">Σχολεια</div>
-                            <a class="nav-link collapsed" href="#" data-bs-toggle="collapse" data-bs-target="#collapseLayouts" aria-expanded="false" aria-controls="collapseLayouts">
+                            <a class="nav-link" href="{% url 'schools:schooluser_list' %}">
                                 <div class="sb-nav-link-icon"><i class="fas fa-user-graduate"></i></div>
-                                Εγγραφές
-                                <div class="sb-sidenav-collapse-arrow"><i class="fas fa-angle-down"></i></div>
+                                Το Σχολείο Μου
                             </a>
-                            <div class="collapse" id="collapseLayouts" aria-labelledby="headingOne" data-bs-parent="#sidenavAccordion">
-                                <nav class="sb-sidenav-menu-nested nav">
-                                    <a class="nav-link" href="http://127.0.0.1:8000/admin/schools/department/">Περιφερειακές Διευθύνσεις</a>
-                                    <a class="nav-link" href="http://127.0.0.1:8000/admin/schools/school/">Σχολικές Μονάδες</a>
-                                    <a class="nav-link" href="{% url 'schoolsadmin:school_selection' %}">Εγγεγραμμένα Σχολεία</a>
-                                    <a class="nav-link" href="{% url 'schoolsadmin:schools_created_by_admin' %}">Σχολεία Διαχειριστή</a>
-                                </nav>
-                            </div>
-                            <div class="sb-sidenav-menu-heading">Ημερολογιο</div>
-                            <a class="nav-link collapsed" href="#" data-bs-toggle="collapse" data-bs-target="#collapseLayouts2" aria-expanded="false" aria-controls="collapseLayouts2">
-                                <div class="sb-nav-link-icon"><i class="fas fa-stopwatch"></i></div>
-                                Περίοδοι
-                                <div class="sb-sidenav-collapse-arrow"><i class="fas fa-angle-down"></i></div>
-                            </a>
-                            <div class="collapse" id="collapseLayouts2" aria-labelledby="headingOne" data-bs-parent="#sidenavAccordion">
-                                <nav class="sb-sidenav-menu-nested nav">
-                                    <a class="nav-link" href="http://127.0.0.1:8000/admin/reservations/schoolyear/">Σχολικά Έτη</a>
-                                    <a class="nav-link" href="http://127.0.0.1:8000/admin/reservations/reservationperiod/">Περίοδοι Επισκέψεων</a>
-                                    <a class="nav-link" href="http://127.0.0.1:8000/admin/reservations/reservationwindow/">Περίοδοι Κρατήσεων</a>
-                                    <a class="nav-link" href="http://127.0.0.1:8000/admin/reservations/day/">Διαχείριση Αργιών</a>
-                                </nav>
-                            </div>
-                            <a class="nav-link collapsed" href="#" data-bs-toggle="collapse" data-bs-target="#collapseLayouts3" aria-expanded="false" aria-controls="collapseLayouts3">
-                                <div class="sb-nav-link-icon"><i class="far fa-clock"></i></div>
-                                Χρονοθυρίδες
-                                <div class="sb-sidenav-collapse-arrow"><i class="fas fa-angle-down"></i></div>
-                            </a>
-                            <div class="collapse" id="collapseLayouts3" aria-labelledby="headingOne" data-bs-parent="#sidenavAccordion">
-                                <nav class="sb-sidenav-menu-nested nav">
-                                    <a class="nav-link" href="{% url 'reservations:timeslot_res_period_selection' %}">Περιοδικές Χρονοθυρίδες</a>
-                                    <a class="nav-link" href="{% url 'reservations:exceptional_rule_res_period_selection' %}">Κατά Εξαίρεση Χρονοθυρίδες</a>
-                                   </nav>
-                            </div>
                             <div class="sb-sidenav-menu-heading">Κρατησεις</div>
-                            <a class="nav-link" href="{% url 'reservations:handle_reservations' %}">
+                            <a class="nav-link" href="{% url 'reservations:my_reservations' %}">
                                 <div class="sb-nav-link-icon"><i class="far fa-calendar-check"></i></div>
-                                Διαχείριση Κρατήσεων
-                            </a>
-                            <a class="nav-link" href="{% url 'reservations:reservations_created_by_admin' %}">
-                                <div class="sb-nav-link-icon"><i class="fas fa-table"></i></div>
-                                Κρατήσεις Διαχειριστή
-                            </a>
-                            <a class="nav-link" href="{% url 'reservations:calendar_reservations_res_period_selection' %}">
-                                <div class="sb-nav-link-icon"><i class="fas fa-calendar-alt"></i></div>
-                                Ημερολόγιο Κρατήσεων
-                            </a>
-                            <a class="nav-link" href="{% url 'reservations:reservation_dashboard' %}">
-                                <div class="sb-nav-link-icon"><i class="fas fa-columns"></i></div>
-                                Ιστορικό Κρατήσεων
-                            </a>
-                            <a class="nav-link" href="{% url 'reservations:statistics_period_selection' %}">
-                                <div class="sb-nav-link-icon"><i class="fas fa-chart-area"></i></div>
-                                Στατιστικά Στοιχεία
+                                Οι Κρατήσεις Μου
                             </a>
                         </div>
                     </div>

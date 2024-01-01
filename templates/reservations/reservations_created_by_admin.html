@@ -1,0 +1,175 @@
+{% extends '../base/base_admin.html' %}
+
+{% block content %}
+
+    <!-- Custom CSS for DataTables buttons -->
+    <style>
+        /* Custom styles for DataTables buttons */
+        .dataTables_wrapper .dt-buttons {
+            position: relative;
+            float: right;
+        }
+
+        .dataTables_wrapper .dataTables_filter {
+            float: left;
+            margin-right: 10px; /* Adjust the margin as needed */
+        }
+
+        /* Style for the 'excel' button */
+        .dt-button.buttons-excel {
+            color: #fff; /* Text color */
+            background-color: #4caf50; /* Background color */
+            border: 1px solid #4caf50; /* Border color */
+        }
+
+        /* Hover style for the 'excel' button */
+        .dt-button.buttons-excel:hover {
+            background-color: #45a049; /* Hover background color */
+        }
+
+        /* Style for the 'pdf' button */
+        .dt-button.buttons-pdf {
+            color: #fff; /* Text color */
+            background-color: #e18ff5; /* Background color */
+            border: 1px solid #e18ff5; /* Border color */
+        }
+
+        /* Hover style for the 'pdf' button */
+        .dt-button.buttons-pdf:hover {
+            background-color: #0d47a1; /* Hover background color */
+        }
+
+        #reservations-table_length {
+            margin-right: 30px; /* Adjust the margin as needed */
+        }
+
+        #reservations-table_filter {
+            float: right;
+            margin-left: 10px; /* Adjust the margin as needed */
+        }
+
+        #reservations-table_wrapper .dt-buttons {
+            float: right;
+        }
+
+    </style>
+
+
+<div class="container bg-white text-dark d-flex flex-wrap overflow-auto mt-4">
+    <div class="row w-100">
+        <div class="mt-3 d-flex justify-content-center">
+            <h3 class="my-3">Κρατήσεις Διαχειριστή</h3>
+        </div>
+    </div>
+    <div class="row w-100">
+        <div class="mt-3 d-flex justify-content-center">
+            <h5>Συνολικός Αριθμός Κρατήσεων: {{ reservations_created_by_admin_num }}</h5>
+        </div>
+    </div>
+    <div class="row w-100">
+        <div class="my-3">
+            <!-- Display reservations in a table -->
+            <div>
+                <table id="reservations-table" class="table table-striped table-sm">
+                    <thead>
+                        <tr>
+                            <th><small><strong>Περίοδος</strong></small></th>
+                            <th><small><strong>Σχολείο</strong></small></th>
+                            <th><small><strong>Ημερομηνία</strong></small></th>
+                            <th><small><strong>Ώρα</strong></small></th>
+                            <th><small><strong>Αρ. Μαθητών</strong></small></th>
+                            <th><small><strong>Αρ. Εκπαιδευτικών</strong></small></th>
+                            <th><small><strong>ΑΜΕΑ</strong></small></th>
+                            <th><small><strong>Κατάσταση</strong></small></th>
+                            <th><small><strong>Πραγματοποιημένη</strong></small></th>
+                            <th><small><strong>Δημιουργία</strong></small></th>
+                            <!-- <th><small><strong>Ανανέωση</strong></small></th> -->
+                            <th><small><strong></strong></small></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for reservation in reservations_created_by_admin %}
+                            <tr>
+                                <td><small>{{ reservation.reservation_period.name }}</small></td>
+                                <td><small><a href="{% url 'reservations:reservation_details' reservation.id %}">{{ reservation.schoolUser.school.name }}</a></small></td>
+                                <td><small>{{ reservation.reservation_date.date|date:'d/m/Y' }}</small></td>
+                                <td><small>{{ reservation.timeslot.dayTime.slot|time:"H:i" }}</small></td>
+                                <td><small>{{ reservation.student_number }}</small></td>
+                                <td><small>{{ reservation.teacher_number }}</small></td>
+                                <td><small>
+                                    {% if reservation.amea %}
+                                        ΝΑΙ
+                                    {% else%}
+                                        ΟΧΙ
+                                    {% endif %}
+                                </small></td>
+                                <td><small>{{ reservation.get_status_display }}</small></td>
+                                <td><small>
+                                    {% if reservation.is_performed %}
+                                        ΝΑΙ
+                                    {% else%}
+                                        ΟΧΙ
+                                    {% endif %}
+                                </small></td>
+                                <td><small>{{ reservation.created_at|date:'d/m/Y' }}</small></td>
+                                <!-- <td><small>{{ reservation.updated_at|date:'d/m/Y H:i' }}</small></td> -->
+                                <td>
+                                    <a class="btn btn-sm btn-primary h-25 d-inline-block" href="{% url 'reservations:reservation_history' reservation.id %}" role="button"><small>Ιστορικό</small></a>
+                                </td>   
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+
+$(document).ready(function () {
+    $('#reservations-table').DataTable({
+        dom: 'lBfrtip',
+      language: {
+        "sEmptyTable": "Δεν υπάρχουν δεδομένα",
+        "sInfo": "Εμφανίζονται _START_ έως _END_ από _TOTAL_ συνολικά",
+        "sInfoEmpty": "Εμφανίζονται 0 έως 0 από 0 συνολικά",
+        "sInfoFiltered": "(Φιλτράρισμα από _MAX_ συνολικά)",
+        "sInfoPostFix": "",
+        "sInfoThousands": ".",
+        "sLengthMenu": "Δείξε _MENU_ εγγραφές",
+        "sLoadingRecords": "Φόρτωση...",
+        "sProcessing": "Επεξεργασία...",
+        "sSearch": "Αναζήτηση:",
+        "sZeroRecords": "Δεν βρέθηκαν αποτελέσματα",
+        "oPaginate": {
+          "sFirst": "Πρώτη",
+          "sPrevious": "Προηγούμενο",
+          "sNext": "Επόμενο",
+          "sLast": "Τελευταία"
+        },
+        "oAria": {
+          "sSortAscending": ": activate to sort column ascending",
+          "sSortDescending": ": activate to sort column descending"
+        }
+      },
+      buttons: [ {
+            extend: 'excelHtml5',
+            autoFilter: true,
+            sheetName: 'Exported data',
+        },
+        {
+            extend: 'pdfHtml5',
+            orientation: 'landscape',
+            pageSize: 'A4',
+        }
+    ],
+      bInfo: false,    // Disable information display
+      searching: true,
+    });
+  });
+
+</script>
+
+{% endblock %}

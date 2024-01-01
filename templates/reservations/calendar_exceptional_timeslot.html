@@ -70,7 +70,8 @@
             {% for week in month_days %}
                 <tr>
                     {% for day in week %}
-                        <td {% if day.is_vacation %}class="text-muted"{% endif %}>
+                        <td {% if day.is_vacation %}class="text-danger"{% endif %}
+                            {% if day.exceptional_timeslots %}class="text-primary"{% endif %}>
                             <span class="date" data-bs-toggle="modal" data-bs-target="#reservationModal" data-date="{{ day.date|date:'Y-m-d' }}">{{ day.date.day }}</span>
                         </td>
                     {% endfor %}
