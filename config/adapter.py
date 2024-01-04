@@ -1,5 +1,4 @@
 from allauth.account.adapter import DefaultAccountAdapter
-from django.db import IntegrityError
 from django.forms import ValidationError
 from django.contrib.auth import get_user_model
 from django.utils.translation import gettext as _
@@ -39,10 +38,3 @@ class RestrictEmailAdapter(DefaultAccountAdapter):
 
         return password
     
-    def save_user(self, request, user, form, commit=True):
-        try:
-            return super().save_user(request, user, form, commit)
-        except IntegrityError as e:
-            if 'registered' in str(e):
-                raise forms.ValidationError(_("Υπάρχει ήδη χρήστης με αυτή τη διεύθυνση email."))
-            raise

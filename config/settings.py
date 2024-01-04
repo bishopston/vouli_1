@@ -11,6 +11,10 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
 from pathlib import Path
+# from django.utils.translation import gettext_lazy as _
+# from django.core.exceptions import ImproperlyConfigured
+# import os
+# from django import forms
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -193,3 +197,31 @@ SIMPLE_HISTORY_ENFORCE_HISTORY_MODEL_PERMISSIONS = True
 SIMPLE_HISTORY_USE_DATETIME_OFFSET = True
 
 # ACCOUNT_FORMS = {'signup': 'base.forms.CustomSignupForm'}
+
+# LANGUAGES = [
+#     ('el', _('Greek')),
+#     # Add other languages as needed
+# ]
+
+# LOCALE_PATHS = [
+#     os.path.join(BASE_DIR, 'locale'),  # Add the path to your 'locale' folder
+# ]
+
+# # Override default error messages
+
+# DEFAULT_MESSAGES = {
+#     'required': _('Please fill out this field'),
+#     'invalid': _('Enter a valid value'),
+#     'invalid_choice': _('Select a valid choice'),
+#     'max_length': _('Ensure this value has at most {limit_value} characters'),
+#     'min_length': _('Ensure this value has at least {limit_value} characters'),
+#     # Add more error messages as needed
+# }
+
+# if hasattr(forms, 'ValidationError'):
+#     forms.ValidationError.default_error_messages = DEFAULT_MESSAGES
+# else:
+#     raise ImproperlyConfigured(
+#         'You are using an unsupported version of Django. '
+#         'This code requires Django 1.11 or later.'
+#     )
