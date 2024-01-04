@@ -3,7 +3,7 @@
 {% block content %}
 
 
-<div class="container bg-white text-dark d-flex flex-wrap overflow-auto mt-4">
+<div class="container bg-white text-dark d-flex flex-wrap overflow-auto my-3 mx-3">
     <div class="row w-100 mt-4">
         {% if history_changes %}
             <div class="card text-center">
@@ -24,7 +24,7 @@
                 </div>
                 <div class="card-footer text-muted">
                         <p>Δεν υπάρχει ιστορικό αλλαγών για τη συγκεκριμένη κράτηση.</p>
-                    <a href="{{request.META.HTTP_REFERER}}" class="btn btn-primary">Πίσω</a>
+                    <a href="{{request.META.HTTP_REFERER}}" class="btn btn-primary">Επιστροφή</a>
                 </div>
             </div>
         {% endif %}
