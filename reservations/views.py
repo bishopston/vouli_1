@@ -36,13 +36,17 @@ def timeslot_res_period_selection(request):
     context = {}
 
     selected_reservation_period_id = request.GET.get('reservation_period')
+    timeslots = Timeslot.objects.filter(reservation_period=selected_reservation_period_id)
 
     # Check if the Filter button is clicked
     if request.GET.get('filter') == '1' and selected_reservation_period_id:
         # Reset selected values
         form = ReservationCalendarByDateForm()
-        return redirect('reservations:edit_timeslots', reservation_period_id=selected_reservation_period_id)
-    
+        if timeslots:
+            return redirect('reservations:edit_timeslots', reservation_period_id=selected_reservation_period_id)
+        else:
+            return redirect('reservations:add_timeslots', reservation_period_id=selected_reservation_period_id)
+
     if request.GET.get('filter') == '1' and selected_reservation_period_id == '':
         context['error_message'] = 'Πρέπει να διαλέξετε μία περίοδο επισκέψεων'
 
@@ -82,7 +86,7 @@ def add_timeslots(request, reservation_period_id):
                     reservation_period=reservation_period,
                     dayTime=DayTime.objects.get(day=day, slot=hour)
                 )
-        return HttpResponseRedirect(request.path_info)
+        return redirect(reverse('reservations:timeslot_res_period_selection'))
 
     return render(request, 'reservations/add_timeslots.html', {'reservation_period': reservation_period, 'qs_days': qs_days, 'qs_slots': qs_slots})
 
