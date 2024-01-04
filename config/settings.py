@@ -191,3 +191,5 @@ ACCOUNT_ADAPTER = 'config.adapter.RestrictEmailAdapter'
 
 SIMPLE_HISTORY_ENFORCE_HISTORY_MODEL_PERMISSIONS = True
 SIMPLE_HISTORY_USE_DATETIME_OFFSET = True
+
+# ACCOUNT_FORMS = {'signup': 'base.forms.CustomSignupForm'}
