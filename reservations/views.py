@@ -8,6 +8,7 @@ from django.core.serializers import serialize
 from django.http import JsonResponse
 from django.db.models import Q, Sum, IntegerField, F, Value, Count, Case, When
 from django.db.models.functions import Cast
+from django.db import transaction
 from django.contrib import messages
 from django.core.mail import send_mail
 from django.template.loader import render_to_string, get_template
@@ -1087,31 +1088,52 @@ def handle_reservations(request):
     if request.method == 'POST':
         reservation_ids = request.POST.getlist('reservation_ids')
         action = request.POST.get('action')
-        #print('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
-        #print(action)
 
         reservations = Reservation.objects.filter(id__in=reservation_ids)
+        # Get the current user
+        current_user = request.user
 
-        if action == 'approve':
-            reservations.update(status='approved', updated_at=athens_now)
-            #context['approve_message'] = 'Εγκρίνατε με επιτυχία τις επιλεγμένες κρατήσεις.'
-            messages.success(request, 'Εγκρίνατε με επιτυχία τις επιλεγμένες κρατήσεις.')
-            # Send a consolidated email to each user
+        with transaction.atomic():
+            for reservation in reservations:
+
+                if action == 'approve':
+                    reservation.status = 'approved'
+                elif action == 'deny':
+                    reservation.status = 'denied'
+                elif action == 'performed':
+                    reservation.is_performed = True
+                elif action == 'nonperformed':
+                    reservation.is_performed = False
+
+                reservation.updated_at = athens_now
+                reservation.updated_by = current_user
+                reservation.save()
+
+        messages.success(request, f'Επιτυχής ενημέρωση {len(reservations)} κρατήσεων.')
+
+        if action in ['approve', 'deny']:
             send_consolidated_reservation_emails(reservations)
-        elif action == 'deny':
-            reservations.update(status='denied', updated_at=athens_now)
-            #context['deny_message'] = 'Απορρίψατε με επιτυχία τις επιλεγμένες κρατήσεις.'
-            messages.success(request, 'Απορρίψατε με επιτυχία τις επιλεγμένες κρατήσεις.')
-            # Send a consolidated email to each user
-            send_consolidated_reservation_emails(reservations)
-        elif action == 'performed':
-            reservations.update(is_performed=True, updated_at=athens_now)
-            #context['performed_message'] = 'Αλλάξατε με επιτυχία την κατάσταση των επιλεγμένων κρατήσεων σε πραγματοποιημένες.'
-            messages.success(request, 'Αλλάξατε με επιτυχία την κατάσταση των επιλεγμένων κρατήσεων σε πραγματοποιημένες.')
-        elif action == 'nonperformed':
-            reservations.update(is_performed=False, updated_at=athens_now)
-            #context['nonperformed_message'] = 'Αλλάξατε με επιτυχία την κατάσταση των επιλεγμένων κρατήσεων σε μη πραγματοποιημένες.'
-            messages.success(request, 'Αλλάξατε με επιτυχία την κατάσταση των επιλεγμένων κρατήσεων σε μη πραγματοποιημένες.')
+
+        # if action == 'approve':
+        #     reservations.update(status='approved', updated_at=athens_now, updated_by=current_user)
+        #     #context['approve_message'] = 'Εγκρίνατε με επιτυχία τις επιλεγμένες κρατήσεις.'
+        #     messages.success(request, 'Εγκρίνατε με επιτυχία τις επιλεγμένες κρατήσεις.')
+        #     # Send a consolidated email to each user
+        #     send_consolidated_reservation_emails(reservations)
+        # elif action == 'deny':
+        #     reservations.update(status='denied', updated_at=athens_now, updated_by=current_user)
+        #     #context['deny_message'] = 'Απορρίψατε με επιτυχία τις επιλεγμένες κρατήσεις.'
+        #     messages.success(request, 'Απορρίψατε με επιτυχία τις επιλεγμένες κρατήσεις.')
+        #     # Send a consolidated email to each user
+        #     send_consolidated_reservation_emails(reservations)
+        # elif action == 'performed':
+        #     reservations.update(is_performed=True, updated_at=athens_now, updated_by=current_user)
+        #     #context['performed_message'] = 'Αλλάξατε με επιτυχία την κατάσταση των επιλεγμένων κρατήσεων σε πραγματοποιημένες.'
+        #     messages.success(request, 'Αλλάξατε με επιτυχία την κατάσταση των επιλεγμένων κρατήσεων σε πραγματοποιημένες.')
+        # elif action == 'nonperformed':
+        #     reservations.update(is_performed=False, updated_at=athens_now, updated_by=current_user)
+        #     #context['nonperformed_message'] = 'Αλλάξατε με επιτυχία την κατάσταση των επιλεγμένων κρατήσεων σε μη πραγματοποιημένες.'
+        #     messages.success(request, 'Αλλάξατε με επιτυχία την κατάσταση των επιλεγμένων κρατήσεων σε μη πραγματοποιημένες.')
 
         # Redirect to the previous page or any desired URL
         return redirect(reverse('reservations:handle_reservations'))
@@ -1122,7 +1144,6 @@ def handle_reservations(request):
     # })
 
     return render(request, 'reservations/handle_reservations.html', context)
-
 
 # Send a consolidated email to each user
 def send_consolidated_reservation_emails(reservations):
