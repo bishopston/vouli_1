@@ -54,6 +54,15 @@
 
     </style>
 
+    <div class="container-fluid mt-2">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mt-3 mx-3">
+            <li class="breadcrumb-item"><a href="{% url 'base:admin_dashboard' %}">Πίνακας Ελέγχου</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'schoolsadmin:school_selection' %}">Εγγεγραμμένα Σχολεία</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Διεύθυνση {{ dept.name }}</li>
+            </ol>
+        </nav>
+    </div>
 
     <div class="container bg-white text-dark d-flex flex-wrap overflow-auto mt-4">
 

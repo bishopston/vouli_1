@@ -2,6 +2,16 @@
 
 {% block content %}
 
+<div class="container-fluid mt-2">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mt-3 mx-3">
+        <li class="breadcrumb-item"><a href="{% url 'base:admin_dashboard' %}">Πίνακας Ελέγχου</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'reservations:statistics_period_selection' %}">Στατιστικά Στοιχεία</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Έτος {{ school_year.name }}</li>
+        </ol>
+    </nav>
+</div>
+
 <div class="my-3 tab-content justify-content-center">
     <div class="container-fluid px-4">
         <div class="d-flex justify-content-center">

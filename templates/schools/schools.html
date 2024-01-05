@@ -100,8 +100,15 @@
                             {% csrf_token %}
                             <button type="submit" class="btn btn-danger">Delete</button>
                         </form>-->
-                        <a class="btn btn-danger me-3" href="{% url 'schools:schooluser_delete' myschool.id %}" role="button">ΔΙΑΓΡΑΦΗ</a>
-                        <a class="btn btn-success" href="{% url 'schools:schooluser_update' myschool.id %}" role="button">ΤΡΟΠΟΠΟΙΗΣΗ</a>
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <a class="btn btn-danger me-3" href="{% url 'schools:schooluser_delete' myschool.id %}" role="button">ΔΙΑΓΡΑΦΗ</a>
+                                <a class="btn btn-success" href="{% url 'schools:schooluser_update' myschool.id %}" role="button">ΤΡΟΠΟΠΟΙΗΣΗ</a>
+                            </div>
+                            <div>
+                                <a href="{% url 'base:user_dashboard' %}" class="btn btn-outline-primary">Πίνακας Ελέγχου</a>
+                            </div>
+                        </div>
                     </div>
                 </div>
             {% endfor %}

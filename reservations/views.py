@@ -8,6 +8,7 @@ from django.core.serializers import serialize
 from django.http import JsonResponse
 from django.db.models import Q, Sum, IntegerField, F, Value, Count, Case, When
 from django.db.models.functions import Cast
+from django.db import transaction
 from django.contrib import messages
 from django.core.mail import send_mail
 from django.template.loader import render_to_string, get_template
@@ -397,11 +398,13 @@ def my_reservations(request):
 
     #query current school year
     current_school_year = SchoolYear.objects.filter(start_date__lte=athens_now, end_date__gte=athens_now).first()
+    print(f"current_school_year: {current_school_year}")
     if current_school_year:   
         # Use Q objects to handle the OR condition for start and end dates
         query = Q(schoolUser__creator=request.user) & Q(reservation_period__schoolYear=current_school_year)
         # Filter reservations based on the current school year and the user
         my_reservations_current_year_number = len(Reservation.objects.filter(query).exclude(status='denied'))
+        print(f"my_reservations_current_year_number: {my_reservations_current_year_number}")
     else:
         my_reservations_current_year_number = 0
 
@@ -411,9 +414,11 @@ def my_reservations(request):
     
     #ensure that admin has made a ReservationPeriod available
     if len(q) > 0:
-    
+        print(len(q))
         dates = q.values('start_date').order_by('start_date')
+        print(dates)
         closest_available_res_period = q.filter(start_date=dates[0]['start_date'])
+        print(f"closest_available_res_period: {closest_available_res_period}")
 
         try:
             #ensure that user has created a school
@@ -421,16 +426,6 @@ def my_reservations(request):
 
             #ensure that admin has created a ReservationWindow
             if len(ReservationWindow.objects.filter(reservation_period=closest_available_res_period[0])) > 0:
-
-                context = {'my_reservations': my_reservations,
-                        'my_reservations_current_year_number': my_reservations_current_year_number,
-                        'next_available_res_period': closest_available_res_period[0],
-                        'next_available_res_period_start_date': closest_available_res_period[0].start_date,
-                        'next_available_res_period_end_date': closest_available_res_period[0].end_date,
-                        'reservation_allowed': closest_available_res_period[0].reservationwindow_set.first().is_reservation_allowed(),
-                        'my_school': my_school,
-                        'is_superuser': request.user.is_superuser,
-                }
 
                 # need to check if the res period of the already registered user's reservations is the same with the next available res period
                 if my_reservations:
@@ -445,6 +440,16 @@ def my_reservations(request):
                             'my_school': my_school,
                             'is_superuser': request.user.is_superuser,
                         }
+
+                context = {'my_reservations': my_reservations,
+                        'my_reservations_current_year_number': my_reservations_current_year_number,
+                        'next_available_res_period': closest_available_res_period[0],
+                        'next_available_res_period_start_date': closest_available_res_period[0].start_date,
+                        'next_available_res_period_end_date': closest_available_res_period[0].end_date,
+                        'reservation_allowed': closest_available_res_period[0].reservationwindow_set.first().is_reservation_allowed(),
+                        'my_school': my_school,
+                        'is_superuser': request.user.is_superuser,
+                }
 
                 return render(request, 'reservations/myreservations.html', context)
 
@@ -748,16 +753,10 @@ def preview_reservation(request, reservation_period_id, school_user_id):
 
         # Convert the time back to Timeslot instance
         time_str = form_data['timeslot']
-        #print(time_str)
-        #day_str = date  # Assuming date is passed as a query parameter
         selected_date_format = datetime.strptime(date, "%Y-%m-%d")
-        #print(selected_date_format)
         day_of_week = day_of_week_mapping[selected_date_format.strftime('%A')]
-        #print(day_of_week)
         day_time = DayTime.objects.get(day=day_of_week, slot=time_str)
-        #print(day_time)
-        form_data['timeslot'] = Timeslot.objects.filter(dayTime=day_time).first()
-        #print(form_data['timeslot'])
+        form_data['timeslot'] = Timeslot.objects.filter(reservation_period=reservation_period_id, dayTime=day_time).first()
     
     formset = ReservationFormSet(request.POST or None, initial=form_data_list)
 
@@ -835,9 +834,9 @@ def preview_reservation(request, reservation_period_id, school_user_id):
                             selected_date_id = Day.objects.get(date=date).id
 
                             timeslot_instance = form_data.pop('timeslot')  # Remove 'timeslot' from form_data
-                            #print(timeslot_instance)
+                            print(f"timeslot_instance: {timeslot_instance}")
                             timeslot_id = timeslot_instance.id
-                            #print(timeslot_id)
+                            print(f"timeslot_id: {timeslot_id}")
                             Reservation.objects.create(timeslot_id=timeslot_id, 
                                                     reservation_period=ReservationPeriod.objects.get(id=reservation_period_id), 
                                                     schoolUser=SchoolUser.objects.get(id=school_user_id),
@@ -1083,31 +1082,52 @@ def handle_reservations(request):
     if request.method == 'POST':
         reservation_ids = request.POST.getlist('reservation_ids')
         action = request.POST.get('action')
-        #print('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
-        #print(action)
 
         reservations = Reservation.objects.filter(id__in=reservation_ids)
+        # Get the current user
+        current_user = request.user
 
-        if action == 'approve':
-            reservations.update(status='approved', updated_at=athens_now)
-            #context['approve_message'] = 'Εγκρίνατε με επιτυχία τις επιλεγμένες κρατήσεις.'
-            messages.success(request, 'Εγκρίνατε με επιτυχία τις επιλεγμένες κρατήσεις.')
-            # Send a consolidated email to each user
+        with transaction.atomic():
+            for reservation in reservations:
+
+                if action == 'approve':
+                    reservation.status = 'approved'
+                elif action == 'deny':
+                    reservation.status = 'denied'
+                elif action == 'performed':
+                    reservation.is_performed = True
+                elif action == 'nonperformed':
+                    reservation.is_performed = False
+
+                reservation.updated_at = athens_now
+                reservation.updated_by = current_user
+                reservation.save()
+
+        messages.success(request, f'Επιτυχής ενημέρωση {len(reservations)} κρατήσεων.')
+
+        if action in ['approve', 'deny']:
             send_consolidated_reservation_emails(reservations)
-        elif action == 'deny':
-            reservations.update(status='denied', updated_at=athens_now)
-            #context['deny_message'] = 'Απορρίψατε με επιτυχία τις επιλεγμένες κρατήσεις.'
-            messages.success(request, 'Απορρίψατε με επιτυχία τις επιλεγμένες κρατήσεις.')
-            # Send a consolidated email to each user
-            send_consolidated_reservation_emails(reservations)
-        elif action == 'performed':
-            reservations.update(is_performed=True, updated_at=athens_now)
-            #context['performed_message'] = 'Αλλάξατε με επιτυχία την κατάσταση των επιλεγμένων κρατήσεων σε πραγματοποιημένες.'
-            messages.success(request, 'Αλλάξατε με επιτυχία την κατάσταση των επιλεγμένων κρατήσεων σε πραγματοποιημένες.')
-        elif action == 'nonperformed':
-            reservations.update(is_performed=False, updated_at=athens_now)
-            #context['nonperformed_message'] = 'Αλλάξατε με επιτυχία την κατάσταση των επιλεγμένων κρατήσεων σε μη πραγματοποιημένες.'
-            messages.success(request, 'Αλλάξατε με επιτυχία την κατάσταση των επιλεγμένων κρατήσεων σε μη πραγματοποιημένες.')
+
+        # if action == 'approve':
+        #     reservations.update(status='approved', updated_at=athens_now, updated_by=current_user)
+        #     #context['approve_message'] = 'Εγκρίνατε με επιτυχία τις επιλεγμένες κρατήσεις.'
+        #     messages.success(request, 'Εγκρίνατε με επιτυχία τις επιλεγμένες κρατήσεις.')
+        #     # Send a consolidated email to each user
+        #     send_consolidated_reservation_emails(reservations)
+        # elif action == 'deny':
+        #     reservations.update(status='denied', updated_at=athens_now, updated_by=current_user)
+        #     #context['deny_message'] = 'Απορρίψατε με επιτυχία τις επιλεγμένες κρατήσεις.'
+        #     messages.success(request, 'Απορρίψατε με επιτυχία τις επιλεγμένες κρατήσεις.')
+        #     # Send a consolidated email to each user
+        #     send_consolidated_reservation_emails(reservations)
+        # elif action == 'performed':
+        #     reservations.update(is_performed=True, updated_at=athens_now, updated_by=current_user)
+        #     #context['performed_message'] = 'Αλλάξατε με επιτυχία την κατάσταση των επιλεγμένων κρατήσεων σε πραγματοποιημένες.'
+        #     messages.success(request, 'Αλλάξατε με επιτυχία την κατάσταση των επιλεγμένων κρατήσεων σε πραγματοποιημένες.')
+        # elif action == 'nonperformed':
+        #     reservations.update(is_performed=False, updated_at=athens_now, updated_by=current_user)
+        #     #context['nonperformed_message'] = 'Αλλάξατε με επιτυχία την κατάσταση των επιλεγμένων κρατήσεων σε μη πραγματοποιημένες.'
+        #     messages.success(request, 'Αλλάξατε με επιτυχία την κατάσταση των επιλεγμένων κρατήσεων σε μη πραγματοποιημένες.')
 
         # Redirect to the previous page or any desired URL
         return redirect(reverse('reservations:handle_reservations'))

@@ -19,78 +19,91 @@
 
 {% if reservation_period_allowed %}
 
-    <div class="container mt-4">
-        <div class="mt-5 d-flex justify-content-center">
-            <h2 class="mb-4">Επιλογή Ημερομηνίας Κράτησης για την Περίοδο {{ reservation_period.start_date|date:'d/m/Y' }} - {{ reservation_period.end_date|date:'d/m/Y' }}</h2>
+    <div class="container my-4">
+        <div class="row">
+            <div class="mt-5 d-flex justify-content-center">
+                <h3 class="mb-4">Επιλογή Ημερομηνίας Κράτησης για την Περίοδο {{ reservation_period.start_date|date:'d/m/Y' }} - {{ reservation_period.end_date|date:'d/m/Y' }}</h2>
+            </div>
         </div>
 
-        <div class="d-flex justify-content-between my-5">
-            <a href="{% url 'reservations:calendar_month_year' reservation_period_id school_user.id prev_year prev_month %}" class="btn btn-primary">&lt; Προηγούμενο</a>
-            <h3 class="current-month">
-                {% if current_month == 1 %}
-                    Ιανουάριος {{ current_year }}
-                {% elif current_month == 2 %}
-                    Φεβρουάριος {{ current_year }}
-                {% elif current_month == 3 %}
-                    Μάρτιος {{ current_year }}
-                {% elif current_month == 4 %}
-                    Απρίλιος {{ current_year }}
-                {% elif current_month == 5 %}
-                    Μάιος {{ current_year }}
-                {% elif current_month == 6 %}
-                    Ιούνιος {{ current_year }}
-                {% elif current_month == 7 %}
-                    Ιούλιος {{ current_year }}
-                {% elif current_month == 8 %}
-                    Αύγουστος {{ current_year }}
-                {% elif current_month == 9 %}
-                    Σεπτέμβριος {{ current_year }}
-                {% elif current_month == 10 %}
-                    Οκτώβριος {{ current_year }}
-                {% elif current_month == 11 %}
-                    Νοέμβριος {{ current_year }}
-                {% else %}
-                    Δεκέμβριος {{ current_year }}
-                {% endif %}
-            </h2>
-            <a href="{% url 'reservations:calendar_month_year' reservation_period_id school_user.id next_year next_month %}" class="btn btn-primary">Επόμενο &gt;</a>
+        <div class="row">
+            <div class="d-flex justify-content-between my-5">
+                <a href="{% url 'reservations:calendar_month_year' reservation_period_id school_user.id prev_year prev_month %}" class="btn btn-primary">&lt; Προηγούμενο</a>
+                <h3 class="current-month">
+                    {% if current_month == 1 %}
+                        Ιανουάριος {{ current_year }}
+                    {% elif current_month == 2 %}
+                        Φεβρουάριος {{ current_year }}
+                    {% elif current_month == 3 %}
+                        Μάρτιος {{ current_year }}
+                    {% elif current_month == 4 %}
+                        Απρίλιος {{ current_year }}
+                    {% elif current_month == 5 %}
+                        Μάιος {{ current_year }}
+                    {% elif current_month == 6 %}
+                        Ιούνιος {{ current_year }}
+                    {% elif current_month == 7 %}
+                        Ιούλιος {{ current_year }}
+                    {% elif current_month == 8 %}
+                        Αύγουστος {{ current_year }}
+                    {% elif current_month == 9 %}
+                        Σεπτέμβριος {{ current_year }}
+                    {% elif current_month == 10 %}
+                        Οκτώβριος {{ current_year }}
+                    {% elif current_month == 11 %}
+                        Νοέμβριος {{ current_year }}
+                    {% else %}
+                        Δεκέμβριος {{ current_year }}
+                    {% endif %}
+                </h2>
+                <a href="{% url 'reservations:calendar_month_year' reservation_period_id school_user.id next_year next_month %}" class="btn btn-primary">Επόμενο &gt;</a>
+            </div>
         </div>
 
-        <table class="table table-bordered">
-            <thead>
-                <tr>
-                    <th>Δευτέρα</th>
-                    <th>Τρίτη</th>
-                    <th>Τετάρτη</th>
-                    <th>Πέμπτη</th>
-                    <th>Παρασκευή</th>
-                    <th>Σάββατο</th>
-                    <th>Κυριακή</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for week in month_days %}
+        <div class="row">
+            <table class="table table-bordered">
+                <thead>
                     <tr>
-                        <!-- {% for day in week %}
-                            <td {% if day.is_vacation %}class="text-muted"{% endif %}>
-                                <span class="date" data-bs-toggle="modal" data-bs-target="#reservationModal" data-date="{{ day.date|date:'Y-m-d' }}">{{ day.date.day }}</span>
-                            </td>
-                        {% endfor %} -->
-                        {% for day in week %}
-                            {% with availability_percentage=day.availability_percentage %}
-                                <td {% if day.is_vacation %}class="text-danger"{% endif %}
-                                    {% if availability_percentage is not None %}
-                                        class="{% if availability_percentage == 0 %}bg-danger{% elif availability_percentage < 0.25 %}bg-warning{% else %}bg-light{% endif %}"
-                                    {% endif %}>
+                        <th>Δευτέρα</th>
+                        <th>Τρίτη</th>
+                        <th>Τετάρτη</th>
+                        <th>Πέμπτη</th>
+                        <th>Παρασκευή</th>
+                        <th>Σάββατο</th>
+                        <th>Κυριακή</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for week in month_days %}
+                        <tr>
+                            <!-- {% for day in week %}
+                                <td {% if day.is_vacation %}class="text-muted"{% endif %}>
                                     <span class="date" data-bs-toggle="modal" data-bs-target="#reservationModal" data-date="{{ day.date|date:'Y-m-d' }}">{{ day.date.day }}</span>
                                 </td>
-                            {% endwith %}
-                        {% endfor %}
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+                            {% endfor %} -->
+                            {% for day in week %}
+                                {% with availability_percentage=day.availability_percentage %}
+                                    <td {% if day.is_vacation %}class="text-danger"{% endif %}
+                                        {% if availability_percentage is not None %}
+                                            class="{% if availability_percentage == 0 %}bg-danger{% elif availability_percentage < 0.25 %}bg-warning{% else %}bg-light{% endif %}"
+                                        {% endif %}>
+                                        <span class="date" data-bs-toggle="modal" data-bs-target="#reservationModal" data-date="{{ day.date|date:'Y-m-d' }}">{{ day.date.day }}</span>
+                                    </td>
+                                {% endwith %}
+                            {% endfor %}
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="row mt-2">
+            <div class="d-flex justify-content-end">
+                <a href="{% url 'reservations:my_reservations' %}" class="btn btn-outline-primary">Κρατήσεις</a>
+            </div>
+        </div>
     </div>
+
+    
 
 {% else %}
 

@@ -2,6 +2,17 @@
 {% load crispy_forms_tags %}
 
 {% block content %}
+
+<div class="container mt-2">
+  <nav aria-label="breadcrumb">
+      <ol class="breadcrumb mt-3 mx-3">
+      <li class="breadcrumb-item"><a href="{% url 'base:admin_dashboard' %}">Πίνακας Ελέγχου</a></li>
+      <li class="breadcrumb-item active" aria-current="page">Εγγεγραμμένα Σχολεία</li>
+      </ol>
+  </nav>
+</div>
+
+
 <div class=" mx-3 my-3 d-flex justify-content-center">
   <div class="col-md-2"></div>
   <div class="col-md-6">

@@ -132,11 +132,13 @@ def school_reservations_admin(request, school_id):
 
     #query current school year
     current_school_year = SchoolYear.objects.filter(start_date__lte=athens_now, end_date__gte=athens_now).first()
+    print(f"current_school_year: {current_school_year}")
     if current_school_year:   
         # Use Q objects to handle the OR condition for start and end dates
         query = Q(schoolUser=school_id) & Q(reservation_period__schoolYear=current_school_year)
         # Filter reservations based on the current school year and the user
         my_reservations_current_year_number = len(Reservation.objects.filter(query).exclude(status='denied'))
+        print(f"my_reservations_current_year_number: {my_reservations_current_year_number}")
     else:
         my_reservations_current_year_number = 0
 
@@ -147,8 +149,11 @@ def school_reservations_admin(request, school_id):
     #ensure that admin has made a ReservationPeriod available
     if len(q) > 0:
     
+        print(len(q))
         dates = q.values('start_date').order_by('start_date')
+        print(dates)
         closest_available_res_period = q.filter(start_date=dates[0]['start_date'])
+        print(f"closest_available_res_period: {closest_available_res_period[0]}")
 
         try:
             #ensure that user has created a school
@@ -156,15 +161,6 @@ def school_reservations_admin(request, school_id):
 
             #ensure that admin has created a ReservationWindow
             if len(ReservationWindow.objects.filter(reservation_period=closest_available_res_period[0])) > 0:
-
-                context = {'my_reservations': my_reservations,
-                        'my_reservations_current_year_number': my_reservations_current_year_number,
-                        'next_available_res_period': closest_available_res_period[0],
-                        'next_available_res_period_start_date': closest_available_res_period[0].start_date,
-                        'next_available_res_period_end_date': closest_available_res_period[0].end_date,
-                        'reservation_allowed': closest_available_res_period[0].reservationwindow_set.first().is_reservation_allowed(),
-                        'my_school': my_school,
-                }
 
                 # need to check if the res period of the already registered user's reservations is the same with the next available res period
                 if my_reservations:
@@ -177,6 +173,17 @@ def school_reservations_admin(request, school_id):
                             'reservation_allowed': closest_available_res_period[0].reservationwindow_set.first().is_reservation_allowed(),
                             'my_school': my_school,
                         }
+
+                context = {'my_reservations': my_reservations,
+                        'my_reservations_current_year_number': my_reservations_current_year_number,
+                        'next_available_res_period': closest_available_res_period[0],
+                        'next_available_res_period_start_date': closest_available_res_period[0].start_date,
+                        'next_available_res_period_end_date': closest_available_res_period[0].end_date,
+                        'reservation_allowed': closest_available_res_period[0].reservationwindow_set.first().is_reservation_allowed(),
+                        'my_school': my_school,
+                }
+
+
 
                 return render(request, 'schoolsadmin/school_reservations_admin.html', context)
 
