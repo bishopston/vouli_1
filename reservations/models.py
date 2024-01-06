@@ -168,6 +168,10 @@ class Reservation(models.Model):
     # def _history_user(self):
     #     return self.updated_by
 
+    # @_history_user.setter
+    # def _history_user(self, value):
+    #     self.updated_by = value
+
     def __str__(self):
         return f"{self.reservation_date} {self.timeslot}"
 
