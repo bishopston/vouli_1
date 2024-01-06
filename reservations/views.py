@@ -1335,6 +1335,16 @@ def reservation_history(request, reservation_id):
                     False: 'ΟΧΙ', 
                     }
 
+    status_mapping = {
+        'pending': 'εκκρεμής',
+        'denied': 'ακυρωμένη',
+        'approved': 'επιβεβαιωμένη',
+    }
+
+    is_performed_mapping = {True: 'πραγματοποιημένη', 
+                    False: 'μη πραγματοποιημένη', 
+                    }
+
     history_changes = []
 
     # Define the Athens time zone
@@ -1344,21 +1354,21 @@ def reservation_history(request, reservation_id):
         new_record, old_record = reservation.history.all()[i-1], reservation.history.all()[i]
         delta = new_record.diff_against(old_record)
         for change in delta.changes:
-            formatted_time = reservation.history.all()[i].history_date.astimezone(pytz.timezone('Europe/Athens')).strftime("%d/%m/%Y, %H:%M:%S")
+            formatted_time = reservation.history.all()[i-1].history_date.astimezone(pytz.timezone('Europe/Athens')).strftime("%d/%m/%Y, %H:%M:%S")
             if change.field == 'timeslot':
-                history_changes.append("Την {} το πεδίο {} άλλαξε από {} σε {} από τον χρήστη {}".format(formatted_time, field_mapping[change.field], Timeslot.objects.get(id=change.old).dayTime.slot.strftime("%H:%M"), Timeslot.objects.get(id=change.new).dayTime.slot.strftime("%H:%M"), reservation.history.all()[i].updated_by))
+                history_changes.append("Την {} το πεδίο {} άλλαξε από {} σε {} από τον χρήστη {}".format(formatted_time, field_mapping[change.field], Timeslot.objects.get(id=change.old).dayTime.slot.strftime("%H:%M"), Timeslot.objects.get(id=change.new).dayTime.slot.strftime("%H:%M"), reservation.history.all()[i].history_user))
             if change.field == 'reservation_date':
-                history_changes.append("Την {} το πεδίο {} άλλαξε από {} σε {} από τον χρήστη {}".format(formatted_time, field_mapping[change.field], Day.objects.get(id=change.old).date.strftime("%d/%m/%Y"), Day.objects.get(id=change.new).date.strftime("%d/%m/%Y"), reservation.history.all()[i].updated_by))
+                history_changes.append("Την {} το πεδίο {} άλλαξε από {} σε {} από τον χρήστη {}".format(formatted_time, field_mapping[change.field], Day.objects.get(id=change.old).date.strftime("%d/%m/%Y"), Day.objects.get(id=change.new).date.strftime("%d/%m/%Y"), reservation.history.all()[i-1].history_user))
             if change.field == 'amea':
-                history_changes.append("Την {} το πεδίο {} άλλαξε από {} σε {} από τον χρήστη {}".format(formatted_time, field_mapping[change.field], amea_mapping[change.old], amea_mapping[change.new], reservation.history.all()[i].updated_by))
+                history_changes.append("Την {} το πεδίο {} άλλαξε από {} σε {} από τον χρήστη {}".format(formatted_time, field_mapping[change.field], amea_mapping[change.old], amea_mapping[change.new], reservation.history.all()[i-1].history_user))
             if change.field == 'student_number':
-                history_changes.append("Την {} το πεδίο {} άλλαξε από {} σε {} από τον χρήστη {}".format(formatted_time, field_mapping[change.field], change.old, change.new, reservation.history.all()[i].updated_by))
+                history_changes.append("Την {} το πεδίο {} άλλαξε από {} σε {} από τον χρήστη {}".format(formatted_time, field_mapping[change.field], change.old, change.new, reservation.history.all()[i-1].history_user))
             if change.field == 'teacher_number':
-                history_changes.append("Την {} το πεδίο {} άλλαξε από {} σε {} από τον χρήστη {}".format(formatted_time, field_mapping[change.field], change.old, change.new, reservation.history.all()[i].updated_by))                 
+                history_changes.append("Την {} το πεδίο {} άλλαξε από {} σε {} από τον χρήστη {}".format(formatted_time, field_mapping[change.field], change.old, change.new, reservation.history.all()[i-1].history_user))                 
             if change.field == 'status':
-                history_changes.append("Την {} το πεδίο {} άλλαξε από{} σε {} από τον χρήστη {}".format(formatted_time, field_mapping[change.field], change.old, change.new, reservation.history.all()[i].updated_by))                 
+                history_changes.append("Την {} το πεδίο {} άλλαξε από {} σε {} από τον χρήστη {}".format(formatted_time, field_mapping[change.field], status_mapping[change.old], status_mapping[change.new], reservation.history.all()[i-1].history_user))                 
             if change.field == 'is_performed':
-                history_changes.append("Την {} το πεδίο {} άλλαξε από {} σε {} από τον χρήστη {}".format(formatted_time, field_mapping[change.field], change.old, change.new, reservation.history.all()[i].updated_by))                 
+                history_changes.append("Την {} το πεδίο {} άλλαξε από {} σε {} από τον χρήστη {}".format(formatted_time, field_mapping[change.field], is_performed_mapping[change.old], is_performed_mapping[change.new], reservation.history.all()[i-1].history_user))                 
             # if change.field == 'updated_by':
             #     history_changes.append("Την {} το πεδίο {} άλλαξε από {} σε {} από τον χρήστη {}".format(formatted_time, field_mapping[change.field], change.old, change.new, reservation.history.all()[i].updated_by))                 
 
