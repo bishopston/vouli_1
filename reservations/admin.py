@@ -77,9 +77,9 @@ class ExceptionalRule(admin.ModelAdmin):
 
 @admin.register(Reservation)
 class ReservationAdmin(SimpleHistoryAdmin):
-    list_display = ['id', 'reservation_date', 'timeslot']
+    list_display = ['id', 'schoolUser', 'reservation_date', 'timeslot']
     list_filter = ['reservation_period__name','reservation_date__date']
-    ordering = ['reservation_period__name','reservation_date__date', 'timeslot__dayTime__slot']
+    ordering = ['reservation_period__name','reservation_date__date', 'timeslot__dayTime__slot', 'schoolUser__school__name']
 
 @admin.register(ReservationWindow)
 class ReservationWindowAdmin(admin.ModelAdmin):

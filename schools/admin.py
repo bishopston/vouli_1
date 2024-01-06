@@ -4,4 +4,8 @@ from .models import Department, School, SchoolUser
 
 admin.site.register(Department)
 admin.site.register(School)
-admin.site.register(SchoolUser)
+#admin.site.register(SchoolUser)
+
+@admin.register(SchoolUser)
+class SchoolUserAdmin(admin.ModelAdmin):
+    list_display = ['school', 'department', 'creator']

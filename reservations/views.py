@@ -42,7 +42,13 @@ def timeslot_res_period_selection(request):
     if request.GET.get('filter') == '1' and selected_reservation_period_id:
         # Reset selected values
         form = ReservationCalendarByDateForm()
-        return redirect('reservations:edit_timeslots', reservation_period_id=selected_reservation_period_id)
+        timeslots = Timeslot.objects.filter(reservation_period=selected_reservation_period_id)
+        # return redirect('reservations:edit_timeslots', reservation_period_id=selected_reservation_period_id)
+    
+        if timeslots:
+            return redirect('reservations:edit_timeslots', reservation_period_id=selected_reservation_period_id)
+        else:
+            return redirect('reservations:add_timeslots', reservation_period_id=selected_reservation_period_id)
     
     if request.GET.get('filter') == '1' and selected_reservation_period_id == '':
         context['error_message'] = 'Πρέπει να διαλέξετε μία περίοδο επισκέψεων'
@@ -398,13 +404,11 @@ def my_reservations(request):
 
     #query current school year
     current_school_year = SchoolYear.objects.filter(start_date__lte=athens_now, end_date__gte=athens_now).first()
-    print(f"current_school_year: {current_school_year}")
     if current_school_year:   
         # Use Q objects to handle the OR condition for start and end dates
         query = Q(schoolUser__creator=request.user) & Q(reservation_period__schoolYear=current_school_year)
         # Filter reservations based on the current school year and the user
         my_reservations_current_year_number = len(Reservation.objects.filter(query).exclude(status='denied'))
-        print(f"my_reservations_current_year_number: {my_reservations_current_year_number}")
     else:
         my_reservations_current_year_number = 0
 
@@ -414,11 +418,8 @@ def my_reservations(request):
     
     #ensure that admin has made a ReservationPeriod available
     if len(q) > 0:
-        print(len(q))
         dates = q.values('start_date').order_by('start_date')
-        print(dates)
         closest_available_res_period = q.filter(start_date=dates[0]['start_date'])
-        print(f"closest_available_res_period: {closest_available_res_period}")
 
         try:
             #ensure that user has created a school
@@ -834,9 +835,9 @@ def preview_reservation(request, reservation_period_id, school_user_id):
                             selected_date_id = Day.objects.get(date=date).id
 
                             timeslot_instance = form_data.pop('timeslot')  # Remove 'timeslot' from form_data
-                            print(f"timeslot_instance: {timeslot_instance}")
+
                             timeslot_id = timeslot_instance.id
-                            print(f"timeslot_id: {timeslot_id}")
+
                             Reservation.objects.create(timeslot_id=timeslot_id, 
                                                     reservation_period=ReservationPeriod.objects.get(id=reservation_period_id), 
                                                     schoolUser=SchoolUser.objects.get(id=school_user_id),
@@ -1039,6 +1040,7 @@ def update_reservation(request, reservation_id, school_user_id):
             reservationUpdateForm = ReservationUpdateForm(request.POST, instance=update_reservation)
             if reservationUpdateForm.is_valid():
                 reservationUpdateForm.save()
+                print(update_reservation.updated_by)
                 if request.user.is_superuser:
                     return redirect(reverse('schoolsadmin:school_reservations_admin' , kwargs={ 'school_id': schoolUser.id }))
                 else:
@@ -1101,6 +1103,7 @@ def handle_reservations(request):
 
                 reservation.updated_at = athens_now
                 reservation.updated_by = current_user
+                print(current_user)
                 reservation.save()
 
         messages.success(request, f'Επιτυχής ενημέρωση {len(reservations)} κρατήσεων.')
@@ -1263,6 +1266,7 @@ def update_reservation_admin(request, reservation_id):
         else:
             update_reservation.amea = True
         update_reservation.updated_at = athens_now
+        print(request.user)
         update_reservation.updated_by = request.user
         update_reservation.save()
 
@@ -1342,21 +1346,21 @@ def reservation_history(request, reservation_id):
         for change in delta.changes:
             formatted_time = reservation.history.all()[i].history_date.astimezone(pytz.timezone('Europe/Athens')).strftime("%d/%m/%Y, %H:%M:%S")
             if change.field == 'timeslot':
-                history_changes.append("Την {} το πεδίο {} άλλαξε από {} σε {} από τον χρήστη {}".format(formatted_time, field_mapping[change.field], Timeslot.objects.get(id=change.old).dayTime.slot.strftime("%H:%M"), Timeslot.objects.get(id=change.new).dayTime.slot.strftime("%H:%M"), reservation.history.all()[i].updated_by))
+                history_changes.append("Την {} το πεδίο {} άλλαξε από {} σε {} από τον χρήστη {}".format(formatted_time, field_mapping[change.field], Timeslot.objects.get(id=change.old).dayTime.slot.strftime("%H:%M"), Timeslot.objects.get(id=change.new).dayTime.slot.strftime("%H:%M"), reservation.history.all()[i].history_user))
             if change.field == 'reservation_date':
-                history_changes.append("Την {} το πεδίο {} άλλαξε από {} σε {} από τον χρήστη {}".format(formatted_time, field_mapping[change.field], Day.objects.get(id=change.old).date.strftime("%d/%m/%Y"), Day.objects.get(id=change.new).date.strftime("%d/%m/%Y"), reservation.history.all()[i].updated_by))
+                history_changes.append("Την {} το πεδίο {} άλλαξε από {} σε {} από τον χρήστη {}".format(formatted_time, field_mapping[change.field], Day.objects.get(id=change.old).date.strftime("%d/%m/%Y"), Day.objects.get(id=change.new).date.strftime("%d/%m/%Y"), reservation.history.all()[i].history_user))
             if change.field == 'amea':
-                history_changes.append("Την {} το πεδίο {} άλλαξε από {} σε {} από τον χρήστη {}".format(formatted_time, field_mapping[change.field], amea_mapping[change.old], amea_mapping[change.new], reservation.history.all()[i].updated_by))
+                history_changes.append("Την {} το πεδίο {} άλλαξε από {} σε {} από τον χρήστη {}".format(formatted_time, field_mapping[change.field], amea_mapping[change.old], amea_mapping[change.new], reservation.history.all()[i].history_user))
             if change.field == 'student_number':
-                history_changes.append("Την {} το πεδίο {} άλλαξε από {} σε {} από τον χρήστη {}".format(formatted_time, field_mapping[change.field], change.old, change.new, reservation.history.all()[i].updated_by))
+                history_changes.append("Την {} το πεδίο {} άλλαξε από {} σε {} από τον χρήστη {}".format(formatted_time, field_mapping[change.field], change.old, change.new, reservation.history.all()[i].history_user))
             if change.field == 'teacher_number':
-                history_changes.append("Την {} το πεδίο {} άλλαξε από {} σε {} από τον χρήστη {}".format(formatted_time, field_mapping[change.field], change.old, change.new, reservation.history.all()[i].updated_by))                 
+                history_changes.append("Την {} το πεδίο {} άλλαξε από {} σε {} από τον χρήστη {}".format(formatted_time, field_mapping[change.field], change.old, change.new, reservation.history.all()[i].history_user))                 
             if change.field == 'status':
-                history_changes.append("Την {} το πεδίο {} άλλαξε από{} σε {} από τον χρήστη {}".format(formatted_time, field_mapping[change.field], change.old, change.new, reservation.history.all()[i].updated_by))                 
+                history_changes.append("Την {} το πεδίο {} άλλαξε από{} σε {} από τον χρήστη {}".format(formatted_time, field_mapping[change.field], change.old, change.new, reservation.history.all()[i].history_user))                 
             if change.field == 'is_performed':
-                history_changes.append("Την {} το πεδίο {} άλλαξε από {} σε {} από τον χρήστη {}".format(formatted_time, field_mapping[change.field], change.old, change.new, reservation.history.all()[i].updated_by))                 
-            if change.field == 'updated_by':
-                history_changes.append("Την {} το πεδίο {} άλλαξε από {} σε {} από τον χρήστη {}".format(formatted_time, field_mapping[change.field], change.old, change.new, reservation.history.all()[i].updated_by))                 
+                history_changes.append("Την {} το πεδίο {} άλλαξε από {} σε {} από τον χρήστη {}".format(formatted_time, field_mapping[change.field], change.old, change.new, reservation.history.all()[i].history_user))                 
+            # if change.field == 'updated_by':
+            #     history_changes.append("Την {} το πεδίο {} άλλαξε από {} σε {} από τον χρήστη {}".format(formatted_time, field_mapping[change.field], change.old, change.new, reservation.history.all()[i].updated_by))                 
 
     return render(request, 'reservations/reservation_history2.html', {'reservation': reservation, 
                                                                       'history_changes': history_changes, 
@@ -1428,13 +1432,10 @@ def reservation_dashboard(request):
 
     if form.is_valid():
         selected_school_year_id = form.cleaned_data.get('school_year')
-        print(selected_school_year_id)
         selected_reservation_period_id = form.cleaned_data.get('reservation_period')
-        print(selected_reservation_period_id)
         selected_department_id = form.cleaned_data.get('department')
-        print(selected_department_id)
         selected_school_user_id = form.cleaned_data.get('school_user')
-        print(selected_school_user_id)
+
     else:
         print(form.errors)  # Print form errors for debugging
 

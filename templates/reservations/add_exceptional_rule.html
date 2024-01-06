@@ -13,6 +13,17 @@
 
 </style>
 
+<div class="container-fluid mt-2">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mt-3 mx-3">
+        <li class="breadcrumb-item"><a href="{% url 'base:admin_dashboard' %}">Πίνακας Ελέγχου</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'reservations:exceptional_rule_res_period_selection' %}">Κατά Εξαίρεση Χρονοθυρίδες</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'reservations:calendar_timeslot' res_period_id %}">Ημερολόγιο Περιόδου</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Κατα Εξαίρεση Χρονοθυρίδες - {{ selected_day.date|date:'d/m/Y' }}</li>
+        </ol>
+    </nav>
+</div>
+
 <nav aria-label="breadcrumb">
     <div class="container mt-5">
         <div class="d-flex justify-content-center mb-2">
@@ -108,7 +119,7 @@
                                     <label for="select-all">Επιλογή Όλων</label>
                                 </div>
                                 <div>
-                                    <button type="button" class="btn btn-info" data-bs-toggle="popover" data-bs-title="Info" data-bs-content="Δεν μπορείτε να κάνετε μη διαθέσιμες όλες τις χρονοθυρίδες μιας ημέρας."><i class="fas fa-info"></i></button>
+                                    <button type="button" class="btn btn-info" data-bs-toggle="popover" data-bs-title="Info" data-bs-content="Δεν μπορείτε να κάνετε μη διαθέσιμες όλες τις χρονοθυρίδες μιας ημέρας. Μία τουλάχιστον χρονοθυρίδα πρέπει να είναι ενεργή."><i class="fas fa-info"></i></button>
                                 </div>
                             </div>
                         </div>

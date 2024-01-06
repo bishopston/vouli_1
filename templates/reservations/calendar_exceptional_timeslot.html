@@ -17,6 +17,16 @@
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
+<div class="container-fluid mt-2">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mt-3 mx-3">
+        <li class="breadcrumb-item"><a href="{% url 'base:admin_dashboard' %}">Πίνακας Ελέγχου</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'reservations:exceptional_rule_res_period_selection' %}">Κατά Εξαίρεση Χρονοθυρίδες</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Ημερολόγιο Περιόδου {{ reservation_period.name }}</li>
+        </ol>
+    </nav>
+</div>
+
 <div class="container mt-4">
     <div class="mt-5 d-flex justify-content-center">
         <h2 class="mb-4">Ημερολόγιο Χρονοθυρίδων για την Περίοδο {{ reservation_period.start_date|date:'d/m/Y' }} - {{ reservation_period.end_date|date:'d/m/Y' }}</h2>

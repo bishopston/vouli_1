@@ -164,6 +164,10 @@ class Reservation(models.Model):
     updated_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL)
     history = HistoricalRecords()
 
+    # @property
+    # def _history_user(self):
+    #     return self.updated_by
+
     def __str__(self):
         return f"{self.reservation_date} {self.timeslot}"
 

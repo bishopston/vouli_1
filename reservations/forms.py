@@ -262,6 +262,21 @@ class ReservationUpdateForm(forms.ModelForm):
             'amea': 'ΑΜΕΑ',
         }
 
+    def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop('user', None)
+        super(ReservationUpdateForm, self).__init__(*args, **kwargs)
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+
+        if self.user:
+            instance.updated_by = self.user
+
+        if commit:
+            instance.save()
+
+        return instance
+    
 class ReservationUpdateAdminForm(forms.ModelForm):
     # reservation_date = DateField(input_formats=settings.DATE_INPUT_FORMATS)
     class Meta:
@@ -359,6 +374,7 @@ class ReservationUpdateAdminForm(forms.ModelForm):
     
     #timeslot.label = 'ΏΡΑ'
     reservation_date.label = 'ΗΜΕΡΟΜΗΝΙΑ'
+
 
 
 class ReservationDashboardForm(forms.Form):

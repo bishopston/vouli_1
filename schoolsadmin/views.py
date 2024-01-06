@@ -27,7 +27,7 @@ def school_selection(request):
         form = SchoolUserForm()
         return redirect('schoolsadmin:schools_per_department', department_id=department_id)
     
-    if request.GET.get('filter') == '1' and department_id is '':
+    if request.GET.get('filter') == '1' and department_id == '':
         form = SchoolUserForm()
         return redirect('schoolsadmin:all_schools')
 

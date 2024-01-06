@@ -9,7 +9,8 @@
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
         <meta name="description" content="" />
         <meta name="author" content="" />
-        <title>Login - SB Admin</title>
+        <title>Επισκέψεις σχολείων στη Βουλή|Ίδρυμα της Βουλής</title>
+        <link rel="icon" type="image/x-icon" href="{% static 'img/favicon-32x32.png' %}" />
         <link href="{% static '/css/styles_admin.css' %}" rel="stylesheet" />
         <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
     </head>
@@ -36,8 +37,7 @@
                                     <div class="card-body">
                                       <form method="post">
                                         {% csrf_token %}
-                                        {{ form.login|as_crispy_field }}
-                                        {{ form.password|as_crispy_field }}
+                                        {{ form|crispy }}
                                         <div class="row">
                                             <div class="d-flex justify-content-center">
                                                 <button class="btn btn-primary" type="submit">Είσοδος</button>
