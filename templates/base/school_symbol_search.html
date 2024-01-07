@@ -60,16 +60,6 @@
 
     </style>
 
-    <div class="container-fluid mt-2">
-        <nav aria-label="breadcrumb">
-            <ol class="breadcrumb mt-3 mx-3">
-            <li class="breadcrumb-item"><a href="{% url 'base:admin_dashboard' %}">Πίνακας Ελέγχου</a></li>
-            <li class="breadcrumb-item"><a href="{% url 'schoolsadmin:school_selection' %}">Εγγεγραμμένα Σχολεία</a></li>
-            <li class="breadcrumb-item active" aria-current="page">Συνολικά Εγγεγραμμένα Σχολεία</li>
-            </ol>
-        </nav>
-    </div>
-
     <div class="container bg-white text-dark d-flex flex-wrap overflow-auto mt-4">
 
         <div class="row w-100">
@@ -77,10 +67,10 @@
                 <h3 class="my-4">ΣΥΝΟΛΙΚΑ ΕΓΓΕΓΡΑΜΜΕΝΑ ΣΧΟΛΕΙΑ</h3>
             </div>
         </div>
-        {% if school_users %}
+        {% if school_results %}
         <div class="row w-100">
             <div class="mt-3 d-flex justify-content-center">
-                <h5>Aριθμός Σχολείων: {{ school_users_num }}</h5>
+                <h5>Aριθμός Σχολείων: {{ school_results_length }}</h5>
             </div>
         </div>
         <div class="row w-100">
@@ -102,7 +92,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        {% for school_user in school_users %}
+                        {% for school_user in school_results %}
                             <tr>
                                 <td><small>{{ school_user.department.name}}</a></small></td>
                                 <td><small><a href="{% url 'schoolsadmin:schools_details' school_user.id %}">{{ school_user.school.name }}</a></small></td>
