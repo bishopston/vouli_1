@@ -4,19 +4,40 @@
 
 
 {% block content %}
-  <h1 class="mt-2">{% trans "Confirm E-mail Address" %}</h1>
-  {% if confirmation %}
-    {% user_display confirmation.email_address.user as user_display %}
-    <p>{% blocktrans with confirmation.email_address.email as email %}Please confirm
-that <a href="mailto:{{ email }}">{{ email }}</a> is an e-mail address for user
-{{ user_display }}.{% endblocktrans %}</p>
-    <form method="post" action="{% url 'account_confirm_email' confirmation.key %}">
-{% csrf_token %}
-      <button class="btn btn-primary" type="submit">{% trans 'Confirm' %}</button>
-    </form>
-  {% else %}
-    {% url 'account_email' as email_url %}
-    <p>{% blocktrans %}This e-mail confirmation link expired or is invalid. Please
-    <a href="{{ email_url }}">issue a new e-mail confirmation request</a>.{% endblocktrans %}</p>
-  {% endif %}
+
+<div class="container bg-white text-dark d-flex flex-wrap overflow-auto mt-4">
+  <div class="row w-100">
+    <div class="my-3 d-flex justify-content-center">
+      <h3 class="mt-2">{% trans "Επαλήθευση διεύθυνσης e-mail" %}</h3>
+    </div>
+  </div>
+  <div class="row w-100">
+    <div class="my-1 d-flex justify-content-center">
+        {% if confirmation %}
+        {% user_display confirmation.email_address.user as user_display %}
+        <p>{% blocktrans with confirmation.email_address.email as email %}Παρακαλώ επιβεβαιώστε ότι το <a href="mailto:{{ email }}">{{ email }}</a>
+          είναι μια έγκυρη διεύθυνση e-mail για τον χρήστη
+          {{ user_display }}.{% endblocktrans %}
+        </p>
+    </div>
+  </div>
+  <div class="row w-100">
+    <div class="my-3 d-flex justify-content-center">
+      <form method="post" action="{% url 'account_confirm_email' confirmation.key %}">
+        {% csrf_token %}
+        <button class="btn btn-primary mb-2" type="submit">{% trans 'Confirm' %}</button>
+      </form>
+    </div>
+  </div>
+  <div class="row w-100">
+    <div class="my-3 d-flex justify-content-center">
+        {% else %}
+        {% url 'account_email' as email_url %}
+        <p>{% blocktrans %}Αυτός ο σύνδεσμος επιβεβαίωσης e-mail έχει λήξει ή δεν είναι έγκυρος. Παρακαλούμε
+        <a href="{{ email_url }}">να καταχωρίσετε ένα νέο αίτημα για επιβεβαίωση e-mail</a>.{% endblocktrans %}</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
 {% endblock %}

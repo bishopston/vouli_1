@@ -4,9 +4,14 @@
 
 
 {% block content %}
-<div class="mt-2">
-    <h1>{% trans "Verify Your E-mail Address" %}</h1>
-
-    <p>{% blocktrans %}We have sent an e-mail to you for verification. Follow the link provided to finalize the signup process. Please contact us if you do not receive it within a few minutes.{% endblocktrans %}</p>
+<div class="container bg-white text-dark d-flex flex-wrap overflow-auto mt-2">
+    <div class="mt-2 d-flex justify-content-center">
+        <div class="row w-100">
+            <div class="card text-center mt-5">
+                <h3>{% trans "Επιβεβαίωση διεύθυνσης e-mail" %}</h3>
+                <p>{% blocktrans %}Σας έχουμε στείλει ένα e-mail για επιβεβαίωση. Ακολουθείστε τον σύνδεσμο για να ολοκληρώσετε τη διαδικασία εγγραφής. Παρακαλούμε να επικοινωνήσετε μαζί μας αν δε λάβετε τον σύνδεσμο εντός ολίγων λεπτών.{% endblocktrans %}</p>
+            </div>
+        </div>
+    </div>
 </div>
 {% endblock %}
