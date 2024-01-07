@@ -114,9 +114,9 @@
                                 <td><small>{{ reservation.get_status_display }}</small></td>
                                 <td><small>
                                     {% if reservation.is_performed %}
-                                        ΝΑΙ
+                                        Θετικό
                                     {% else%}
-                                        ΟΧΙ
+                                        Αρνητικό
                                     {% endif %}
                                 </small></td>
                                 <td><small>{{ reservation.created_at|date:'d/m/Y' }}</small></td>

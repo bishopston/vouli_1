@@ -159,20 +159,20 @@
                       <td><small>{{ reservation.student_number }}</small></td>
                       <td><small>{{ reservation.teacher_number }}</small></td>
                       <td><small>
-                          {% if reservation.amea %}
-                              ΝΑΙ
-                          {% else%}
-                              ΟΧΙ
-                          {% endif %}
-                      </small></td>
-                      <td><small>{{ reservation.get_status_display }}</small></td>
-                      <td><small>
-                          {% if reservation.is_performed %}
-                              ΝΑΙ
-                          {% else%}
-                              ΟΧΙ
-                          {% endif %}
-                      </small></td>
+                        {% if reservation.amea %}
+                            ΝΑΙ
+                        {% else%}
+                            ΟΧΙ
+                        {% endif %}
+                    </small></td>
+                    <td><small>{{ reservation.get_status_display }}</small></td>
+                    <td><small>
+                        {% if reservation.is_performed %}
+                            Θετικό
+                        {% else%}
+                            Αρνητικό
+                        {% endif %}
+                    </small></td>
                       <td>
                           <a class="btn btn-sm btn-primary h-25 d-inline-block" href="{% url 'reservations:reservation_history' reservation.id %}" role="button"><small>Ιστορικό</small></a>
                       </td>   
