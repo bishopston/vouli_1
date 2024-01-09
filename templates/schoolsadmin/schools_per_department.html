@@ -90,8 +90,8 @@
                             <th><small><strong>ΤΚ</strong></small></th>
                             <th><small><strong>Τηλέφωνο</strong></small></th>
                             <th><small><strong>Email</strong></small></th>
-                            <th><small><strong>Όνομα Διευθυντή</strong></small></th>
-                            <th><small><strong>Επώνυμο Διευθυντή</strong></small></th>
+                            <!-- <th><small><strong>Όνομα Διευθυντή</strong></small></th>
+                            <th><small><strong>Επώνυμο Διευθυντή</strong></small></th> -->
                             <th><small><strong>Ημερομηνία Εγγραφής</strong></small></th>
                             <th></th>
                         </tr>
@@ -106,8 +106,8 @@
                                 <td><small>{{ school_user.zipcode }}</small></td>
                                 <td><small>{{ school_user.phone }}</small></td>
                                 <td><small>{{ school_user.creator.email }}</small></td>
-                                <td><small>{{ school_user.director_name }}</small></td>
-                                <td><small>{{ school_user.director_surname }}</small></td>
+                                <!-- <td><small>{{ school_user.director_name }}</small></td>
+                                <td><small>{{ school_user.director_surname }}</small></td> -->
                                 <td><small>{{ school_user.created_at|date:'d/m/Y' }}</small></td>
                                 <td>
                                     <a class="btn btn-sm btn-outline-primary h-25 d-inline-block" href="{% url 'schoolsadmin:school_reservations' school_user.id %}" role="button"><small>Κρατήσεις</small></a>

@@ -39,6 +39,16 @@
                                         {% csrf_token %}
                                         {{ form|crispy }}
                                         <div class="row">
+                                            <div class="d-flex justify-content-end text-justify">
+                                                <p><small><a href="{% url 'account_reset_password' %}">Ξέχασα το password</a></small></p>
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="d-flex justify-content-center text-justify">
+                                                <p><small>Παρακαλούμε επιβεβαιώστε ότι συμφωνείτε με τους <a href="#">Όρους Χρήσης</a> και την <a href="#">Πολιτική Προστασίας Προσωπικών Δεδομένων</a>.</small></p>
+                                            </div>
+                                        </div>
+                                        <div class="row">
                                             <div class="d-flex justify-content-center">
                                                 <button class="btn btn-primary" type="submit">Είσοδος</button>
                                             </div>

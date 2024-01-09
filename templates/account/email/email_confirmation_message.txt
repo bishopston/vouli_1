@@ -1,0 +1,12 @@
+
+{% load account %}{% user_display user as user_display %}{% load i18n %}{% autoescape off %}
+{% blocktrans with site_name=current_site.name site_domain=current_site.domain %}
+Γεια σας από το {{ site_name }}!
+
+Λαμβάνετε αυτό το e-mail με σκοπό την εγγραφή του χρήστη {{ user_display }} στην πλατφόρμα κρατήσεων για επισκέψεις σχολείων στον χώρο της Βουλής.
+
+Αν είστε σύμφωνοι, παρακαλούμε ακολουθείστε τον σύνδεσμο {{ activate_url }}
+{% endblocktrans %}{% endautoescape %}
+{% blocktrans with site_name=current_site.name site_domain=current_site.domain %}
+Ευχαριστούμε!
+{% endblocktrans %}
