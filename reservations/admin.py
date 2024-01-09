@@ -80,7 +80,8 @@ class ReservationAdmin(SimpleHistoryAdmin):
     list_display = ['id', 'schoolUser', 'reservation_date', 'timeslot']
     list_filter = ['reservation_period__name','reservation_date__date']
     ordering = ['reservation_period__name','reservation_date__date', 'timeslot__dayTime__slot', 'schoolUser__school__name']
+    search_fields = ['schoolUser__school__name']
 
 @admin.register(ReservationWindow)
 class ReservationWindowAdmin(admin.ModelAdmin):
-    list_display = ['start_date', 'end_date', 'reservation_period']
+    list_display = ['reservation_period', 'start_date', 'end_date']
