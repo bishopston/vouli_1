@@ -1584,6 +1584,7 @@ def calendar_reservations(request, reservation_period_id, year=None, month=None)
         for day in week:
             if isinstance(day, Day):
                 day.availability_percentage = calculate_availability_percentage(day.date, reservation_period_id)
+                day.reservations_on_date = Reservation.objects.filter(reservation_date=day)
 
     context = {
         #'current_month': f'{month}/{year}',

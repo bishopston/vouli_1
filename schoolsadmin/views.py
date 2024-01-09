@@ -269,4 +269,4 @@ def SchoolUserCreateView(request):
 
     context = {'form': form}
 
-    return render(request, 'schools/school_add.html', context)
+    return render(request, 'schoolsadmin/school_add.html', context)

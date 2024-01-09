@@ -63,6 +63,16 @@
       float: right;
   }
 
+  .table-responsive td {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        }
+
+    .container {
+        padding: 20px; /* Adjust the container padding as needed */
+    }
+
 </style>
 
 <div class="container mt-2">
@@ -74,9 +84,9 @@
     </nav>
 </div>
 
-<div class="container bg-white text-dark d-flex flex-wrap overflow-auto mt-4">
+<div class="container bg-white text-dark d-flex flex-wrap overflow-auto">
   <div class="row w-100">
-    <div class="my-3 d-flex justify-content-center">
+    <div class="d-flex justify-content-center">
       <h2>Συνολικό Ιστορικό Κρατήσεων</h2>
     </div>
   </div>
@@ -128,7 +138,7 @@
     
   </div>
 
-  <div class="my-5">
+  <div class="table-responsive my-5">
     {% if filter and historical_reservations %}
       <table id="reservations-table" class="table table-striped table-sm">
           <thead>

@@ -97,8 +97,13 @@
             </table>
         </div>
         <div class="row mt-2">
-            <div class="d-flex justify-content-end">
-                <a href="{% url 'reservations:my_reservations' %}" class="btn btn-outline-primary">Κρατήσεις</a>
+            <div class="d-flex justify-content-between">
+                <div>
+                    <button type="button" class="btn btn-warning" data-bs-toggle="popover" data-bs-title="Tip" data-bs-content="Πατήστε σε μία ημερομηνία του ημερολογίου για να μεταφερθείτε στη σελίδα κρατήσεων. Οι ημέρες που έχουν επισημανθεί με κόκκινο χρώμα είναι αργίες.">Info</button>
+                </div>
+                <div>
+                    <a href="{% url 'reservations:my_reservations' %}" class="btn btn-outline-primary">Επιστροφή</a>
+                </div>
             </div>
         </div>
     </div>
@@ -135,6 +140,13 @@
                 window.location.href = url;
             });
         });
+    });
+</script>
+
+<!-- Your script to initialize popovers -->
+<script>
+    $(document).ready(function(){
+        $('[data-bs-toggle="popover"]').popover();  
     });
 </script>
 
