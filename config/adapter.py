@@ -12,9 +12,9 @@ class RestrictEmailAdapter(DefaultAccountAdapter):
             raise ValidationError('Μπορείτε να κάνετε εγγραφή μόνο με email που ανήκει στο domain sch.gr')
         
         # Check if a user with the given email already exists
-        User = get_user_model()
-        if User.objects.filter(email__iexact=email).exists():
-            raise forms.ValidationError(_("Υπάρχει ήδη χρήστης με αυτή τη διεύθυνση email."))
+        # User = get_user_model()
+        # if User.objects.filter(email__iexact=email).exists():
+        #     raise forms.ValidationError(_("Υπάρχει ήδη χρήστης με αυτή τη διεύθυνση email."))
 
         return email
 

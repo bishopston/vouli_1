@@ -1,8 +1,9 @@
 from django.views.generic import TemplateView
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from django.http import JsonResponse
 from .forms import SchoolSearchForm
 from schools.models import SchoolUser
+from accounts.models import CustomUser
 
 class HomePageView(TemplateView):
     template_name = 'base/index.html'
@@ -49,3 +50,7 @@ def SchoolSearchAutoCompleteView(request):
         print(schools)
         return JsonResponse(schools, safe=False)
     return render(request, 'base/school_symbol_search.html')
+
+def AccountEditView(request):
+    user = get_object_or_404(CustomUser, pk=request.user.id)
+    return render(request, 'base/account_edit.html', {'user': user})
