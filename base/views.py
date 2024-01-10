@@ -53,4 +53,7 @@ def SchoolSearchAutoCompleteView(request):
 
 def AccountEditView(request):
     user = get_object_or_404(CustomUser, pk=request.user.id)
-    return render(request, 'base/account_edit.html', {'user': user})
+    if request.user.is_superuser:
+        return render(request, 'base/account_edit_admin.html', {'user': user})
+    else:
+        return render(request, 'base/account_edit.html', {'user': user})

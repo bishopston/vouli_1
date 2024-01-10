@@ -1,0 +1,71 @@
+{% extends '../base/base_admin.html' %}
+
+{% block content %}
+
+<div class="my-3 d-flex justify-content-center">
+    <div class="row">
+        {% if user %}
+                <div class="my-3">
+                    <div class="d-flex justify-content-center mb-1"><h5>ΣΤΟΙΧΕΙΑ ΛΟΓΑΡΙΑΣΜΟΥ</h5></div>
+                    <div class="row">
+                        <div class="d-flex justify-content-center">
+                            <table class="table table-bordered">
+                                <tbody>
+                                    <tr>
+                                        <td nowrap>ΟΝΟΜΑ ΧΡΗΣΤΗ:</td>
+                                        <td nowrap>{{user.username}}</td>												
+                                    </tr>
+                                    <tr>
+                                        <td nowrap>E-MAIL ΧΡΗΣΤΗ:</td>
+                                        <td nowrap>{{user.email}}</td>												
+                                    </tr>
+                                    <tr>
+                                        <td nowrap>ΗΜΕΡΟΜΗΝΙΑ ΕΓΓΡΑΦΗΣ:</td>
+                                        <td nowrap>{{user.date_joined|date:"d/m/Y H:i"}}</td>												
+                                    </tr>
+                                    <tr>
+                                        <td nowrap>ΤΕΛΕΥΤΑΙΑ ΕΙΣΟΔΟΣ:</td>
+                                        <td nowrap>{{user.last_login|date:"d/m/Y H:i"}}</td>												
+                                    </tr>
+                                </tbody>                            
+                            </table>                           
+                        </div>                       
+                    </div>
+                </div>
+    </div>
+
+    {% else %}
+    <div class="row w-100">
+        <div class="my-3">
+            <div class="card mt-5">
+                <div class="card-body">
+                    <div class="d-flex justify-content-center">
+                        <nav aria-label="breadcrumb">
+                            <ol class="breadcrumb">
+                                <li class="breadcrumb-item active" aria-current="page"><strong>Δε βρέθηκε χρήστης</strong></li>
+                            </ol>
+                        </nav>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}    
+</div>
+
+<div class="d-flex justify-content-center mt-1">
+    <div class="row">
+        <ul class="list-group">
+        <li class="list-group-item"><a href="{% url 'account_reset_password' %}" class="card-link">Αλλαγή Password</a></li>
+        <li class="list-group-item"><a href="{% url 'account_logout' %}" class="card-link">Έξοδος</a></li>
+        </ul>
+    </div>
+</div>
+
+<div class="row mt-5">
+    <div class="d-flex justify-content-center">
+        <a href="{% url 'base:admin_dashboard' %}" class="btn btn-primary">ΠΙΝΑΚΑΣ ΕΛΕΓΧΟΥ</a>
+    </div>
+</div>
+
+{% endblock %}

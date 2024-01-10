@@ -95,7 +95,7 @@
 
         {% if messages %}
             {% for message in messages %}
-                {% if forloop.first and "signed" not in message.message %}
+                {% if forloop.first and "αποσυνδεθεί" not in message.message %}
                     <div class="alert alert-success text-center mt-3">
                         {{ message.message }}
                     </div>
