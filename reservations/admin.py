@@ -38,6 +38,7 @@ class ReservationPeriodAdmin(admin.ModelAdmin):
 @admin.register(Timeslot)
 class TimeslotAdmin(admin.ModelAdmin):
     list_display = ['dayTime', 'reservation_period', 'is_reservation_allowed']
+    list_filter = ['reservation_period']
 
 @admin.register(ExceptionalRule)
 class ExceptionalRule(admin.ModelAdmin):

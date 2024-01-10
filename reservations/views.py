@@ -89,7 +89,9 @@ def add_timeslots(request, reservation_period_id):
                     reservation_period=reservation_period,
                     dayTime=DayTime.objects.get(day=day, slot=hour)
                 )
-        return HttpResponseRedirect(request.path_info)
+
+        #return HttpResponseRedirect(request.path_info)
+        return redirect(reverse('reservations:edit_timeslots' , kwargs={ 'reservation_period_id': reservation_period_id }))
 
     return render(request, 'reservations/add_timeslots.html', {'reservation_period': reservation_period, 'qs_days': qs_days, 'qs_slots': qs_slots})
 
@@ -573,8 +575,10 @@ def make_reservation(request, reservation_period_id, school_user_id):
                     query = Q(schoolUser__creator=request.user) & Q(reservation_period__schoolYear=current_school_year)
                     # Filter reservations based on the current school year and the user
                     my_reservations_current_year_number = len(Reservation.objects.filter(query).exclude(status='denied'))
+                    print(my_reservations_current_year_number)
                     if my_reservations_current_year_number:
-                        my_reservation_period = ReservationPeriod.objects.filter(reservation__schoolUser__creator=request.user).first()
+                        my_reservation_period = ReservationPeriod.objects.filter(schoolYear=current_school_year).filter(reservation__schoolUser__creator=request.user).first()
+                        print(my_reservation_period)
                     else:
                         my_reservation_period = res_period
                 else:

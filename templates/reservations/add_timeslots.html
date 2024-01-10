@@ -17,7 +17,7 @@
     <div class="container mt-5">
         <div class="d-flex justify-content-center mb-2">
             <ol class="breadcrumb">
-            <li class="breadcrumb-item active" aria-current="page"><h4>Δημιουργία Χρονοθυρίδων για την Περίοδο Επισκέψεων {{ reservation_period.name }}</h4></li>
+            <li class="breadcrumb-item active" aria-current="page"><h4>Δημιουργία Περιοδικών Χρονοθυρίδων για την Περίοδο Επισκέψεων {{ reservation_period.name }}</h4></li>
             </ol>
         </div>
     </div>
@@ -41,13 +41,15 @@
                                 </ul>
                             {% endif %} -->
                             <div class="row">
-                                <div class="d-flex justify-content-start mb-2">
+                                <div class="d-flex justify-content-between mb-2">
                                     <div class="me-2">
                                         <input type="hidden" name="reservation_period_id" value="{{ reservation_period.id }}">
                                         <input type="checkbox" id="select-all">
-                                    </div>
-                                    <div>
                                         <label for="select-all">Επιλογή Όλων</label>
+                                    </div>
+
+                                    <div>
+                                        <button type="button" class="btn btn-info" data-bs-toggle="popover" data-bs-title="Info" data-bs-content="Πρέπει να προσθέσετε όλες τις περιοδικές χρονοθυρίδες σε μία περίοδο επισκέψεων"><i class="fas fa-info"></i></button>
                                     </div>
                                 </div>
                             </div>
@@ -92,6 +94,13 @@
                     checkbox.checked = document.getElementById('select-all').checked;
                 });
             });
+        });
+    </script>
+
+    <!-- Your script to initialize popovers -->
+    <script>
+        $(document).ready(function(){
+            $('[data-bs-toggle="popover"]').popover();  
         });
     </script>
 
