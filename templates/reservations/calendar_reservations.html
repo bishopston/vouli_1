@@ -28,7 +28,7 @@
 
 <div class="container mt-4">
     <div class="mt-5 d-flex justify-content-center">
-        <h2 class="mb-4">Ημερολόγιο Κρατήσεων για την Περίοδο {{ reservation_period.start_date|date:'d/m/Y' }} - {{ reservation_period.end_date|date:'d/m/Y' }}</h2>
+        <h3 class="mb-4">Ημερολόγιο Κρατήσεων για την Περίοδο {{ reservation_period.start_date|date:'d/m/Y' }} - {{ reservation_period.end_date|date:'d/m/Y' }}</h3>
     </div>
 
     <div class="row">
@@ -84,9 +84,8 @@
                         {% for day in week %}
                             {% with availability_percentage=day.availability_percentage %}
                                 <td {% if day.is_vacation %}class="text-danger"{% endif %}
-                                    {% if day.reservations_on_date %}class="text-primary"{% endif %}
                                     {% if availability_percentage is not None %}
-                                        class="{% if availability_percentage == 0 %}bg-danger{% elif availability_percentage < 0.25 %}bg-warning{% else %}bg-light{% endif %}"
+                                        class="{% if availability_percentage == 0 %}bg-danger{% elif availability_percentage < 0.25 %}bg-warning{% elif availability_percentage < 0.99 %}bg-success{% else %}bg-light{% endif %}"
                                     {% endif %}>
                                     <span class="date" data-bs-toggle="modal" data-bs-target="#reservationModal" data-date="{{ day.date|date:'Y-m-d' }}">{{ day.date.day }}</span>
                                 </td>
@@ -100,7 +99,7 @@
     <div class="row mt-2">
         <div class="d-flex justify-content-between">
             <div>
-                <button type="button" class="btn btn-warning" data-bs-toggle="popover" data-bs-title="Tip" data-bs-content="Πατήστε σε μία ημερομηνία του ημερολογίου για να δείτε τις κρατήσεις της ημέρας. Με μπλε χρώμα έχουν σημειωθεί οι ημέρες στις οποίες έχουν ήδη δημιουργηθεί κρατήσεις.">Info</button>
+                <button type="button" class="btn btn-dark" data-bs-toggle="popover" data-bs-title="Tip" data-bs-content="Πατήστε σε μία ημερομηνία του ημερολογίου για να δείτε τις κρατήσεις της ημέρας. Με μπλε χρώμα έχουν σημειωθεί οι ημέρες στις οποίες έχουν ήδη δημιουργηθεί κρατήσεις.">Info</button>
             </div>
             <div>
                 <a href="{% url 'reservations:calendar_reservations_res_period_selection' %}" class="btn btn-outline-primary">Επιστροφή</a>

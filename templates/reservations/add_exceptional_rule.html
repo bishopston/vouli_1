@@ -44,14 +44,15 @@
                                 <center><p><strong class="text-danger">{{ error_message }}</strong></p></center>
                             {% endif %}
                             <div class="row">
-                                <div class="d-flex justify-content-start mb-2">
+                                <div class="d-flex justify-content-between mb-2">
                                     <div class="me-2">       
                                         <input type="hidden" name="selected_date" value="{{ selected_date }}">
                                         <input type="hidden" name="res_period_id" value="{{ res_period_id }}">                             
                                         <input type="checkbox" id="select-all">
+                                        <label for="select-all">Επιλογή Όλων</label>
                                     </div>
                                     <div>
-                                        <label for="select-all">Επιλογή Όλων</label>
+                                        <button type="button" class="btn btn-info" data-bs-toggle="popover" data-bs-title="Info" data-bs-content="Αν προσθέσετε κατά εξαίρεση χρονοθυρίδες για τη συγκεκριμένη ημέρα, θα πρέπει να προσθέσετε όλες τις χρονοθυρίδες."><i class="fas fa-info"></i></button>
                                     </div>
                                 </div>
                             </div>
@@ -214,7 +215,7 @@
 
                 {% else %}
                 <div class="d-flex justify-content-center">
-                    <h5>Δεν υπάρχουν χρονοθυρίδες για την ημερομηνία {{ selected_day.date|date:'d/m/Y' }}</h5>
+                    <h5>Δεν υπάρχουν κατά εξαίρεση χρονοθυρίδες για την ημερομηνία {{ selected_day.date|date:'d/m/Y' }}</h5>
                 </div>
                 {% endif %} 
             
