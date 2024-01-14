@@ -1248,7 +1248,7 @@ def update_reservation_admin(request, reservation_id):
 
     if request.method == 'POST':
         # form = ReservationUpdateAdminForm(request.POST, instance=update_reservation)
-        reservation_date = request.POST.get('reservation_date')
+        reservation_date = request.POST.get('reservation_date_')
         timeslot = request.POST.get('timeslot')
         student_number = request.POST.get('student_number')
         teacher_number = request.POST.get('teacher_number')
@@ -1270,7 +1270,7 @@ def update_reservation_admin(request, reservation_id):
         else:
             update_reservation.amea = True
         update_reservation.updated_at = athens_now
-        print(request.user)
+        #print(request.user)
         update_reservation.updated_by = request.user
         update_reservation.save()
 
@@ -1283,7 +1283,7 @@ def update_reservation_admin(request, reservation_id):
         #return redirect(reverse('reservations:handle_reservations'))
         return HttpResponseRedirect(next)
     else:
-        form = ReservationUpdateAdminForm(instance=update_reservation)
+        form = ReservationUpdateAdminForm(instance=update_reservation, initial={'reservation_date': update_reservation.reservation_date.date})
 
     return render(request, 'reservations/update_reservations_admin.html', {'form': form, 
                                                             'update_reservation': update_reservation,

@@ -58,18 +58,23 @@
                         {{ reservationDateYear }}
                     </p>       
                     
-                        <form action="{% url 'reservations:update_reservation_admin' update_reservation.id %}" method="post">
-                            {% csrf_token %}
-                            {% for error in form.errors %}
-                            <center><p><strong class="text-danger">Please select a valid {{ error }} value</strong></p></center>
-                            {% endfor %} 
-                            {{ form|crispy }}
-                            <div class="d-flex justify-content-between">
-                                <button type="submit" class="btn btn-success">ΤΡΟΠΟΠΟΙΗΣΗ</button>
-                                <a href="{{request.META.HTTP_REFERER}}" class="btn btn-primary">ΑΚΥΡΟ</a>
-                                <input type="hidden" name="next" value="{{request.META.HTTP_REFERER}}">
-                            </div>
-                        </form>
+                    <form action="{% url 'reservations:update_reservation_admin' update_reservation.id %}" method="post">
+                        {% csrf_token %}
+                        {% for error in form.errors %}
+                        <center><p><strong class="text-danger">Please select a valid {{ error }} value</strong></p></center>
+                        {% endfor %} 
+                        {{ form.reservation_date_|as_crispy_field }}
+                        {{ form.timeslot|as_crispy_field }}
+                        {{ form.student_number|as_crispy_field }}
+                        {{ form.teacher_number|as_crispy_field }}
+                        {{ form.amea|as_crispy_field }}
+                        <div class="d-flex justify-content-between">
+                            <button type="submit" class="btn btn-success">ΤΡΟΠΟΠΟΙΗΣΗ</button>
+                            <a href="{{request.META.HTTP_REFERER}}" class="btn btn-primary">ΑΚΥΡΟ</a>
+                            <input type="hidden" name="next" value="{{request.META.HTTP_REFERER}}">
+                        </div>
+                    </form>
+                    
                     
                 </div>
             </div>

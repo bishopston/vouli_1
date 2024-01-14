@@ -180,7 +180,11 @@
                         {{ formset.management_form }}
                         {% for form in formset %}
                             <div class="formset-form">
-                                {{ form|crispy }}
+                                {{ form.timeslot|as_crispy_field }}
+                                {{ form.student_number|as_crispy_field }}
+                                {{ form.teacher_number|as_crispy_field }}
+                                {{ form.amea|as_crispy_field }}
+                                {{ form.terms_accepted|as_crispy_field }}
                             </div>
                         {% endfor %}
                         <div class="d-flex justify-content-between">

@@ -6,6 +6,7 @@ from django.db.models import Q
 from django.forms.widgets import SelectDateWidget
 from django.conf import settings
 from django.urls import reverse
+from django.utils.safestring import mark_safe
 from .models import ReservationPeriod, Timeslot, Reservation, ExceptionalRule, Day, SchoolYear
 from schools.models import Department, SchoolUser
 from .utils import get_occupied_daytimes, get_allowed_daytimes, get_occupied_exceptional_daytimes, get_allowed_exceptional_daytimes
@@ -30,7 +31,8 @@ class ReservationForm(forms.ModelForm):
             'student_number': 'Αριθμός Μαθητών',
             'teacher_number': 'Αριθμός Εκπαιδευτικών',
             'amea': 'Συμμετοχή ΑΜΕΑ',
-            'terms_accepted': 'Αποδοχή Όρων'
+            #'terms_accepted': 'Αποδοχή Όρων'
+            'terms_accepted': ''
         }
 
     def __init__(self, *args, **kwargs):
@@ -50,6 +52,8 @@ class ReservationForm(forms.ModelForm):
             'required': 'Πρέπει να συμπληρώσετε τον αριθμό των εκπαιδευτικών.'
         }
 
+        link_label = '<a href="#">Αποδοχή Όρων</a>'
+        self.fields['terms_accepted'].label = mark_safe(link_label)
 
 
         if reservation_period and selected_date:
@@ -136,6 +140,7 @@ class ReservationForm(forms.ModelForm):
     #         if not cleaned_data.get('terms_accepted'):
     #             self.add_error('terms_accepted', 'This field is required.')
     #     return cleaned_data
+                
 
 class BaseReservationFormSet(BaseFormSet):
     def __init__(self, *args, **kwargs):
@@ -226,7 +231,13 @@ class BaseReservationFormSet(BaseFormSet):
             raise ValidationError("Συμπληρώστε τουλάχιστον μία φόρμα για να πραγματοποιήσετε την κράτηση.")
         
 
+    # def clean_terms_accepted(self):
+    #     terms_accepted = self.cleaned_data.get('terms_accepted')
 
+    #     if not terms_accepted:
+    #         raise ValidationError('Πρέπει να αποδεχτείτε τους όρους συμμετοχής.')
+
+    #     return terms_accepted
 
 
 class CustomAdminDateWidget(AdminDateWidget):
@@ -290,37 +301,27 @@ class ReservationUpdateAdminForm(forms.ModelForm):
             'amea': 'ΑΜΕΑ',
         }
         widgets = {
-        #     'reservation_date': forms.DateInput(attrs={'type': 'date'}),
             'timeslot': forms.Select(),  
         }
 
-
-
-
-    reservation_date = forms.DateField(
-        widget=forms.DateInput(attrs={'type': 'date'})
+    reservation_date_ = forms.DateField(
+        widget=forms.DateInput(attrs={'type': 'date'}),
     )
-
-    # timeslot = forms.ModelChoiceField(
-    #     #queryset=Timeslot.objects.filter(dayTime__day=day_of_week).filter(reservation_period=Reservation.objects.filter(reservation_date__date=reservation_date)[0].reservation_period.id),
-    #     queryset=Timeslot.objects.all().distinct('dayTime__slot'),
-    #     widget=forms.Select(),  # You can customize the widget if needed
-    # )
-
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        instance = getattr(self, 'instance', None)
+        #instance = getattr(self, 'instance', None)
+        instance = kwargs.get('instance')
+        print(instance)
+        print(instance.reservation_date)
+        print(instance.reservation_date.date)
         if instance and instance.reservation_date:
             # Preselect the date associated with the reservation
-            self.initial['reservation_date'] = instance.reservation_date.date
-        # if instance and instance.timeslot:
-        #     # Preselect the date associated with the reservation
-        #     self.initial['timeslot'] = instance.timeslot.dayTime.slot.strftime("%H:%M")
-
+            self.initial['reservation_date_'] = instance.reservation_date.date.strftime('%Y-%m-%d')
+            
         # Update the queryset for timeslot based on the selected reservation_date
-        reservation_date = self['reservation_date'].value()
-        print(reservation_date)
+        reservation_date_ = self['reservation_date_'].value()
+        print(reservation_date_)
 
         day_of_week_mapping = {
             'Monday': 'a',
@@ -332,48 +333,15 @@ class ReservationUpdateAdminForm(forms.ModelForm):
             'Sunday': 'g',
         }
 
-        # selected_date_format = datetime.strptime(selected_date, "%Y-%m-%d")
+        selected_date_format = datetime.strptime(reservation_date_, "%Y-%m-%d")
 
-        day_of_week = day_of_week_mapping[reservation_date.strftime('%A')]
+        day_of_week = day_of_week_mapping[selected_date_format.strftime('%A')]
 
         #query timeslots of specific res period
-        if reservation_date:
-            self.fields['timeslot'].queryset = Timeslot.objects.filter(dayTime__day=day_of_week).filter(reservation_period=Reservation.objects.filter(reservation_date__date=reservation_date)[0].reservation_period.id)
+        if reservation_date_:
+            self.fields['timeslot'].queryset = Timeslot.objects.filter(dayTime__day=day_of_week).filter(reservation_period=Reservation.objects.filter(reservation_date__date=reservation_date_)[0].reservation_period.id)
 
-
-        # if instance and instance.timeslot:
-        #     # Update the queryset to include only the preselected timeslot
-        #     self.fields['timeslot'].queryset = Timeslot.objects.filter(pk=instance.timeslot.pk)
-
-        # self.fields['reservation_date'].widget = forms.widgets.DateInput(
-        #     attrs={
-        #         'type': 'date', 'placeholder': 'dd-mm-yyyy (DOB)',
-        #         'class': 'form-control'
-        #         }
-        #     )
-
-    # def __init__(self, *args, **kwargs):
-    #     super().__init__(*args, **kwargs)
-    #     instance = getattr(self, 'instance', None)
-    #     if instance and instance.reservation_date:
-    #         # Set the initial value for reservation_date
-    #         self.initial['reservation_date'] = instance.reservation_date.date
-
-    # reservation_date = forms.ModelChoiceField(
-    #     queryset=Day.objects.all(),
-    #     widget=SelectDateWidget(attrs={'class': 'form-control'}),
-    #     empty_label=None  # Remove the empty label from the dropdown
-    # )
-
-    # def __init__(self, *args, **kwargs):
-    #     super().__init__(*args, **kwargs)
-    #     instance = getattr(self, 'instance', None)
-    #     if instance and instance.reservation_date:
-    #         # Preselect the date associated with the reservation
-    #         self.initial['reservation_date'] = instance.reservation_date
-    
-    #timeslot.label = 'ΏΡΑ'
-    reservation_date.label = 'ΗΜΕΡΟΜΗΝΙΑ'
+    reservation_date_.label = 'ΗΜΕΡΟΜΗΝΙΑ'
 
 
 
